@@ -1,0 +1,30 @@
+- name: pre-set Postfix to install w/o configuration
+  debconf:  name=postfix question="postfix/main_mailer_type"
+            value="'No configuration'" vtype="string"
+
+- name: install postfix
+  package: name=postfix state=present force=yes
+  notify: restart postfix
+
+- name: update rc.d to start postfix at boot time
+  command: update-rc.d postfix defaults
+  register: results
+  changed_when: result.stdout != ""
+
+- name: set global options for postfix
+  lineinfile: dest=/etc/postfix/main.cf
+              regexp="^{{ item.key }}\s*"
+              line="{{ item.key }} = {{ item.value }}"
+              state=present create=yes owner=root mode=0644
+  with_items: "{{ postfix_global_options | union( postfix_extra_options | default([]) ) }}"
+
+  notify: restart postfix
+
+- name: set aliases
+  lineinfile: 'dest=/etc/aliases
+              regexp="^{{ item.user }}:.*"
+              line="{{ item.user }}: {{ item.alias }}"
+              state=present create=yes'
+  with_items: "{{ post_aliases|default([]) }}"
+
+  notify: rehash aliases

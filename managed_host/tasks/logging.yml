@@ -1,0 +1,23 @@
+- name: install rsyslog
+  apt: package=rsyslog
+
+- name: install logrotate
+  apt: package=logrotate
+
+- name: install logcheck
+  apt: package=logcheck
+
+- name: do not use FQDN in subject of logcheck emails
+  lineinfile: line="FQDN=0"
+              regexp="^\s*FQDN\s*=.*"
+              dest="/etc/logcheck/logcheck.conf"
+
+- name: symlinking extra ignore configurations for logcheck
+  register: symlink_logcheck_ignore_files
+  shell: 'ln -vsf /opt/admintools/etc/logcheck/ignore.d.{{item}}/* /etc/logcheck/ignore.d.{{item}}'
+  failed_when: symlink_logcheck_ignore_files.rc != 0
+  with_items:
+     - server
+
+- name: remove broken symlinks from logcheck's configuration
+  shell: find /etc/logcheck -xtype l -delete

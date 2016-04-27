@@ -1,0 +1,7 @@
+- name: update and fully upgrade currently installed packages
+  apt: upgrade=full update_cache=yes cache_valid_time=3600
+       # >= 2.1: autoremove=yes
+  tags:
+    apt-upgrade
+
+# cannot use needrestart here since it might not yet be installed

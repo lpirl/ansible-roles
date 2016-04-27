@@ -1,0 +1,24 @@
+- name: set node port
+  ini_file: dest="{{ tahoe_basedir }}/node/tahoe.cfg"
+            section=node
+            option=tub.port
+            value='{{ node_port }}'
+  notify: restart node
+
+- name: set node location
+  ini_file: dest="{{ tahoe_basedir }}/node/tahoe.cfg"
+            section=node
+            option=tub.location
+            value='{{ node_location }}:{{ node_port }},AUTO'
+  notify: restart node
+
+- name: start node at boot
+  cron: name="start tahoe node at boot"
+        special_time=reboot
+        job="{{ tahoe_bin }} start '{{ tahoe_basedir }}/node/'"
+
+- name: start node daily (in case it crashed)
+  cron: name="start node daily (in case it crashed)"
+        hour="{{ 24 |random }}"
+        minute="{{ 60 |random }}"
+        job="{{ tahoe_bin }} start '{{ tahoe_basedir }}/node/' > /dev/null 2>&1"

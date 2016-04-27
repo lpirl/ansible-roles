@@ -1,0 +1,36 @@
+- name: set default character set for MySQL clients and CLI
+  ini_file: dest="/etc/mysql/conf.d/default-character-set.cnf"
+            section={{item}}
+            option=default-character-set
+            value=utf8
+            mode=644
+  notify: restart mysqld
+  with_items:
+    - client
+    - mysql
+
+
+
+- name: set MySQL server character set
+  ini_file: dest="/etc/mysql/conf.d/default-character-set.cnf"
+            section=mysqld
+            option=character-set-server
+            value=utf8
+            mode=644
+  notify: restart mysqld
+
+- name: set default collation for MySQL server
+  ini_file: dest="/etc/mysql/conf.d/default-character-set.cnf"
+            section=mysqld
+            option=collation-server
+            value=utf8_general_ci
+            mode=644
+  notify: restart mysqld
+
+- name: set character set names in connections to the MySQL server
+  ini_file: dest="/etc/mysql/conf.d/default-character-set.cnf"
+            section=mysqld
+            option=init-connect
+            value='"SET NAMES utf8"'
+            mode=644
+  notify: restart mysqld

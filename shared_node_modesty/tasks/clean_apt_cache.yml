@@ -1,0 +1,11 @@
+- name: create shell scripts for weekly clearing of apt cache
+  lineinfile:   dest=/etc/cron.weekly/10apt_cache_clean
+                line='#!/bin/sh'
+                insertbefore=BOF
+                create=yes
+                mode=700
+
+- name: set up weekly clearing of apt cache
+  lineinfile: dest=/etc/cron.weekly/10apt_cache_clean
+          line='aptitude clean || true'
+          create=yes

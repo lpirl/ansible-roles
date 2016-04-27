@@ -1,0 +1,199 @@
+- name: add comment about ssh hardening tutorial
+  lineinfile: line="# SSH hardening (2015) https://stribika.github.io/2015/01/04/secure-secure-shell.html"
+              dest="/etc/ssh/sshd_config"
+              insertbefore=BOF
+
+
+# ---------- BEGIN: check password auth ----------
+
+- name: check if password authentication for root disabled (JUST FAILS IF NOT)
+  when: not sshd_allow_password_auth
+  shell: 'egrep "^PermitRootLogin\s+" /etc/ssh/sshd_config|egrep -v "(without-password|no)"'
+  register: result
+  changed_when: False
+  failed_when: "result.rc != 1"
+  ignore_errors: yes
+
+- name: check if challenge-response authentication disabled (JUST FAILS IF NOT)
+  when: not sshd_allow_password_auth
+  shell: 'egrep "^ChallengeResponseAuthentication\s+" /etc/ssh/sshd_config|grep -v no'
+  register: result
+  changed_when: False
+  failed_when: "result.rc != 1"
+  ignore_errors: yes
+
+- name: check if password authentication disabled  (JUST FAILS IF NOT)
+  when: not sshd_allow_password_auth
+  shell: 'egrep "^PasswordAuthentication\s+" /etc/ssh/sshd_config|grep -v no'
+  register: result
+  changed_when: False
+  failed_when: "result.rc != 1"
+  ignore_errors: yes
+
+- name: check if empty password are disabled  (JUST FAILS IF NOT)
+  when: not sshd_allow_password_auth
+  shell: 'egrep "^PermitEmptyPasswords\s+" /etc/ssh/sshd_config|grep -v no'
+  register: result
+  changed_when: False
+  failed_when: "result.rc != 1"
+  ignore_errors: yes
+
+# ----------   END: check password auth ----------
+
+
+# ---------- BEGIN: version checks ----------
+
+- name: check ssh version to be 6.7 or later
+  register: ssh_ge6p7
+  shell: 'T="OpenSSH_6.7"; [ "`echo "$T\n$(ssh -V 2>&1 | cut -d, -f1)" | sort | head -n1`" = "$T" ]'
+  changed_when: false
+  failed_when: false
+
+- name: check ssh version to be 6.6
+  register: ssh_6p6
+  command: bash -c '[[ "$(ssh -V 2>&1)" = "OpenSSH_6.6"[.p]* ]]'
+  changed_when: false
+  failed_when: false
+
+- name: check ssh version to be 6.0 or less
+  register: ssh_lt6p0
+  shell: 'T="OpenSSH_6.1"; [ "`echo "$T\n$(ssh -V 2>&1 | cut -d, -f1)" | sort | tail -n1`" = "$T" ]'
+  changed_when: false
+  failed_when: false
+
+# ----------   END: version checks ----------
+
+
+# ---------- BEGIN: version specific configuration ----------
+
+- name: restricting supported key exchange protocols for server (>=6.6)
+  lineinfile: line="KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256{{sshd_extra_kex}}"
+              regexp="^#?KexAlgorithms\s.*"
+              dest="/etc/ssh/sshd_config"
+              insertafter="^\s*HostKey\s.*"
+  when: (ssh_ge6p7.rc == 0 or ssh_6p6.rc == 0)
+  notify: restart sshd
+
+- name: restricting supported key exchange protocols for server (<6.0)
+  lineinfile: line="KexAlgorithms diffie-hellman-group-exchange-sha256{{sshd_extra_kex}}"
+              regexp="^#?KexAlgorithms\s.*"
+              dest="/etc/ssh/sshd_config"
+              insertafter="^\s*HostKey\s.*"
+  when: ssh_lt6p0.rc == 0
+  notify: restart sshd
+
+
+
+- name: disable bad authentication algorithm DSA
+  lineinfile: state=absent
+              regexp="^\s*HostKey\s.*_dsa_.*"
+              dest="/etc/ssh/sshd_config"
+  notify: restart sshd
+
+- name: disabling DSA host key
+  register: disable_dsa_host_key_result
+  shell: "find /etc/ssh -iname '*_dsa_*' -not -name '*INSECURE*' -exec rename -v 's/(.*)/$1.INSECURE_{{ ansible_date_time.iso8601 }}/' {} \\;"
+  changed_when: disable_dsa_host_key_result.stdout != ""
+  notify: restart sshd
+
+- name: disable bad authentication algorithm ECDSA
+  lineinfile: state=absent
+              regexp="^\s*HostKey\s.*_ecdsa_.*"
+              dest="/etc/ssh/sshd_config"
+  when: ssh_needs_ecdsa_host_key == False
+  notify: restart sshd
+
+
+
+- name: enable good authentication algorithm Ed25519 (>=6.7)
+  lineinfile: line="HostKey /etc/ssh/ssh_host_ed25519_key"
+              regexp="^\s*HostKey\s.*_ed25519_.*"
+              insertafter="^\s*HostKey\s.*"
+              dest="/etc/ssh/sshd_config"
+  when: ssh_ge6p7.rc == 0
+  notify: restart sshd
+
+- name: check if Ed25519 host key exists
+  register: check_ed25519_host_key
+  stat: path=/etc/ssh/ssh_host_ed25519_key
+
+- name: create Ed25519 host key
+  shell: ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -N ""
+  when: ssh_ge6p7.rc == 0 and check_ed25519_host_key.stat.exists == false
+  notify: restart sshd
+
+
+
+- name: enable good authentication algorithm RSA
+  lineinfile: line="HostKey /etc/ssh/ssh_host_rsa_key"
+              regexp="^\s*HostKey\s.*_rsa_.*"
+              insertafter="^\s*HostKey\s.*"
+              dest="/etc/ssh/sshd_config"
+  notify: restart sshd
+
+- name: check if RSA host key exists
+  register: check_rsa_host_key
+  stat: path=/etc/ssh/ssh_host_rsa_key
+
+- name: create RSA host key
+  shell: ssh-keygen -t rsa -b 8192 -f /etc/ssh/ssh_host_rsa_key -N ""
+  when: check_rsa_host_key.stat.exists == false
+  notify: restart sshd
+
+
+
+- name: check RSA host key length
+  register: check_rsa_host_key_length
+  shell: '[ `ssh-keygen -lf /etc/ssh/ssh_host_rsa_key.pub | cut -d" " -f1` -lt 4096 ]'
+  changed_when: false
+  failed_when: false
+
+- name: disable insecure RSA host key (too short)
+  register: disable_rsa_host_key_result
+  shell: "find /etc/ssh -iname '*_rsa_*' -not -name '*INSECURE*' -exec rename -v 's/(.*)/$1.INSECURE_{{ ansible_date_time.iso8601 }}/' {} \\;"
+  changed_when: disable_rsa_host_key_result.stdout != ""
+  when: check_rsa_host_key_length.rc == 0
+  notify: restart sshd
+
+- name: re-create RSA host key
+  shell: ssh-keygen -t rsa -b 8192 -f /etc/ssh/ssh_host_rsa_key -N ""
+  when: check_rsa_host_key_length.rc == 0
+  notify: restart sshd
+
+
+
+- name: restricting supported symmetric ciphers for server (>=6.6)
+  lineinfile: line="Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"
+              regexp="^#?Ciphers\s.*"
+              dest="/etc/ssh/sshd_config"
+              insertafter="^\s*HostKey\s.*"
+  when: ssh_ge6p7.rc == 0 or ssh_6p6.rc == 0
+  notify: restart sshd
+
+- name: restricting supported symmetric ciphers for server (<=6.0)
+  lineinfile: line="Ciphers aes256-ctr,aes192-ctr,aes128-ctr"
+              regexp="^#?Ciphers\s.*"
+              dest="/etc/ssh/sshd_config"
+              insertafter="^\s*HostKey\s.*"
+  when: ssh_lt6p0.rc == 0
+  notify: restart sshd
+
+
+
+- name: restricting supported message authentication codes for server (>=6.6)
+  lineinfile: line="MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-ripemd160-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,hmac-ripemd160{{sshd_extra_macs}}"
+              regexp="^#?MACs\s.*"
+              dest="/etc/ssh/sshd_config"
+              insertafter="^\s*HostKey\s.*"
+  when: ssh_ge6p7.rc == 0 or ssh_6p6.rc == 0
+  notify: restart sshd
+
+- name: restricting supported message authentication codes for server (<=6.0)
+  lineinfile: line="MACs hmac-sha2-512-96,hmac-sha2-512,hmac-sha2-256,hmac-ripemd160{{sshd_extra_macs}}"
+              regexp="^#?MACs\s.*"
+              dest="/etc/ssh/sshd_config"
+              insertafter="^\s*HostKey\s.*"
+  when: ssh_lt6p0.rc == 0
+  notify: restart sshd
+
+# ---------- END:   version specific configuration ----------

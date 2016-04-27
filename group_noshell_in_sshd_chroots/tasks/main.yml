@@ -1,0 +1,87 @@
+- name: add user group for users without shell but with sftp and rsync access
+  group: name=noshell state=present
+
+- name: create parent directory for sshd chroots
+  file: path="{{ sshd_chroot_basepath }}" state=directory
+        owner=root group=root mode=755
+
+- name: configure ssh server to chroot group noshell
+  lineinfile: dest=/etc/ssh/sshd_config line="{{ item }}"
+              insertafter="Match group noshell"
+  with_items:
+    - "Match group noshell"
+    - "\tChrootDirectory \"{{ sshd_chroot_basepath }}/%u\""
+    - "\tAuthorizedKeysFile \"{{ sshd_chroot_basepath }}/%u/%h/.ssh/authorized_keys\""
+    - "\tX11Forwarding no"
+    - "\tAllowTcpForwarding no"
+  notify: restart sshd
+
+- name: configure ssh server to use it's own sftp subsystem
+  lineinfile: dest=/etc/ssh/sshd_config
+              regexp="^Subsystem\s+sftp\s+.*"
+              line="Subsystem sftp /usr/lib/openssh/sftp-server"
+  notify: restart sshd
+
+- name: install restricted shell rssh
+  package: name=rssh state=present
+
+- name: enable allowed commands in rssh
+  lineinfile: dest=/etc/rssh.conf line="{{ item }}"
+              regexp=".*{{ item }}.*"
+  with_items:
+    - allowsftp
+    - allowrsync
+
+- name: disable forbidden commands in rssh
+  lineinfile: dest=/etc/rssh.conf regexp=".*{{ item }}.*"
+              line="#{{ item }}"
+  with_items:
+    - allowcvs
+    - allowrdist
+    - allowsvnserve
+    # scp has too many dependencies (/etc/passwd, /dev/{tty,null}, …):
+    - allowscp
+
+- name: install Python 3
+  package: name=python3 state=present
+
+- name: check out grequalizer
+  git: repo=https://github.com/lpirl/grequalizer
+       dest=/opt/grequalizer
+       force=yes
+
+- name: configure grequalizer
+  ini_file: dest="{{ grequalizer_conf_file }}"
+            section="{{ item.section }}"
+            option="{{ item.option }}"
+            value="{{ item.value }}"
+  with_items: "{{ grequalizer_conf }}"
+
+- name: set files to copy to chroots
+  lineinfile: dest="{{ grequalizer_files2chroot_file }}"
+              line="{{ item }}"  create=yes mode=600
+  with_items:
+    - /etc/rssh.conf
+    - /dev/null
+
+- name: set binaries to copy to chroots
+  lineinfile: dest="{{ grequalizer_binaries2chroot_file }}"
+              line="{{ item }}" create=yes mode=600
+  with_items:
+    - /usr/bin/rsync
+    - /usr/bin/rssh
+
+- name: create empty script file for daily run of grequalizer
+  lineinfile:   dest="{{ grequalizer_cron_script }}" regexp="^#!.*"
+                state=present create=yes mode=u+x insertbefore=BOF
+                line='#!/bin/bash'
+
+- name: add command to script for daily run of grequalizer
+  lineinfile:   dest="{{ grequalizer_cron_script }}" state=present
+                regexp=".*python.*grequalizer.*"
+                line='python3 -O /opt/grequalizer/grequalizer.py
+                      "{{ grequalizer_conf_file }}"'
+
+- name: run grequalizer
+  command: python3 -O /opt/grequalizer/grequalizer.py
+                      "{{ grequalizer_conf_file }}"

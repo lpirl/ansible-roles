@@ -1,0 +1,35 @@
+# make sure the fit in a line like "a,b,c{sshd_extra_macs}
+sshd_extra_macs: ""
+sshd_extra_kex: ""
+ssh_needs_ecdsa_host_key: False
+sshd_allow_password_auth: False
+
+postfix_global_options:
+    - {key: smtpd_banner, value: $myhostname ESMTP}
+    - {key: biff, value: "no"}
+    - {key: readme_directory, value: "no"}
+    - {key: append_dot_mydomain, value: "no"}
+    - {key: delay_warning_time, value: 1h}
+    - {key: recipient_delimiter, value: +}
+
+    - {key: alias_maps, value: "hash:/etc/aliases"}
+    - {key: alias_database, value: "hash:/etc/aliases"}
+
+    - {key: mynetworks, value: "127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128"}
+
+    # SMTP SSL
+    - {key: smtp_tls_session_cache_database, value: "btree:${data_directory}/smtp_scache"}
+    - {key: smtp_tls_security_level, value: may}
+    - {key: smtp_tls_protocols, value: "!SSLv2, !SSLv3"}
+
+    # apple mail may send very long lines:
+    - {key: line_length_limit, value: 2048}
+
+# Example to add Postfix options (put this into your Playbook):
+#    - postfix_extra_options:
+#      - {key: line_length_limit, value: 4096}
+
+# Example to set post aliases (put this into your Playbook):
+#    - post_aliases:
+#      - { user: "{{ ansible_env.USER }}",
+#          alias: "{{ ansible_fqdn }}+{{ ansible_env.USER }}@lukas-pirl.de"}

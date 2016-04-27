@@ -1,0 +1,5 @@
+- name: increase allowed scsi timout to 5 minutes
+  lineinfile:
+    line='DRIVER=="sd", SUBSYSTEM=="scsi", ENV{DEVTYPE}=="scsi_device", ATTR{timeout}="300"'
+    dest="/etc/udev/rules.d/90-scsi_timeout.rules"
+    create=yes

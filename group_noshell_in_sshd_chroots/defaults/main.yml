@@ -1,0 +1,39 @@
+sshd_chroot_basepath: /srv/sshd_chroots
+grequalizer_cron_script: /etc/cron.daily/grequalizer
+grequalizer_conf_basepath: /root/
+grequalizer_conf_file: "{{grequalizer_conf_basepath}}/grequalizer.conf"
+grequalizer_files2chroot_file: "{{grequalizer_conf_basepath}}/grequalizer_files2chroot.txt"
+grequalizer_binaries2chroot_file: "{{grequalizer_conf_basepath}}/grequalizer_binaries2chroot.txt"
+
+# this becomes less cluttered once
+# https://github.com/ansible/ansible/pull/9563 is merged:
+grequalizer_conf:
+  - {section: main, option: home_path , value: /srv/sshd_chroots/$u}
+  - {section: main, option: simulate, value: no}
+  - {section: main, option: limit_to_primary_group, value: yes}
+  - {section: main, option: primary_group_name, value: noshell}
+  - {section: main, option: minimum_users_count, value: 1}
+  - {section: home_existence, option: check, value: yes}
+  - {section: home_existence, option: correct, value: yes}
+  - {section: home_owner, option: check, value: yes}
+  - {section: home_owner, option: correct, value: yes}
+  - {section: home_owner, option: owner, value: root}
+  - {section: home_group, option: check, value: yes}
+  - {section: home_group, option: correct, value: yes}
+  - {section: home_group, option: group, value: root}
+  - {section: home_permissions, option: check, value: yes}
+  - {section: home_permissions, option: correct, value: yes}
+  - {section: home_permissions, option: octal_permissions, value: 755}
+  - {section: obsolete_homes, option: check, value: no}
+  - {section: home_files, option: check, value: yes}
+  - {section: home_files, option: correct, value: yes}
+  - {section: home_files, option: file_list, value: "{{ grequalizer_files2chroot_file }}"}
+  - {section: home_binaries_with_libs, option: check, value: yes}
+  - {section: home_binaries_with_libs, option: correct, value: yes}
+  - {section: home_binaries_with_libs, option: file_list, value: "{{ grequalizer_binaries2chroot_file }}"}
+  - {section: user_home, option: check, value: yes}
+  - {section: user_home, option: correct, value: yes}
+  - {section: user_home, option: home_path, value: /}
+  - {section: user_shell, option: check, value: yes}
+  - {section: user_shell, option: correct, value: yes}
+  - {section: user_shell, option: shell, value: /usr/bin/rssh}

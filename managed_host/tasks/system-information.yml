@@ -1,0 +1,2 @@
+- name: install lshw
+  apt: package=lshw

@@ -1,0 +1,8 @@
+- name: install rkhunter
+  apt: package=rkhunter
+
+- name: install unhide (for rkhunter)
+  apt: package=unhide
+
+- name: install chkrootkit
+  apt: package=chkrootkit

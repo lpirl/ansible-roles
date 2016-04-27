@@ -1,0 +1,10 @@
+- name: check out admintools git
+  git: repo=https://github.com/lpirl/admintools.git
+       dest=/opt/admintools
+       force=yes
+
+- name: ensure admintools is owned by root
+  file: path=/opt/admintools owner=root group=root recurse=yes
+
+- name: ensure permissions for admintools
+  file: path=/opt/admintools mode=u=rwx,g=rx,o=rx,a-s recurse=yes

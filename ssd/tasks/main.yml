@@ -1,0 +1,2 @@
+- include: check_tmpfs_mounts.yml
+- include: mount_tmpfs_on_home_cache_dirs.yml

@@ -1,0 +1,33 @@
+- name: install apticron
+  package: name=apticron state=present
+
+- name: install needrestart
+  package: name=needrestart state=present
+
+- name: make needrestart default to list services only
+  lineinfile: dest=/etc/needrestart/conf.d/list-services-only.conf
+              line="$nrconf{restart} = 'l';"
+              state=present create=yes mode=0644
+
+- name: make needrestart default to list required reboots only
+  lineinfile: dest=/etc/needrestart/conf.d/list-required-reboots-only.conf
+              regexp="\$nrconf\{kernelhints\}"
+              line="$nrconf{kernelhints} = -1;"
+              state=present create=yes mode=0644
+
+- name: restart services using outdated libraries
+  shell: needrestart -lra 2>/dev/null
+  register: result
+  changed_when: "result.stdout != ''"
+
+- name: check for pending kernel updates
+  command: needrestart -bk
+  register: needrestart_result
+  changed_when: False
+
+- name: email root if machine needs a reboot
+  # non-recent versions of needrestart read from stdin if newer kernels
+  # are available, since we use '_b'
+  shell: needrestart -bk | mail -s "$(hostname -f) needs a reboot" root
+  # see https://github.com/ansible/ansible/issues/2769:
+  when: "'NEEDRESTART-KSTA: 3' in '{{ needrestart_result.stdout }}'"

@@ -1,0 +1,5 @@
+- name: set helper furl
+  ini_file: dest="{{ tahoe_basedir }}/node/tahoe.cfg"
+            section=client
+            option=helper.furl
+            value='{{ helper_furl }}'

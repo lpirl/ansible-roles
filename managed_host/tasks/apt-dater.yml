@@ -1,0 +1,49 @@
+- name: install apt-dater client
+  apt: package=apt-dater-host
+
+- name: install sudo
+  apt: package=sudo
+
+- name: create apt-dater user
+  user: name=apt-dater
+
+- name: allow the apt-dater user to use aptitude, apt-get and needrestart
+  lineinfile: " dest=/etc/sudoers.d/apt-dater-host
+                regexp='^apt-dater ALL=NOPASSWD:.*'
+                line='apt-dater ALL=NOPASSWD: /usr/bin/apt-get, /usr/bin/aptitude, /usr/sbin/needrestart'
+                create=yes mode=0440"
+
+- name: make sure there are no other sudo grants for the apt-dater user
+  shell: "[ `sudo -lU apt-dater | grep -c NOPASSWD` -eq 1 ]"
+  changed_when: false
+
+- name: getting apt-dater's home…
+  register: apt_dater_home
+  command: echo ~apt-dater
+  changed_when: false
+  failed_when: apt_dater_home.stdout == ""
+
+- name: make sure apt-dater's ~/.ssh directory exists
+  file: path="{{ apt_dater_home.stdout}}/.ssh"
+        state=directory mode=700 owner=apt-dater group=nogroup
+
+- name: check if we are root or sudo'ed
+  register: check_root_login
+  shell: '[ -z "$SUDO_USER" ]'
+  changed_when: false
+  failed_when: false
+
+- name: copy authorized key from the root user to apt-dater
+  command: cp /root/.ssh/authorized_keys {{ apt_dater_home.stdout}}/.ssh/authorized_keys
+  when: check_root_login.rc == 0
+
+- stat: path={{ ansible_env.HOME }}/.ssh/authorized_keys
+  register: authorized_keys_file
+
+- name: copy authorized key from the user to apt-dater
+  command: cp {{ ansible_env.HOME }}/.ssh/authorized_keys {{ apt_dater_home.stdout}}/.ssh/authorized_keys
+  when: check_root_login.rc != 0 and authorized_keys_file.stat.exists == True
+
+- name: set rights on apt-dater's authorized keys file
+  file: path={{ apt_dater_home.stdout}}/.ssh/authorized_keys
+        mode=600 owner=apt-dater group=nogroup

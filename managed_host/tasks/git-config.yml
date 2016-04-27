@@ -1,0 +1,4 @@
+- name: default git configuration for current user
+  file: src=/opt/admintools/gitconfig
+        dest=~/.gitconfig
+        state=link

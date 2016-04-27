@@ -1,0 +1,23 @@
+# we use /etc/cron.daily instead of crontab since it is compatible
+# with anacron
+
+- name: create script file for daily backups
+  lineinfile:   dest="{{ rsync_backup_script }}" regexp="^#!.*"
+                state=present create=yes mode=u+x insertbefore=BOF
+                line='#!/bin/bash'
+  when: configure_rsync_backup
+
+- name: add command to script for daily backups
+  lineinfile:   dest="{{ rsync_backup_script }}" state=present
+                regexp=".*/opt/admintools/backup_to_sftp\.sh.*\"{{ item.local_dir }}\".*\"{{ item.remote_dir }}\".*"
+                line='/opt/admintools/backup_to_sftp.sh
+                        -p {{ rsync_backup_remote_port }}
+                        -s "{{ item.local_dir }}"
+                          "{{ rsync_backup_remote_host }}"
+                          "{{ item.remote_dir }}"'
+  with_items: "{{ rsync_backup_dir_pairs }}"
+  when: configure_rsync_backup
+
+- name: delete rsync backup script if backup is disabled
+  file: path="{{ rsync_backup_script }}" state=absent
+  when: not configure_rsync_backup

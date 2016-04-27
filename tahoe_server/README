@@ -1,0 +1,9 @@
+Creates a Tahoe-LAFS client (i.e. part of the grid), started at boot.
+
+(In p2p, an always-on client is basically a server)
+
+It won't offer services by default.
+
+This is a more abstract role because the node does nothing per default.
+Therefore, it is probably useless to use this role directly.
+Rather, use a role that is implicating this one (storage, wui etc.).

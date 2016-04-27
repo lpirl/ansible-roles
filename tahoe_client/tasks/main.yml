@@ -1,0 +1,9 @@
+- name: check if node exists
+  stat: path={{ tahoe_basedir }}/node
+  register: check_node_dir
+
+- name: create new node
+  command: "tahoe create-client -C {{ tahoe_basedir }}/node"
+  when: check_node_dir.stat.exists == false
+
+- include: configuration.yml

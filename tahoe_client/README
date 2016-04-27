@@ -1,0 +1,3 @@
+Creates a Tahoe-LAFS node that is part of the grid.
+
+Use case: a client that backups to the grid.

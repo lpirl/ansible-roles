@@ -1,0 +1,42 @@
+- name: install nginx
+  apt: package=nginx-light
+
+- name: install apache2 utils (htpasswd)
+  apt: package=apache2-utils
+
+- name: provide default nginx configuration
+  copy: src=etc/nginx/nginx.conf
+        dest=/etc/nginx/nginx.conf
+        force=yes
+        backup=yes
+
+- name: remove nginx default host
+  file: dest=/etc/nginx/sites-enabled/default
+        state=absent
+
+- name: provide nginx proxy host configuration for tahoe
+  copy: src=etc/nginx/sites-available/tahoe-proxy
+        dest=/etc/nginx/sites-available/tahoe-proxy
+        force=yes
+        mode=600
+
+- name: set external port for WUI in nginx configuration
+  replace:  dest=/etc/nginx/sites-available/tahoe-proxy
+            regexp='^(\s*listen\s+.*)80(.*)$'
+            replace="\\g<1>{{ wui_external_port }}\\g<2>"
+
+- name: enable nginx proxy host configuration for tahoe
+  file: src=../sites-available/tahoe-proxy
+        dest=/etc/nginx/sites-enabled/tahoe-proxy
+        state=link
+
+- name: create empty htpasswd for basic authentication
+  lineinfile:   dest="/etc/nginx/htpasswd"
+                create=yes
+                line=""
+                group=www-data
+                mode=640
+
+# TODO: use handler
+- name: restarting nginx
+  command: service nginx restart

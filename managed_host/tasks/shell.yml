@@ -1,0 +1,21 @@
+- name: install zsh
+  apt: package=zsh
+
+- name: provide system wide zsh configuration
+  file: src=/opt/admintools/etc/zsh/zshrc
+        dest=/etc/zsh/zshrc
+        state=link
+        mode=744
+
+- name: make zsh the default shell for new users
+  lineinfile: dest=/etc/default/useradd
+              regexp='^SHELL='
+              line='SHELL=/usr/bin/zsh'
+              state=present
+
+- name: set zsh as shell for the current user (if not root)
+  user: name='{{ansible_user_id}}' shell=/usr/bin/zsh
+  when: ansible_user_id != "root"
+
+- name: set zsh as shell for root
+  user: name=root shell=/usr/bin/zsh

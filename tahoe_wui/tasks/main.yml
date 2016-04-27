@@ -1,0 +1,5 @@
+- name: enable the WUI
+  ini_file: dest="{{ tahoe_basedir }}/node/tahoe.cfg"
+            section=node
+            option=web.port
+            value='{{ web_port }}'

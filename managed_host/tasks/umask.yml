@@ -1,0 +1,27 @@
+- name: set default umask to 077 (PAM)
+  register: set_umask_pam
+  lineinfile: dest=/etc/pam.d/common-session
+              regexp='session\s+optional\s+pam_umask.so\s+umask=077'
+              line='session    optional     pam_umask.so umask=077'
+              create=no
+
+- name: set default umask to 077 (profile)
+  register: set_umask_profile
+  lineinfile: dest=/etc/profile
+              regexp='\s*umask 077'
+              line='umask 077'
+              create=yes
+
+- name: set default umask to 077 (login.defs)
+  register: set_umask_logindefs
+  lineinfile: dest=/etc/login.defs
+              regexp='^UMASK\s+[0-9]+'
+              line='UMASK           077'
+              create=yes
+
+- name: check umask for root to be at least 026
+  register: root_umask_result
+  shell:  "sh -c '[ $(umask) -ge 26 ]'"
+  changed_when: "1 == 0"
+  failed_when: root_umask_result.rc != 0
+  when: not set_umask_pam.changed and not set_umask_profile.changed

@@ -1,0 +1,5 @@
+- name: check if /tmp mounted as tmpfs
+  register: tmpfs_tmp
+  shell:  "mount | grep '^tmpfs' | grep '/tmp'"
+  failed_when: tmpfs_tmp.stdout == ''
+  changed_when: False

@@ -1,0 +1,6 @@
+- name: make apt not installing 'Suggests' and 'Recommends' by default
+  file: src=/opt/admintools/etc/apt/apt.conf.d/99MinimalInstalls
+        dest=/etc/apt/apt.conf.d/99MinimalInstalls
+        state=link
+
+# TODO: use redirecting Debian APT repository http://httpredir.debian.org/debian/

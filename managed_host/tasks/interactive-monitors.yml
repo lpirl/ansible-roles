@@ -1,0 +1,22 @@
+- name: install process manager htop
+  apt: package=htop
+
+- name: ensure htop's configuration directory exists for current user (if not root)
+  file: path=~/.config/htop/ state=directory
+  when: ansible_user_id != "root"
+- name: provide default config for htop for current user (if not root)
+  file: src=/opt/admintools/htoprc dest=~/.config/htop/htoprc
+        force=no state=link
+  when: ansible_user_id != "root"
+
+- name: ensure htop's configuration directory exists for root
+  file: path=/root/.config/htop/ state=directory
+- name: provide default config for htop for root
+  file: src=/opt/admintools/htoprc dest=/root/.config/htop/htoprc
+        force=no state=link
+
+- name: install iftop
+  apt: package=iftop
+
+- name: install nmon
+  apt: package=nmon
