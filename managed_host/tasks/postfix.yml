@@ -8,7 +8,7 @@
 
 - name: update rc.d to start postfix at boot time
   command: update-rc.d postfix defaults
-  register: results
+  register: result
   changed_when: result.stdout != ""
 
 - name: set global options for postfix
