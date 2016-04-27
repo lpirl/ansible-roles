@@ -1,17 +1,12 @@
-This repository contains my personal Ansible roles.
+This repository contains my personal Ansible roles for Debian(-based) systems.
 
-**They do not intend to be generic and ready-to-use.**
+**They do not intend to be generic and ready to use.**
 
 However, fell free to read/use/extend them and to contact me if you have
 any questions.
 
-----
-
 Please make sure you read and understand every role before running
 it. Otherwise, you'll possibly loose something you love.
 
-Ah, did anyone tell you already to always have recent backups?
+If you *do* run them, have recent backups.
 
-* default target systems
-    * apt-based
-    * Debian(-based)
