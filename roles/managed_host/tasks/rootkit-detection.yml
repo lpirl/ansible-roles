@@ -1,0 +1,29 @@
+- name: download packed rkhunter sources ({{ rkhunter_version }})
+  get_url:
+    dest=/tmp/rkhunter.tar.gz
+    url=https://sourceforge.net/projects/rkhunter/files/rkhunter/{{ rkhunter_version }}/rkhunter-{{ rkhunter_version }}.tar.gz/download
+
+- name: unpack rkhunter
+  unarchive: copy=no
+             src=/tmp/rkhunter.tar.gz
+             dest=/tmp/
+
+- name: remove packed rkhunter sources
+  file: path=/tmp/rkhunter.tar.gz state=absent
+
+- name: create rkhunter's temporary installation directory
+  file: path=/tmp/rkhunter state=directory
+
+- name: install rkhunter (temporarily)
+  command: ./installer.sh --layout custom /tmp/rkhunter --install
+           chdir=/tmp/rkhunter-{{ rkhunter_version }}
+
+- name: remove unpacked rkhunter sources
+  file: path=/tmp/rkhunter-{{ rkhunter_version }} state=absent
+
+- name: run rkhunter
+  command: ./rkhunter --cronjob chdir=/tmp/rkhunter/bin
+  failed_when: false
+
+- name: remove temporary rkhunter installation
+  file: path=/tmp/rkhunter state=absent

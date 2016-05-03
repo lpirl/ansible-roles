@@ -1,0 +1,21 @@
+- name: uninstall system packages for rootkit detection
+        (malicious software will probably detect those anyway)
+  package: name={{ item }} state=absent
+  with_items:
+    - rkhunter
+    - unhide
+    - chkrootkit
+
+
+- name: checkout lynis
+  git: repo=https://github.com/CISOfy/lynis.git
+       dest=/tmp/lynis
+       force=yes
+
+- name: run lynis
+  shell: 'cd /tmp/lynis &&
+          ./lynis audit system -Q --no-colors |
+            mail -s "$(hostname) hardening report" root'
+
+- name: remove lynis
+  file: path=/tmp/lynis state=absent

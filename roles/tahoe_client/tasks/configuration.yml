@@ -1,0 +1,48 @@
+- name: provide default configuration
+  copy: src=tahoe-default.cfg
+        dest="{{ tahoe_basedir }}/node/tahoe.cfg"
+        force=no
+
+- name: set node nickname
+  ini_file: dest="{{ tahoe_basedir }}/node/tahoe.cfg"
+            section=node
+            option=nickname
+            value='{{ ansible_nodename|default(ansible_fqdn) }}'
+
+- name: set introducer furl
+  ini_file: dest="{{ tahoe_basedir }}/node/tahoe.cfg"
+            section=client
+            option=introducer.furl
+            value='{{ introducer_furl }}'
+
+- name: set keepalive
+  ini_file: dest="{{ tahoe_basedir }}/node/tahoe.cfg"
+            section=node
+            option=timeout.keepalive
+            value=60
+
+- name: set default mutable format
+  ini_file: dest="{{ tahoe_basedir }}/node/tahoe.cfg"
+            section=client
+            option=mutable.format
+            value=mdmf
+
+############################ encoding ############################
+
+- name: set encoding parameter shares.total
+  ini_file: dest="{{ tahoe_basedir }}/node/tahoe.cfg"
+            section=client
+            option=shares.total
+            value="{{tahoe_shares_total}}"
+
+- name: set encoding parameter shares.happy
+  ini_file: dest="{{ tahoe_basedir }}/node/tahoe.cfg"
+            section=client
+            option=shares.happy
+            value="{{tahoe_shares_happy}}"
+
+- name: set encoding parameter shares.needed
+  ini_file: dest="{{ tahoe_basedir }}/node/tahoe.cfg"
+            section=client
+            option=shares.needed
+            value="{{tahoe_shares_needed}}"
