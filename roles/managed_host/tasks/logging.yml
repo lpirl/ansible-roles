@@ -5,7 +5,10 @@
   apt: package=logrotate
 
 - name: install logcheck
-  apt: package=logcheck
+  apt: package={{ item }}
+  with_items:
+    - logcheck
+    - logcheck-database
 
 - name: do not use FQDN in subject of logcheck emails
   lineinfile: line="FQDN=0"
