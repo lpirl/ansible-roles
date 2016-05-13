@@ -1,11 +1,18 @@
 - name: install zsh
-  apt: package=zsh
+  package: name=zsh state=present
+
+- stat: path=/etc/zsh/zshrc
+  register: conf_stat
+
+- name: backup and remove zsh configuration
+  command: "mv /etc/zsh/zshrc
+               /etc/zsh/zshrc.BAK_ansible_{{ ansible_date_time.iso8601 }}"
+  when: conf_stat.stat.islnk is defined and conf_stat.stat.islnk == False
 
 - name: provide system wide zsh configuration
   file: src=/opt/admintools/etc/zsh/zshrc
         dest=/etc/zsh/zshrc
         state=link
-        mode=744
 
 - name: make zsh the default shell for new users
   lineinfile: dest=/etc/default/useradd

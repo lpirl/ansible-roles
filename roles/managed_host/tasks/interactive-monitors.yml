@@ -1,22 +1,48 @@
-- name: install process manager htop
-  apt: package=htop
+- name: install iftop
+  package: name=iftop state=present
 
-- name: ensure htop's configuration directory exists for current user (if not root)
+- name: install nmon
+  package: name=nmon state=present
+
+
+
+
+
+- name: install process manager htop
+  package: name=htop state=present
+
+
+
+- name: ensure htop's configuration directory exists for non-root user
   file: path=~/.config/htop/ state=directory
   when: ansible_user_id != "root"
+
+- stat: path=~/.config/htop/htoprc
+  register: conf_stat
+
+- name: backup and remove user's htop configuration
+  command: "mv ~/.config/htop/htoprc
+               ~/.config/htop/htoprc.BAK_ansible_{{ ansible_date_time.iso8601 }}"
+  when: conf_stat.stat.islnk is defined and conf_stat.stat.islnk == False
+
 - name: provide default config for htop for current user (if not root)
   file: src=/opt/admintools/htoprc dest=~/.config/htop/htoprc
         force=no state=link
   when: ansible_user_id != "root"
 
+
+
 - name: ensure htop's configuration directory exists for root
   file: path=/root/.config/htop/ state=directory
+
+- stat: path=/root/.config/htop/htoprc
+  register: conf_stat
+
+- name: backup and remove user's htop configuration
+  command: "mv /root/.config/htop/htoprc
+               /root/.config/htop/htoprc.BAK_ansible_{{ ansible_date_time.iso8601 }}"
+  when: conf_stat.stat.islnk is defined and conf_stat.stat.islnk == False
+
 - name: provide default config for htop for root
   file: src=/opt/admintools/htoprc dest=/root/.config/htop/htoprc
-        force=no state=link
-
-- name: install iftop
-  apt: package=iftop
-
-- name: install nmon
-  apt: package=nmon
+        state=link
