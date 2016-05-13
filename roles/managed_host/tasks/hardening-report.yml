@@ -14,7 +14,7 @@
 
 - name: run lynis
   shell: 'cd /tmp/lynis &&
-          ./lynis audit system -Q --no-colors |
+          ./lynis audit system -c --cronjob |
             mail -s "$(hostname) hardening report" root'
 
 - name: remove lynis
