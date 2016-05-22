@@ -7,4 +7,4 @@
   file: path=/opt/admintools owner=root group=root recurse=yes
 
 - name: ensure permissions for admintools
-  file: path=/opt/admintools mode=u=rwx,g=rx,o=rx,a-s recurse=yes
+  file: path=/opt/admintools mode=go=u,go-w,a-s recurse=yes
