@@ -17,7 +17,8 @@
   file: path=~/.config/htop/ state=directory
   when: ansible_user_id != "root"
 
-- stat: path=~/.config/htop/htoprc
+- name: stat user's htop configuration
+  stat: path=~/.config/htop/htoprc
   register: conf_stat
 
 - name: backup and remove user's htop configuration
