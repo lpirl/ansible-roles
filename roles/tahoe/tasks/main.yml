@@ -10,12 +10,19 @@
   pip: name=service_identity  extra_args='--user' state=latest
        executable={{ pip_command|default("pip2") }}
 
-- name: add Tahoe binaries to $PATH for zsh
-  lineinfile: dest=~/.zshenv
-              regexp='^path=.*local/bin .*'
-              line='path=(~/.local/bin $path)'
+- name: add Tahoe binaries to $PATH
+  lineinfile: dest="{{ item.dest }}"
+              line="{{ item.line }}"
               state=present
               create=yes
+  when: "'{{ item.shell }}' in '{{ ansible_user_shell }}'"
+  with_items:
+    - shell: bash
+      dest: ~/.bash_profile
+      line: PATH="~/.local/bin:$PATH"
+    - shell: zsh
+      dest: ~/.zprofile
+      line: path=(~/.local/bin ~/bin/ $path)
 
 - name: create Tahoe base directory
   file: path={{ tahoe_basedir }}
