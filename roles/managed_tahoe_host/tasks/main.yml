@@ -1,17 +1,11 @@
 - name: create tahoe user
   user: name={{tahoe_user}}
 
-- name: install PIP
-  package: name=python-pip
-
-- name: install build essentials
-  package: name=build-essential
-
-- name: install SSL headers
-  package: name=libssl-dev
-
-- name: install FFI headers
-  package: name=libffi-dev
-
-- name: install Python headers
-  package: name=python-dev
+- name: install required packages
+  package: name="{{ item }}"
+  with_items:
+    - python-pip
+    - build-essential
+    - libssl-dev
+    - libffi-dev
+    - python-dev
