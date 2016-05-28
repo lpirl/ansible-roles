@@ -1,10 +1,12 @@
 - name: create tahoe user
   user: name={{tahoe_user}}
+        shell=/bin/bash
 
 - name: install required packages
-  package: name="{{ item }}"
+  apt: name="{{ item }}" install_recommends=yes
   with_items:
     - python-pip
+    - python-pkg-resources
     - build-essential
     - libssl-dev
     - libffi-dev
