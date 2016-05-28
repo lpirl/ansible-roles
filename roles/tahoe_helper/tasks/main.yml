@@ -3,19 +3,18 @@
             section=helper
             option=enabled
             value=true
-  register: helper_enabled_state
+  notify: restart helper
 
-- name: run the freshly created helper the first time
-  command: "{{ tahoe_bin }} start -C {{ tahoe_basedir }}/node"
-  when: helper_enabled_state.changed
+- name: running handlers to read out a possibly updated helper furl
+  meta: flush_handlers
 
-- name: stop the freshly created helper the first time
-  command: "{{ tahoe_bin }} stop -C {{ tahoe_basedir }}/node"
-  when: helper_enabled_state.changed
-
-- name: get the helper furl
-  command: cat "{{ tahoe_basedir }}/node/private/helper.furl"
+- name: get the helper's furl
   register: helper_furl_cat
+  action: command cat "{{ tahoe_basedir }}/node/private/helper.furl"
+  retries: 20
+  delay: 1
+  until: helper_furl_cat|success
+  changed_when: false
 
 - name: print the helper furl
   debug: msg="Your helper furl is {{ helper_furl_cat.stdout }}"

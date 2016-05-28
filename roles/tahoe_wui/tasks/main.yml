@@ -3,3 +3,4 @@
             section=node
             option=web.port
             value='{{ web_port }}'
+  notify: restart node
