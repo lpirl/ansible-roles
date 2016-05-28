@@ -43,6 +43,7 @@
 - name: get the introducers' furl
   command: cat "{{ tahoe_basedir }}/introducer/private/introducer.furl"
   register: introducer_furl_cat
+  changed_when: false
 
 - name: print the introducers' furl
   debug: msg="Your introducer's furl is {{ introducer_furl_cat.stdout }}"
