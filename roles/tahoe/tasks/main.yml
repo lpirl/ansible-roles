@@ -1,14 +1,14 @@
 - name: uninstall deprecated distribution of Tahoe LAFS
   pip: name=allmydata-tahoe  state=absent
-       executable={{ pip_command|default("pip2") }}
+       executable={{ pip_command|default("pip") }}
 
 - name: install Tahoe LAFS
   pip: name=tahoe-lafs  extra_args='--user' state=latest
-       executable={{ pip_command|default("pip2") }}
+       executable={{ pip_command|default("pip") }}
 
 - name: install service_identity for Twisted
   pip: name=service_identity  extra_args='--user' state=latest
-       executable={{ pip_command|default("pip2") }}
+       executable={{ pip_command|default("pip") }}
 
 - name: add Tahoe binaries to $PATH
   lineinfile: dest="{{ item.dest }}"
