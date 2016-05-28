@@ -1,0 +1,4 @@
+---
+tahoe_basedir: "{{ ansible_env.HOME }}/tahoe/"
+tahoe_bin: "{{ ansible_env.HOME }}/.local/bin/tahoe"
+node_location: AUTO
