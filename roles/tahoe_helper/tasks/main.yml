@@ -6,11 +6,11 @@
   register: helper_enabled_state
 
 - name: run the freshly created helper the first time
-  command: "tahoe start -C {{ tahoe_basedir }}/node"
+  command: "{{ tahoe_bin }} start -C {{ tahoe_basedir }}/node"
   when: helper_enabled_state.changed
 
 - name: stop the freshly created helper the first time
-  command: "tahoe stop -C {{ tahoe_basedir }}/node"
+  command: "{{ tahoe_bin }} stop -C {{ tahoe_basedir }}/node"
   when: helper_enabled_state.changed
 
 - name: get the helper furl

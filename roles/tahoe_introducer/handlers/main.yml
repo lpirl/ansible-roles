@@ -1,2 +1,2 @@
 - name: restart introducer
-  command: tahoe -q restart "{{ tahoe_basedir }}/introducer"
+  command: "{{ tahoe_bin }} -q restart {{ tahoe_basedir }}/introducer"
