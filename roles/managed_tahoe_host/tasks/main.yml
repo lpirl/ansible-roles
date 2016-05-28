@@ -11,3 +11,11 @@
     - libssl-dev
     - libffi-dev
     - python-dev
+
+- name: check pip version
+  register: pip_version
+  command: pip --version
+
+- name: upgrade away from pip 8.1.1
+  pip: name=pip state=latest
+  when: "' 8.1.1 ' in pip_version.stdout"
