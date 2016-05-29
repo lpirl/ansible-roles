@@ -41,10 +41,8 @@
 - name: restart services using outdated libraries (needrestart >= 1.0)
   shell: needrestart -lra 2>/dev/null
   register: result
-  #~ changed_when: "result.stdout != ''"
+  changed_when: "result.stdout != ''"
   when: needrestart_version_lt_one.rc == 1
-
-- debug: var=result
 
 - name: check for pending kernel updates
   command: needrestart -bk
