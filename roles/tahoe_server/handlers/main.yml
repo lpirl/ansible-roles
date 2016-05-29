@@ -1,2 +1,2 @@
 - name: restart node
-  command: tahoe -q restart "{{ tahoe_basedir }}/node"
+  command: "{{ tahoe_bin }} -q restart {{ tahoe_basedir }}/node"

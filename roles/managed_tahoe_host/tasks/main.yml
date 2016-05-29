@@ -1,17 +1,22 @@
 - name: create tahoe user
   user: name={{tahoe_user}}
+        shell=/bin/bash
 
-- name: install PIP
-  package: name=python-pip
+- name: install required packages
+  apt: name="{{ item }}" install_recommends=yes
+  with_items:
+    - python-pip
+    - python-pkg-resources
+    - build-essential
+    - libssl-dev
+    - libffi-dev
+    - python-dev
 
-- name: install build essentials
-  package: name=build-essential
+- name: check pip version
+  register: pip_version
+  command: pip --version
+  changed_when: false
 
-- name: install SSL headers
-  package: name=libssl-dev
-
-- name: install FFI headers
-  package: name=libffi-dev
-
-- name: install Python headers
-  package: name=python-dev
+- name: upgrade away from pip 8.1.1
+  pip: name=pip state=latest
+  when: "' 8.1.1 ' in pip_version.stdout"

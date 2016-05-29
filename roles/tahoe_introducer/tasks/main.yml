@@ -3,7 +3,7 @@
   stat: path={{ tahoe_basedir }}/introducer
 
 - name: create new introducer
-  command: "tahoe create-introducer -C {{ tahoe_basedir }}/introducer"
+  command: "{{ tahoe_bin}} create-introducer -C {{ tahoe_basedir }}/introducer"
   when: check_introducer_dir.stat.exists == false
   notify: restart introducer
 
@@ -14,11 +14,20 @@
             value="{{ introducer_port }}"
   notify: restart introducer
 
-- name: set introducer location
+- name: set introducer location to AUTO
   ini_file: dest="{{ tahoe_basedir }}/introducer/tahoe.cfg"
             section=node
             option=tub.location
-            value="{{ node_location }}:{{ introducer_port }}"
+            value="AUTO"
+  when: "node_external_host is not defined or not node_external_host"
+  notify: restart introducer
+
+- name: set external introducer location
+  ini_file: dest="{{ tahoe_basedir }}/introducer/tahoe.cfg"
+            section=node
+            option=tub.location
+            value="{{ node_external_host }}:{{ introducer_port }},AUTO"
+  when: "node_external_host is defined and node_external_host"
   notify: restart introducer
 
 - name: set introducer nickname
@@ -28,26 +37,21 @@
             value="{{ ansible_hostname }} introducer"
   notify: restart introducer
 
-- name: check if introducer private dir exists
-  register: check_introducer_private_dir
-  stat: path={{ tahoe_basedir }}/introducer/private
-
-- name: run the freshly created introducer the first time
-  command: "tahoe start -C {{ tahoe_basedir }}/introducer"
-  when: check_introducer_private_dir.stat.exists == false
-
-- name: stop the freshly created introducer the first time
-  command: "tahoe stop -C {{ tahoe_basedir }}/introducer"
-  when: check_introducer_private_dir.stat.exists == false
-
-- name: get the introducers' furl
-  command: cat "{{ tahoe_basedir }}/introducer/private/introducer.furl"
-  register: introducer_furl_cat
-
-- name: print the introducers' furl
-  debug: msg="Your introducer's furl is {{ introducer_furl_cat.stdout }}"
-
 - name: start introducer at boot
   cron: name="start tahoe introducer at boot"
         special_time=reboot
         job="{{ tahoe_bin }} start '{{ tahoe_basedir }}/introducer/'"
+
+- name: running handlers to read out a possibly updated introducer furl
+  meta: flush_handlers
+
+- name: get the introducers' furl
+  register: introducer_furl_cat
+  action: command cat "{{ tahoe_basedir }}/introducer/private/introducer.furl"
+  retries: 20
+  delay: 1
+  until: introducer_furl_cat|success
+  changed_when: false
+
+- name: print the introducers' furl
+  debug: msg="Your introducer's furl is {{ introducer_furl_cat.stdout }}"

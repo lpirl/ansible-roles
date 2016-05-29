@@ -33,13 +33,13 @@
   failed_when: false
 
 - name: restart services using outdated libraries (needrestart < 1.0)
-  shell: needrestart -ra 2>/dev/null
+  shell: needrestart -bra 2>/dev/null
   register: result
   changed_when: "result.stdout != ''"
   when: needrestart_version_lt_one.rc == 0
 
 - name: restart services using outdated libraries (needrestart >= 1.0)
-  shell: needrestart -lra 2>/dev/null
+  shell: needrestart -blra 2>/dev/null
   register: result
   changed_when: "result.stdout != ''"
   when: needrestart_version_lt_one.rc == 1

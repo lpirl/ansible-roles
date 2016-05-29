@@ -5,11 +5,20 @@
             value='{{ node_port }}'
   notify: restart node
 
-- name: set node location
+- name: set node location to AUTO
   ini_file: dest="{{ tahoe_basedir }}/node/tahoe.cfg"
             section=node
             option=tub.location
-            value='{{ node_location }}:{{ node_port }},AUTO'
+            value='AUTO'
+  when: "node_external_host is not defined or not node_external_host"
+  notify: restart node
+
+- name: set external node location
+  ini_file: dest="{{ tahoe_basedir }}/node/tahoe.cfg"
+            section=node
+            option=tub.location
+            value='tcp:{{ node_external_host }}:{{ node_port }},AUTO'
+  when: "node_external_host is defined and node_external_host"
   notify: restart node
 
 - name: start node at boot

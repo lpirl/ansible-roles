@@ -14,7 +14,13 @@
         dest=/etc/zsh/zshrc
         state=link
 
-- name: make zsh the default shell for new users
+- name: make zsh the default shell for new users (adduser)
+  lineinfile: dest=/etc/adduser.conf
+              regexp='^DSHELL='
+              line='DSHELL=/usr/bin/zsh'
+              state=present
+
+- name: make zsh the default shell for new users (useradd)
   lineinfile: dest=/etc/default/useradd
               regexp='^SHELL='
               line='SHELL=/usr/bin/zsh'
