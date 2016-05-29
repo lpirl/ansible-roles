@@ -14,8 +14,9 @@
 
 - name: run lynis
   shell: 'cd /tmp/lynis &&
-          ./lynis audit system -c --cronjob |
-            mail -s "$(hostname) hardening report" root'
+          ./lynis audit system -c --cronjob | \
+            cat -v | \
+              mail -s "$(hostname) hardening report" root'
 
 - name: remove lynis
   file: path=/tmp/lynis state=absent
