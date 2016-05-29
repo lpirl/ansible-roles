@@ -1,8 +1,13 @@
-- name: install apticron
-  package: name=apticron state=present
+- name: install desired tools
+  package: name="{{ item }}" state=present
+  with_items:
+    - apticron
+    - needrestart
 
-- name: install needrestart
-  package: name=needrestart state=present
+- name: remove unneeded tools
+  package: name="{{ item }}" state=absent
+  with_items:
+    - apt-xapian-index
 
 - name: make needrestart default to list services only
   lineinfile: dest=/etc/needrestart/conf.d/list-services-only.conf
@@ -13,6 +18,12 @@
   lineinfile: dest=/etc/needrestart/conf.d/list-required-reboots-only.conf
               regexp="\$nrconf\{kernelhints\}"
               line="$nrconf{kernelhints} = -1;"
+              state=present create=yes mode=0644
+
+- name: make needrestart default to use stdio "interface"
+  lineinfile: dest=/etc/needrestart/conf.d/stdio-interface.conf
+              regexp="\$nrconf\{ui\}"
+              line="$nrconf{ui} = 'NeedRestart::UI::stdio';"
               state=present create=yes mode=0644
 
 - name: check needrestart version
@@ -30,8 +41,10 @@
 - name: restart services using outdated libraries (needrestart >= 1.0)
   shell: needrestart -lra 2>/dev/null
   register: result
-  changed_when: "result.stdout != ''"
+  #~ changed_when: "result.stdout != ''"
   when: needrestart_version_lt_one.rc == 1
+
+- debug: var=result
 
 - name: check for pending kernel updates
   command: needrestart -bk
