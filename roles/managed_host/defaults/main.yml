@@ -38,3 +38,6 @@ postfix_global_options:
 #          alias: "{{ ansible_fqdn }}+{{ ansible_env.USER }}@lukas-pirl.de"}
 
 rkhunter_version: 1.4.2
+
+# optionally, define nameservers
+nameservers: []
