@@ -17,3 +17,9 @@
               regexp="^\s*order\s.*"
               dest="/etc/host.conf"
               insertbefore="^\s*multi\s.*"
+
+- name: set nameserver
+  lineinfile: dest=/etc/resolv.conf state=present
+              regexp="^nameserver {{ item }}"
+              line='nameserver {{ item }}'
+  with_items: "{{ nameservers }}"

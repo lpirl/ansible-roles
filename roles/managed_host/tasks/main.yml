@@ -25,5 +25,5 @@
 - include: apt-dater.yml
 - include: scheduling_and_detaching.yml
 - include: logging.yml
-- include: hosts.yml
+- include: hostname_and_lookups.yml
 - include: certbot.yml
