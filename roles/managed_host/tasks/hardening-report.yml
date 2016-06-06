@@ -14,9 +14,10 @@
 
 - name: run lynis
   shell: 'cd /tmp/lynis &&
-          ./lynis audit system -c --cronjob | \
+          ./lynis audit system --checkall --cronjob | \
             cat -v | \
-              mail -s "$(hostname) hardening report" root'
+              sed -r "s/\^\[\[[0-9;]+m//g" | \
+                mail -s "$(hostname) hardening report" root'
 
 - name: remove lynis
   file: path=/tmp/lynis state=absent
