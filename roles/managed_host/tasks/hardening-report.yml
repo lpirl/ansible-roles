@@ -7,12 +7,28 @@
     - chkrootkit
 
 
-- name: checkout lynis
+- name: checkout Lynis
   git: repo=https://github.com/CISOfy/lynis.git
        dest=/tmp/lynis
        force=yes
 
-- name: run lynis
+# we cannot use ini_file, since Lynis does not use standard INI files
+- name: create sections in Lynis configuration
+  lineinfile: dest=/tmp/lynis/custom.prf
+              line="[{{ item.section }}]"
+              create=yes
+  with_items: "{{ lynis_global_options |
+                  union( lynis_extra_options | default([]) ) }}"
+
+# we cannot use ini_file, since Lynis does not use standard INI files
+- name: put configuration key-value pairs in Lynis configuration
+  lineinfile: dest=/tmp/lynis/custom.prf
+              line="{{ item.option }}"
+              insertafter="\[{{ item.section }}\]"
+  with_items: "{{ lynis_global_options |
+                  union( lynis_extra_options | default([]) ) }}"
+
+- name: run Lynis
   shell: 'cd /tmp/lynis &&
           ./lynis audit system --checkall --cronjob | \
             cat -v | \
