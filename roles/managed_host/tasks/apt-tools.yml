@@ -1,4 +1,4 @@
-- name: install desired tools
+- name: install tools for managing apt-based systems
   package: name="{{ item }}" state=present
   with_items:
     - apticron
