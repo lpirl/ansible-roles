@@ -1,20 +1,22 @@
-- name: uninstall ntp in LXC
-  package: name=ntp state=present
-  when: ansible_virtualization_type == "lxc"
+- name: uninstall ntpd
+  apt: name=ntp state=absent purge=yes
 
-- name: install ntp
-  package: name=ntp state=present
+- name: remove obsolete ntpd configuration
+  file: dest="{{ item }}" state=absent
+  with_items:
+    - /etc/ntp.conf
+    - /etc/default/ntpd
+
+# OpenNTPD does not listen by default and is hence easier to configure
+# (as in: comes configured securely)
+- name: install OpenNTPD
+  package: name=openntpd state=present
   when: ansible_virtualization_type != "lxc"
 
-- stat: path=/etc/ntp.conf
-  register: conf_stat
+# service module does not work on all hosts currently (16/06)!?
+- name: ensure OpenNTPD is started
+  command: service openntpd start
 
-- name: backup and remove ntp configuration
-  command: "mv /etc/ntp.conf
-               /etc/ntp.conf.BAK_ansible_{{ ansible_date_time.iso8601 }}"
-  when: conf_stat.stat.islnk is defined and conf_stat.stat.islnk == False
-
-- name: ntp configuration (symlink to admintools)
-  file: src=/opt/admintools/etc/ntp.conf
-        dest=/etc/ntp.conf
-        state=link
+# service module does not work on all hosts currently (16/06)!?
+- name: ensure OpenNTPD starts at boot
+  command: update-rc.d openntpd enable
