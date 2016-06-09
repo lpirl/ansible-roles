@@ -16,7 +16,9 @@
 # service module does not work on all hosts currently (16/06)!?
 - name: ensure OpenNTPD is started
   command: service openntpd start
+  when: ansible_virtualization_type != "lxc"
 
 # service module does not work on all hosts currently (16/06)!?
 - name: ensure OpenNTPD starts at boot
   command: update-rc.d openntpd enable
+  when: ansible_virtualization_type != "lxc"
