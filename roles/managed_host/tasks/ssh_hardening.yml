@@ -197,3 +197,18 @@
   notify: restart sshd
 
 # ---------- END:   version specific configuration ----------
+
+- name: enforce permissions for .ssh directory of {{ ansible_user_id }}
+  file: dest="{{ansible_user_dir}}/.ssh" mode=go-rwx recurse=yes
+
+- name: get home directory of
+        {{ ansible_env.SUDO_USER|default("[n.a.]") }}
+  register: sudo_user_home
+  shell: echo ~${SUDO_USER}
+  when: ansible_env.SUDO_USER is defined
+  changed_when: false
+
+- name: enforce permissions for .ssh directory of
+        {{ ansible_env.SUDO_USER|default("[n.a.]") }}
+  file: dest="{{sudo_user_home.stdout}}/.ssh" mode=go-rwx recurse=yes
+  when: ansible_env.SUDO_USER is defined
