@@ -14,7 +14,9 @@
 
 - name: set password max/min/warn age for existing accounts w/ a password set
   shell: 'for x in $( \
-              cut -d: -f1-2 /etc/shadow | egrep -v "(\*|\!)" | cut -d: -f1 \
+              awk -F: "{print $2\":\"$1}" /etc/shadow | \
+                egrep -v "^(\!|\*|:)" | \
+                  cut -d":" -f2 \
           ); do \
             chage \
               -m "{{ pass_min_days }}" \
