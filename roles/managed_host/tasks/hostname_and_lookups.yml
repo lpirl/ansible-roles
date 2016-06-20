@@ -1,16 +1,20 @@
 - name: set hostname and fqdn in /etc/hosts
   lineinfile: dest=/etc/hosts
-              regexp="{{ item.regexp }}"
-              line="{{ item.line }}"
+              regexp="\s*{{ item.ip|regex_escape }}\s*{{ item.host|regex_escape }}"
+              line="{{ item.ip }} {{ item.host }}"
   with_items:
-      - {
-        regexp: '^127\.0\.0\.1\s+',
-        line: "127.0.0.1 {{ ansible_fqdn }} {{ ansible_hostname }} localhost"
-        }
-      - {
-        regexp: "^::1",
-        line: "::1 {{ ansible_fqdn }} {{ ansible_hostname }} localhost ip6-localhost ip6-loopback"
-        }
+    - ip: 127.0.0.1
+      host: "{{ ansible_fqdn }} {{ ansible_hostname }}"
+    - ip: 127.0.0.1
+      host: "localhost"
+    - ip: "::1"
+      host: "{{ ansible_fqdn }} {{ ansible_hostname }}"
+    - ip: "::1"
+      host: "localhost"
+    - ip: "::1"
+      host: "ip6-localhost"
+    - ip: "::1"
+      host: "ip6-loopback"
 
 - name: ensure lookup in /etc/hosts before dns
   lineinfile: line="order hosts,bind"
