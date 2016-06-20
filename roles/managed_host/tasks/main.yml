@@ -27,4 +27,4 @@
 - include: logging.yml
 - include: hostname_and_lookups.yml
 - include: certbot.yml
-- include: passwords-hardening.yml
+- include: accounts-hardening.yml

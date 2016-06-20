@@ -54,3 +54,14 @@ lynis_global_options:
 
 # use lynis_extra_options just like postfix_extra_options to customize
 # the configuration in a Playbook
+
+
+
+# Settings for password aging (will be applied for all existing accounts!)
+# * Maximum number of days a password may be used.
+# * Maximum number of days a password may be used.
+# * Number of days warning given before a password expires.
+# Disabled by default. See also man login.defs
+pass_max_days: -1
+pass_min_days: -1
+pass_warn_age: 30
