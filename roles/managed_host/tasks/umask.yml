@@ -25,3 +25,10 @@
   changed_when: "1 == 0"
   failed_when: root_umask_result.rc != 0
   when: not set_umask_pam.changed and not set_umask_profile.changed
+
+- name: set umask to 077 in /etc/init.d/rc
+  register: set_umask_logindefs
+  lineinfile: dest=/etc/init.d/rc
+              regexp='^\s*umask\s.*'
+              line='umask 077'
+              create=no
