@@ -1,4 +1,4 @@
-- name: create shell scripts for weekly clearing of apt cache
+- name: create cron scripts for weekly clearing of apt cache
   lineinfile:   dest=/etc/cron.weekly/10apt_cache_clean
                 line='#!/bin/sh'
                 insertbefore=BOF
