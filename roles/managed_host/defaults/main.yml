@@ -48,9 +48,15 @@ postfix_global_options:
 
 lynis_global_options:
 
-    # skip test for system management tools, since we _do_ use Ansible
-    # what Lynis cannot detect (https://github.com/CISOfy/lynis/issues/212)
-    - {section: security, option: skip-test=TOOL-5002}
+  # skip test for system management tools, since we _do_ use Ansible
+  # what Lynis cannot detect (https://github.com/CISOfy/lynis/issues/212)
+  - {section: security, option: skip-test=TOOL-5002}
+
+  # Lynis advices "decrease the impact of a full /… file system, place
+  # /… on a separated partition" but partitioning the disk at the same
+  # time raises the likeliness of partitions filling up.
+  # We rely on email notification upon high disk usage.
+  - {section: security, option: skip-test=FILE-6310}
 
 # use lynis_extra_options just like postfix_extra_options to customize
 # the configuration in a Playbook
