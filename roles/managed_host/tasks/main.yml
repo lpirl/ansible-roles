@@ -27,6 +27,7 @@
 - include: hostname_and_lookups.yml
 - include: certbot.yml
 - include: accounts-hardening.yml
+- include: disk_space_alert.ym
 
 # this should be the last line:
 - include: hardening-report.yml

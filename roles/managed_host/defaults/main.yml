@@ -71,3 +71,6 @@ lynis_global_options:
 pass_max_days: -1
 pass_min_days: -1
 pass_warn_age: 30
+
+# email root if a disk mounted from /dev/… fills above this percentage
+disk_space_alert_percentage: 95
