@@ -47,7 +47,6 @@
               regexp="^\s*Compression\s+.*"
               dest="/etc/ssh/sshd_config"
   notify: restart sshd
-  tags: wip
 # ---------- END:   version-independent configuration ----------
 
 
