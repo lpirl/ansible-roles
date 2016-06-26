@@ -41,6 +41,16 @@
 # ----------   END: check password auth ----------
 
 
+# ---------- BEGIN: version-independent configuration ----------
+- name: disable compression (risk of BREACH exploit)
+  lineinfile: line="Compression no"
+              regexp="^\s*Compression\s+.*"
+              dest="/etc/ssh/sshd_config"
+  notify: restart sshd
+  tags: wip
+# ---------- END:   version-independent configuration ----------
+
+
 # ---------- BEGIN: version checks ----------
 
 - name: check ssh version to be 6.7 or later
@@ -198,6 +208,8 @@
 
 # ---------- END:   version specific configuration ----------
 
+
+# ---------- BEGIN: files and permissions ----------
 - name: enforce permissions for .ssh directory of {{ ansible_user_id }}
   file: dest="{{ansible_user_dir}}/.ssh" mode=go-rwx recurse=yes
 
@@ -212,3 +224,5 @@
         {{ ansible_env.SUDO_USER|default("[n.a.]") }}
   file: dest="{{sudo_user_home.stdout}}/.ssh" mode=go-rwx recurse=yes
   when: ansible_env.SUDO_USER is defined
+
+# ---------- END:   files and permissions ----------
