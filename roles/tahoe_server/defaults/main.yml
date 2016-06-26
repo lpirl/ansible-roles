@@ -1,2 +1,3 @@
 ---
-node_port: tcp:6789
+node_protocol: tcp
+node_port: 6789

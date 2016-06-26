@@ -11,7 +11,7 @@
   ini_file: dest="{{ tahoe_basedir }}/introducer/tahoe.cfg"
             section=node
             option=tub.port
-            value="{{ introducer_port }}"
+            value="{{ introducer_protocol }}:{{ introducer_port }}"
   notify: restart introducer
 
 - name: set introducer location to AUTO
@@ -26,7 +26,7 @@
   ini_file: dest="{{ tahoe_basedir }}/introducer/tahoe.cfg"
             section=node
             option=tub.location
-            value="{{ node_external_host }}:{{ introducer_port }},AUTO"
+            value="{{ introducer_protocol }}:{{ node_external_host }}:{{ introducer_port }},AUTO"
   when: "node_external_host is defined and node_external_host"
   notify: restart introducer
 
@@ -52,6 +52,9 @@
   delay: 1
   until: introducer_furl_cat|success
   changed_when: false
+
+- name: setting hostvars['{{ ansible_nodename}}']['tahoe_introducer_furl']
+  set_fact: tahoe_introducer_furl="{{ introducer_furl_cat.stdout }}"
 
 - name: print the introducers' furl
   debug: msg="Your introducer's furl is {{ introducer_furl_cat.stdout }}"

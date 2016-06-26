@@ -1,2 +1,3 @@
 ---
+introducer_protocol: tcp
 introducer_port: 4532
