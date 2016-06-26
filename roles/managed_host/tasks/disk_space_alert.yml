@@ -1,12 +1,16 @@
+- name: delete previously misnamed script for disk space alerts
+  file: path=/etc/cron.hourly/90disk_space_alert
+        state=absent
+
 - name: create cron scripts for disk space alert
-  lineinfile:   dest=/etc/cron.hourly/90disk_space_alert
+  lineinfile:   dest=/etc/cron.hourly/90-disk_space_alert
                 line='#!/bin/sh'
                 insertbefore=BOF
                 create=yes
                 mode=700
 
 - name: set up weekly clearing of apt cache
-  lineinfile: dest=/etc/cron.hourly/90disk_space_alert
+  lineinfile: dest=/etc/cron.hourly/90-disk_space_alert
           line='/opt/admintools/disk_space_alert_all.sh
                   {{ disk_space_alert_percentage }}'
           regexp=".*disk_space_alert_all.*"
