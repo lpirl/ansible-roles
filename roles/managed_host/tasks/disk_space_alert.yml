@@ -7,6 +7,7 @@
 
 - name: set up weekly clearing of apt cache
   lineinfile: dest=/etc/cron.hourly/90disk_space_alert
-          line='/opt/admintools/disk_space_alert_all.sh \
+          line='/opt/admintools/disk_space_alert_all.sh
                   {{ disk_space_alert_percentage }}'
+          regexp=".*disk_space_alert_all.*"
           create=yes
