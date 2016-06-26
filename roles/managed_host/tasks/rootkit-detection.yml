@@ -5,7 +5,7 @@
     url=https://sourceforge.net/projects/rkhunter/files/rkhunter/{{ rkhunter_version }}/rkhunter-{{ rkhunter_version }}.tar.gz/download
     timeout=60
   retries: 5
-  until: rrkhunter_download|success
+  until: rkhunter_download|success
   delay: 3
 
 
