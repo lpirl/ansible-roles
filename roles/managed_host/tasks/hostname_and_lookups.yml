@@ -27,3 +27,9 @@
               regexp="^nameserver {{ item }}"
               line='nameserver {{ item }}'
   with_items: "{{ nameservers }}"
+
+- name: install DNS utilities
+  package: name="{{ item }}"
+  with_items:
+    - namebench
+    - dnsutils
