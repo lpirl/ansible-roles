@@ -28,6 +28,18 @@
   with_items: "{{ lynis_global_options |
                   union( lynis_extra_options | default([]) ) }}"
 
+- name: check if swap partition is configured or active
+  shell: grep -q swap /etc/fstab || mount | grep -q swap
+  register: swap_check
+  changed_when: false
+  failed_when: false
+
+- name: disable check for swap partition if none is configured
+  lineinfile: dest=/tmp/lynis/custom.prf
+              line="skip-test=FILE-6310"
+              insertafter="\[security\]"
+  when: swap_check.rc != 0
+
 - name: run Lynis
   shell: 'cd /tmp/lynis &&
           ./lynis audit system --checkall --cronjob | \
