@@ -43,9 +43,11 @@
 
 # ---------- BEGIN: version-independent configuration ----------
 - name: disable compression (risk of BREACH exploit)
-  lineinfile: line="Compression no"
+  lineinfile: dest="/etc/ssh/sshd_config"
+              line="Compression no"
               regexp="^\s*Compression\s+.*"
-              dest="/etc/ssh/sshd_config"
+              insertafter="^TCPKeepAlive\s.*"
+
   notify: restart sshd
 # ---------- END:   version-independent configuration ----------
 
