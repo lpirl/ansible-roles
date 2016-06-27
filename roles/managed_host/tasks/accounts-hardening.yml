@@ -1,0 +1,26 @@
+- name: install packages facilitating password hardening
+  package: name="{{ item }}" state=present
+  with_items:
+    - libpam-passwdqc
+
+- name: set password max/min/warn age for accounts created in future
+  lineinfile: dest=/etc/login.defs
+              line="{{ item.key }}	{{item.value}}"
+              regexp="^\s*{{ item.key }}\s.*"
+  with_items:
+    - { key: "PASS_MAX_DAYS", value: pass_max_days}
+    - { key: "PASS_MIN_DAYS", value: pass_min_days}
+    - { key: "PASS_WARN_AGE", value: pass_warn_age}
+
+- name: set password max/min/warn age for existing accounts w/ a password set
+  shell: 'for x in $( \
+              awk -F: "{print $2\":\"$1}" /etc/shadow | \
+                egrep -v "^(\!|\*|:)" | \
+                  cut -d":" -f2 \
+          ); do \
+            chage \
+              -m "{{ pass_min_days }}" \
+              -M "{{ pass_max_days }}" \
+              -W "{{ pass_warn_age }}" \
+              $x; \
+          done'

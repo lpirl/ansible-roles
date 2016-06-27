@@ -4,37 +4,73 @@ sshd_extra_kex: ""
 ssh_needs_ecdsa_host_key: False
 sshd_allow_password_auth: False
 
+rkhunter_version: 1.4.2
+
+# optionally, define nameservers
+nameservers: []
+
+
+
 postfix_global_options:
-    - {key: smtpd_banner, value: $myhostname ESMTP}
-    - {key: biff, value: "no"}
-    - {key: readme_directory, value: "no"}
-    - {key: append_dot_mydomain, value: "no"}
-    - {key: delay_warning_time, value: 1h}
-    - {key: recipient_delimiter, value: +}
+  - {key: smtpd_banner, value: $myhostname ESMTP}
+  - {key: biff, value: "no"}
+  - {key: readme_directory, value: "no"}
+  - {key: append_dot_mydomain, value: "no"}
+  - {key: delay_warning_time, value: 1h}
+  - {key: recipient_delimiter, value: +}
 
-    - {key: alias_maps, value: "hash:/etc/aliases"}
-    - {key: alias_database, value: "hash:/etc/aliases"}
+  - {key: alias_maps, value: "hash:/etc/aliases"}
+  - {key: alias_database, value: "hash:/etc/aliases"}
 
-    - {key: mynetworks, value: "127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128"}
+  - {key: mynetworks, value: "127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128"}
 
-    # SMTP SSL
-    - {key: smtp_tls_session_cache_database, value: "btree:${data_directory}/smtp_scache"}
-    - {key: smtp_tls_security_level, value: may}
-    - {key: smtp_tls_protocols, value: "!SSLv2, !SSLv3"}
+  # SMTP SSL
+  - {key: smtp_tls_session_cache_database, value: "btree:${data_directory}/smtp_scache"}
+  - {key: smtp_tls_security_level, value: may}
+  - {key: smtp_tls_protocols, value: "!SSLv2, !SSLv3"}
 
-    # apple mail may send very long lines:
-    - {key: line_length_limit, value: 2048}
+  # apple mail may send very long lines:
+  - {key: line_length_limit, value: 2048}
 
-    # use the OS' host name lookup mechanism:
-    - {key: smtp_host_lookup, value: native}
+  # use the OS' host name lookup mechanism:
+  - {key: smtp_host_lookup, value: native}
 
 # Example to add Postfix options (put this into your Playbook):
-#    - postfix_extra_options:
-#      - {key: line_length_limit, value: 4096}
+#  - postfix_extra_options:
+#    - {key: line_length_limit, value: 4096}
 
 # Example to set post aliases (put this into your Playbook):
-#    - post_aliases:
-#      - { user: "{{ ansible_env.USER }}",
-#          alias: "{{ ansible_fqdn }}+{{ ansible_env.USER }}@lukas-pirl.de"}
+#  - post_aliases:
+#    - { user: "{{ ansible_env.USER }}",
+#        alias: "{{ ansible_fqdn }}+{{ ansible_env.USER }}@lukas-pirl.de"}
 
-rkhunter_version: 1.4.2
+
+
+lynis_global_options:
+
+  # skip test for system management tools, since we _do_ use Ansible
+  # what Lynis cannot detect (https://github.com/CISOfy/lynis/issues/212)
+  - {section: security, option: skip-test=TOOL-5002}
+
+  # Lynis advices "decrease the impact of a full /… file system, place
+  # /… on a separated partition" but partitioning the disk at the same
+  # time raises the likeliness of partitions filling up.
+  # We rely on email notification upon high disk usage.
+  - {section: security, option: skip-test=FILE-6310}
+
+# use lynis_extra_options just like postfix_extra_options to customize
+# the configuration in a Playbook
+
+
+
+# Settings for password aging (will be applied for all existing accounts!)
+# * Maximum number of days a password may be used.
+# * Maximum number of days a password may be used.
+# * Number of days warning given before a password expires.
+# Disabled by default. See also man login.defs
+pass_max_days: -1
+pass_min_days: -1
+pass_warn_age: 30
+
+# email root if a disk mounted from /dev/… fills above this percentage
+disk_space_alert_percentage: 95

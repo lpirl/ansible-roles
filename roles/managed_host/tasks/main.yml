@@ -17,7 +17,6 @@
 - include: net-utils.yml
 - include: postfix.yml
 - include: rootkit-detection.yml
-- include: hardening-report.yml
 - include: umask.yml
 - include: ntp.yml
 - include: haveged.yml
@@ -25,5 +24,10 @@
 - include: apt-dater.yml
 - include: scheduling_and_detaching.yml
 - include: logging.yml
-- include: hosts.yml
-- include: letsencrypt.yml
+- include: hostname_and_lookups.yml
+- include: certbot.yml
+- include: accounts-hardening.yml
+- include: disk_space_alert.yml
+
+# this should be the last line:
+- include: hardening-report.yml

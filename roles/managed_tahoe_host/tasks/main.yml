@@ -1,6 +1,6 @@
 - name: create tahoe user
   user: name={{tahoe_user}}
-        shell=/bin/bash
+        shell="{{ ansible_user_shell }}"
 
 - name: install required packages
   apt: name="{{ item }}" install_recommends=yes

@@ -1,8 +1,13 @@
 - name: download packed rkhunter sources ({{ rkhunter_version }})
+  register: rkhunter_download
   get_url:
     dest=/tmp/rkhunter.tar.gz
     url=https://sourceforge.net/projects/rkhunter/files/rkhunter/{{ rkhunter_version }}/rkhunter-{{ rkhunter_version }}.tar.gz/download
     timeout=60
+  retries: 5
+  until: rkhunter_download|success
+  delay: 3
+
 
 - name: unpack rkhunter
   unarchive: copy=no

@@ -16,5 +16,8 @@
   until: helper_furl_cat|success
   changed_when: false
 
+- name: setting hostvars['{{ ansible_nodename}}']['tahoe_helper_furl']
+  set_fact: tahoe_helper_furl="{{ helper_furl_cat.stdout }}"
+
 - name: print the helper furl
   debug: msg="Your helper furl is {{ helper_furl_cat.stdout }}"
