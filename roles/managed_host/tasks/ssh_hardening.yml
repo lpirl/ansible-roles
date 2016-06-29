@@ -47,7 +47,12 @@
               line="Compression no"
               regexp="^\s*Compression\s+.*"
               insertafter="^TCPKeepAlive\s.*"
+  notify: restart sshd
 
+- name: do not DNS reverse-lookup connecting hosts (unnecessary & laggy)
+  lineinfile: dest="/etc/ssh/sshd_config"
+              line="UseDNS no"
+              insertafter="^TCPKeepAlive\s.*"
   notify: restart sshd
 # ---------- END:   version-independent configuration ----------
 
