@@ -1,20 +1,23 @@
-- name: set hostname and fqdn in /etc/hosts
+- name: set localhost v4 and v6 addresses in /etc/hosts
   lineinfile: dest=/etc/hosts
-              regexp="\s*{{ item.ip|regex_escape }}\s*{{ item.host|regex_escape }}"
+              regexp="^\s*{{ item.ip|regex_escape }}\s+.*{{ item.host|regex_escape }}(\s.*|$)"
               line="{{ item.ip }} {{ item.host }}"
   with_items:
     - ip: 127.0.0.1
-      host: "{{ ansible_fqdn }} {{ ansible_hostname }}"
-    - ip: 127.0.0.1
-      host: "localhost"
-    - ip: "::1"
-      host: "{{ ansible_fqdn }} {{ ansible_hostname }}"
-    - ip: "::1"
-      host: "localhost"
-    - ip: "::1"
-      host: "ip6-localhost"
-    - ip: "::1"
-      host: "ip6-loopback"
+      host: localhost ip4-localhost ip4-loopback
+    - ip: ::1
+      host: localhost ip6-localhost ip6-loopback
+  tags: wip
+
+- name: set v4 and v6 address for fqdn in /etc/hosts
+  lineinfile: dest=/etc/hosts
+              regexp="^\s*{{ item.address|regex_escape }}.*\s*({{ ansible_fqdn|regex_escape }}|{{ ansible_hostname|regex_escape }})[\s$].*"
+              line="{{ item.address }} {{ ansible_fqdn }} {{ ansible_hostname }}"
+  when: item and ansible_form_factor != "Notebook"
+  with_items:
+    - "{{ ansible_default_ipv4 }}"
+    - "{{ ansible_default_ipv6 }}"
+  tags: wip
 
 - name: ensure lookup in /etc/hosts before dns
   lineinfile: line="order hosts,bind"
