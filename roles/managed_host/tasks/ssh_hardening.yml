@@ -54,6 +54,27 @@
               line="UseDNS no"
               insertafter="^TCPKeepAlive\s.*"
   notify: restart sshd
+
+- name: enable /etc/issue.net for SSH login
+  lineinfile: dest="/etc/ssh/sshd_config"
+              line="Banner /etc/issue.net"
+              regexp="^(#\s*)?Banner\s.*"
+              insertafter="^TCPKeepAlive\s.*"
+  notify: restart sshd
+
+- name: enable display of last login upon SSH login
+  lineinfile: dest="/etc/ssh/sshd_config"
+              line="PrintLastLog yes"
+              regexp="^(#\s*)?PrintLastLog\s.*"
+              insertafter="^TCPKeepAlive\s.*"
+  notify: restart sshd
+  tags: wip
+
+- name: provide legal banner displayed pre SSH logins
+  file: path=/etc/issue.net
+        src=/opt/admintools/pre-login-banner.txt
+        state=link force=yes
+  tags: wip
 # ---------- END:   version-independent configuration ----------
 
 

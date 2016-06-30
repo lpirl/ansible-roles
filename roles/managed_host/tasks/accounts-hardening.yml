@@ -24,3 +24,9 @@
               -W "{{ pass_warn_age }}" \
               $x; \
           done'
+
+- name: provide legal banner pre local logins
+  file: path=/etc/issue
+        src=/opt/admintools/pre-login-banner.txt
+        state=link force=yes
+  tags: wip
