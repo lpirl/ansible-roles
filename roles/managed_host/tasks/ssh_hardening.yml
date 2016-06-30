@@ -68,13 +68,11 @@
               regexp="^(#\s*)?PrintLastLog\s.*"
               insertafter="^TCPKeepAlive\s.*"
   notify: restart sshd
-  tags: wip
 
 - name: provide legal banner displayed pre SSH logins
   file: path=/etc/issue.net
         src=/opt/admintools/pre-login-banner.txt
         state=link force=yes
-  tags: wip
 # ---------- END:   version-independent configuration ----------
 
 
