@@ -42,25 +42,6 @@
 
 
 # ---------- BEGIN: version-independent configuration ----------
-- name: disable compression (risk of BREACH exploit)
-  lineinfile: dest="/etc/ssh/sshd_config"
-              line="Compression no"
-              regexp="^\s*Compression\s+.*"
-              insertafter="^TCPKeepAlive\s.*"
-  notify: restart sshd
-
-- name: do not DNS reverse-lookup connecting hosts (unnecessary & laggy)
-  lineinfile: dest="/etc/ssh/sshd_config"
-              line="UseDNS no"
-              insertafter="^TCPKeepAlive\s.*"
-  notify: restart sshd
-
-- name: enable /etc/issue.net for SSH login
-  lineinfile: dest="/etc/ssh/sshd_config"
-              line="Banner /etc/issue.net"
-              regexp="^(#\s*)?Banner\s.*"
-              insertafter="^TCPKeepAlive\s.*"
-  notify: restart sshd
 
 - name: enable display of last login upon SSH login
   lineinfile: dest="/etc/ssh/sshd_config"

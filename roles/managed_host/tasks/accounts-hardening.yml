@@ -25,7 +25,10 @@
               $x; \
           done'
 
-- name: provide legal banner pre local logins
-  file: path=/etc/issue
+- name: provide legal banner pre logins
+  file: path="{{ item }}"
         src=/opt/admintools/pre-login-banner.txt
         state=link force=yes
+  with_items:
+    - /etc/issue
+    - /etc/issue.net
