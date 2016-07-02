@@ -12,6 +12,18 @@ nameservers: []
 
 
 postfix_global_options:
+
+  # Example: How to add custom Postfix options
+  #          (put this into your Playbook vars):
+  #  - postfix_extra_options:
+  #    - {key: line_length_limit, value: 4096}
+
+  # Example: How to set post aliases
+  #          (put this into your Playbook vars):
+  #  - post_aliases:
+  #    - { user: "{{ ansible_env.USER }}",
+  #        alias: "{{ ansible_fqdn }}+{{ ansible_env.USER }}@example.com"}
+
   - {key: smtpd_banner, value: $myhostname ESMTP}
   - {key: biff, value: "no"}
   - {key: readme_directory, value: "no"}
@@ -35,18 +47,12 @@ postfix_global_options:
   # use the OS' host name lookup mechanism:
   - {key: smtp_host_lookup, value: native}
 
-# Example to add Postfix options (put this into your Playbook):
-#  - postfix_extra_options:
-#    - {key: line_length_limit, value: 4096}
-
-# Example to set post aliases (put this into your Playbook):
-#  - post_aliases:
-#    - { user: "{{ ansible_env.USER }}",
-#        alias: "{{ ansible_fqdn }}+{{ ansible_env.USER }}@lukas-pirl.de"}
-
 
 
 lynis_global_options:
+
+  # use lynis_extra_options just like postfix_extra_options to customize
+  # the configuration in a Playbook
 
   # skip test for system management tools, since we _do_ use Ansible
   # what Lynis cannot detect (https://github.com/CISOfy/lynis/issues/212)
@@ -57,10 +63,6 @@ lynis_global_options:
   # time raises the likeliness of partitions filling up.
   # We rely on email notification upon high disk usage.
   - {section: security, option: skip-test=FILE-6310}
-
-# use lynis_extra_options just like postfix_extra_options to customize
-# the configuration in a Playbook
-
 
 
 # Settings for password aging (will be applied for all existing accounts!)
