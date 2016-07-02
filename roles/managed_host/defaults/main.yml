@@ -76,3 +76,42 @@ pass_warn_age: 30
 
 # email root if a disk mounted from /dev/… fills above this percentage
 disk_space_alert_percentage: 95
+
+
+
+sshd_global_options:
+  # use sshd_extra_options just like postfix_extra_options to customize
+  # the configuration in a Playbook
+
+  # reduce risk of BREACH exploit
+  - {key: "Compression", value: "no"}
+
+  # no DNS reverse lookups for connecting hosts (unnecessary & laggy)
+  - {key: "UseDNS", value: "no"}
+
+  # enable display of a login banner
+  - {key: "Banner", value: "/etc/issue.net"}
+
+  # enable display of last login upon login
+  - {key: "PrintLastLog", value: "yes"}
+
+  # close sessions of unresponsive clients more quickly
+  - {key: "ClientAliveCountMax", value: "2"}
+
+  - {key: "LogLevel", value: "VERBOSE"}
+  - {key: "MaxAuthTries", value: "1"}
+
+  # this is the maximum number of multiplexed sessions per connection
+  # (however, there can be multiple connections)
+  - {key: "MaxSessions", value: "2"}
+
+  # reduce risk of TCP spoofing attacks
+  - {key: "TCPKeepAlive", value: "no"}
+
+  # create unprivileged child process to deal with incoming traffic
+  # (pre-authentication only)
+  - {key: "UsePrivilegeSeparation", value: "sandbox"}
+
+  # bind the X11 forwarding server to the loopback address
+  # (see man sshd_config)
+  - {key: "X11UseLocalhost", value: "yes"}

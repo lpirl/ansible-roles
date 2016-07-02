@@ -43,17 +43,15 @@
 
 # ---------- BEGIN: version-independent configuration ----------
 
-- name: enable display of last login upon SSH login
+- name: set version-independent SSHd options
   lineinfile: dest="/etc/ssh/sshd_config"
-              line="PrintLastLog yes"
-              regexp="^(#\s*)?PrintLastLog\s.*"
+              line="{{ item.key }} {{ item.value }}"
+              regexp="^(#\s*)?{{ item.key|regex_escape }}\s.*"
               insertafter="^TCPKeepAlive\s.*"
+  with_items: "{{ sshd_global_options |
+                  union( sshd_extra_options | default([]) ) }}"
   notify: restart sshd
 
-- name: provide legal banner displayed pre SSH logins
-  file: path=/etc/issue.net
-        src=/opt/admintools/pre-login-banner.txt
-        state=link force=yes
 # ---------- END:   version-independent configuration ----------
 
 
