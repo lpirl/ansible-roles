@@ -32,11 +32,11 @@
   shell: grep -q swap /etc/fstab || mount | grep -q swap
   register: swap_check
   changed_when: false
-  failed_when: false
+  ignore_errors: yes
 
-- name: disable check for swap partition if none is configured
+- name: disable check for swap partition if none was found
   lineinfile: dest=/tmp/lynis/custom.prf
-              line="skip-test=FILE-6310"
+              line="skip-test=FILE-6336"
               insertafter="\[security\]"
   when: swap_check.rc != 0
 
