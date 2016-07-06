@@ -108,9 +108,18 @@ sshd_global_options:
   # reduce risk of TCP spoofing attacks
   - {key: "TCPKeepAlive", value: "no"}
 
+  # reduce risk of compromised machines re-using client's ssh agents
+  - {key: "AllowAgentForwarding", value: "no"}
+
+  # reduce risk of users bypassing firewalls
+  - {key: "AllowTcpForwarding", value: "no"}
+
   # create unprivileged child process to deal with incoming traffic
   # (pre-authentication only)
   - {key: "UsePrivilegeSeparation", value: "sandbox"}
+
+  # reduce risk of unwanted X11 forwardings/"leaking displays"
+  - {key: "X11Forwarding", value: "no"}
 
   # bind the X11 forwarding server to the loopback address
   # (see man sshd_config)
