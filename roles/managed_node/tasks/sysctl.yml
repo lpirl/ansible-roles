@@ -1,0 +1,7 @@
+- name: add configuration files for sysctl (kernel parameters)
+  file: src="/opt/admintools/etc/sysctl.d/{{ item }}"
+        dest="/etc/sysctl.d/{{ item }}"
+        state=link
+  with_items:
+    - net-tuning.conf
+    - hardening.conf

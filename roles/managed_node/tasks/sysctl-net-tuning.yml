@@ -1,4 +1,0 @@
-- name: tune kernel network performance
-  file: src=/opt/admintools/etc/sysctl.d/net-tuning.conf
-        dest=/etc/sysctl.d/net-tuning.conf
-        state=link
