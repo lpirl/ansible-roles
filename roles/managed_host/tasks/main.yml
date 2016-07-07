@@ -17,6 +17,7 @@
 - include: net-utils.yml
 - include: postfix.yml
 - include: rootkit-detection.yml
+  tags: [report]
 - include: umask.yml
 - include: ntp.yml
 - include: haveged.yml
@@ -31,3 +32,4 @@
 
 # this should be the last line:
 - include: hardening-report.yml
+  tags: [report, hardening-report]

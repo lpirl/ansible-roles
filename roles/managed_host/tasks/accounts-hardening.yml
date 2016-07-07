@@ -8,9 +8,9 @@
               line="{{ item.key }}	{{item.value}}"
               regexp="^\s*{{ item.key }}\s.*"
   with_items:
-    - { key: "PASS_MAX_DAYS", value: pass_max_days}
-    - { key: "PASS_MIN_DAYS", value: pass_min_days}
-    - { key: "PASS_WARN_AGE", value: pass_warn_age}
+    - { key: "PASS_MAX_DAYS", value: "{{ pass_max_days }}"}
+    - { key: "PASS_MIN_DAYS", value: "{{ pass_min_days }}"}
+    - { key: "PASS_WARN_AGE", value: "{{ pass_warn_age }}"}
 
 - name: set password max/min/warn age for existing accounts w/ a password set
   shell: 'for x in $( \
@@ -24,3 +24,11 @@
               -W "{{ pass_warn_age }}" \
               $x; \
           done'
+
+- name: provide legal banner pre logins
+  file: path="{{ item }}"
+        src=/opt/admintools/pre-login-banner.txt
+        state=link force=yes
+  with_items:
+    - /etc/issue
+    - /etc/issue.net
