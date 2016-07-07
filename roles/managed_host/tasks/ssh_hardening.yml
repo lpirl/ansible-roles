@@ -210,7 +210,8 @@
 
 # ---------- BEGIN: files and permissions ----------
 - name: enforce permissions for .ssh directory of {{ ansible_user_id }}
-  file: dest="{{ansible_user_dir}}/.ssh" mode=go-rwx recurse=yes
+  file: dest="{{ansible_user_dir}}/.ssh" mode=go-rwx
+        state=directory recurse=yes
 
 - name: get home directory of
         {{ ansible_env.SUDO_USER|default("[n.a.]") }}
@@ -221,7 +222,8 @@
 
 - name: enforce permissions for .ssh directory of
         {{ ansible_env.SUDO_USER|default("[n.a.]") }}
-  file: dest="{{sudo_user_home.stdout}}/.ssh" mode=go-rwx recurse=yes
+  file: dest="{{sudo_user_home.stdout}}/.ssh" mode=go-rwx
+        state=directory recurse=yes
   when: ansible_env.SUDO_USER is defined
 
 # ---------- END:   files and permissions ----------
