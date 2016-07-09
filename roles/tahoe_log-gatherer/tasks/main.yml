@@ -1,0 +1,50 @@
+- name: check if log gatherer exists
+  register: check_log_gatherer_dir
+  stat: path={{ tahoe_basedir }}/log-gatherer
+
+- name: create directory log gatherer
+  file: path="{{ tahoe_basedir }}/log-gatherer"
+        state=directory
+  when: check_log_gatherer_dir.stat.exists == false
+
+- name: create new log gatherer
+  command: "{{ flogtool_bin }} create-gatherer
+              {{ tahoe_basedir }}/log-gatherer"
+  when: check_log_gatherer_dir.stat.exists == false
+  notify: restart log gatherer
+
+- name: set log gatherer port
+  lineinfile: dest="{{ tahoe_basedir }}/log-gatherer/portnum"
+              line="{{ log_gatherer_port }}"
+              regexp="^[^#].*"
+              create=yes
+  notify: restart log gatherer
+
+#~ - name: set log gatherer location to AUTO
+  #~ ???
+
+#~ - name: set external log gatherer location
+  #~ ???
+
+- name: start log gatherer at boot
+  cron: name="start tahoe log gatherer at boot"
+        special_time=reboot
+        job="(cd '{{ tahoe_basedir }}/log-gatherer/' &&
+              {{ twistd_bin }} -y gatherer.tac)"
+
+- name: running handlers to read out a possibly updated log gatherer furl
+  meta: flush_handlers
+
+- name: get the log gatherer's furl
+  register: log_gatherer_furl_cat
+  action: command cat "{{ tahoe_basedir }}/log-gatherer/log_gatherer.furl"
+  retries: 20
+  delay: 1
+  until: log_gatherer_furl_cat|success
+  changed_when: false
+
+- name: setting hostvars['{{ ansible_nodename}}']['tahoe_log_gatherer_furl']
+  set_fact: tahoe_log_gatherer_furl="{{ log_gatherer_furl_cat.stdout }}"
+
+- name: print the log gatherer's furl
+  debug: msg="Your log gatherer's furl is {{ log_gatherer_furl_cat.stdout }}"

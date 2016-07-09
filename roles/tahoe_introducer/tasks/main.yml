@@ -45,7 +45,7 @@
 - name: running handlers to read out a possibly updated introducer furl
   meta: flush_handlers
 
-- name: get the introducers' furl
+- name: get the introducer's furl
   register: introducer_furl_cat
   action: command cat "{{ tahoe_basedir }}/introducer/private/introducer.furl"
   retries: 20
@@ -56,5 +56,5 @@
 - name: setting hostvars['{{ ansible_nodename}}']['tahoe_introducer_furl']
   set_fact: tahoe_introducer_furl="{{ introducer_furl_cat.stdout }}"
 
-- name: print the introducers' furl
+- name: print the introducer's furl
   debug: msg="Your introducer's furl is {{ introducer_furl_cat.stdout }}"
