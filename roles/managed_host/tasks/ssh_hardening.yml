@@ -43,8 +43,8 @@
               line="{{ item.key }} {{ item.value }}"
               regexp="^(#\s*)?{{ item.key|regex_escape }}\s.*"
               insertafter="^TCPKeepAlive\s.*"
-  with_items: "{{ sshd_global_options |
-                  union( sshd_extra_options | default([]) ) }}"
+  with_dict: "{{ sshd_global_options |
+                 combine(sshd_extra_options | default({})) }}"
   notify: restart sshd
 
 # ---------- END:   version-independent configuration ----------

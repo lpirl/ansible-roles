@@ -16,7 +16,8 @@
               regexp="^{{ item.key }}\s*"
               line="{{ item.key }} = {{ item.value }}"
               state=present create=yes owner=root mode=0644
-  with_items: "{{ postfix_global_options | union( postfix_extra_options | default([]) ) }}"
+  with_dict: "{{ postfix_global_options |
+                 combine(postfix_extra_options | default({})) }}"
 
   notify: restart postfix
 
