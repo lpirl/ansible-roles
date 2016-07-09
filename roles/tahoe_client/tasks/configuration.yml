@@ -24,14 +24,9 @@
     - section: node
       option: log_gatherer.furl
       value: "{{ tahoe_log_gatherer_furl|default(None) }}"
-  notify: restart node
-
-- name: set introducer furl
-        (from previously played role "tahoe_introducer")
-  ini_file: dest="{{ tahoe_basedir }}/node/tahoe.cfg"
-            section=client
-            option=introducer.furl
-            value='{{ tahoe_introducer_furl }}'
+    - section: client
+      option: stats_gatherer.furl
+      value: "{{ tahoe_stats_gatherer_furl|default(None) }}"
   notify: restart node
 
 - name: set keepalive
