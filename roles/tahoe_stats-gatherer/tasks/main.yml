@@ -1,0 +1,45 @@
+- name: check if stats gatherer exists
+  register: check_stats_gatherer_dir
+  stat: path={{ tahoe_basedir }}/stats-gatherer
+
+- name: create new stats gatherer
+  command: "{{ tahoe_bin }} create-stats-gatherer
+              {{ tahoe_basedir }}/stats-gatherer"
+  when: check_stats_gatherer_dir.stat.exists == false
+  notify: restart stats gatherer
+
+- name: set stats gatherer port
+  lineinfile: dest="{{ tahoe_basedir }}/stats-gatherer/portnum"
+              line="{{ stats_gatherer_port }}"
+              regexp="^[^#].*"
+              create=yes
+  notify: restart stats gatherer
+
+#~ - name: set stats gatherer location to AUTO
+  #~ ???
+
+#~ - name: set external stats gatherer location
+  #~ ???
+
+- name: start stats gatherer at boot
+  cron: name="start tahoe stats gatherer at boot"
+        special_time=reboot
+        job="{{ tahoe_bin }} start '{{ tahoe_basedir }}/stats-gatherer/'"
+
+- name: running handlers to read out a possibly updated stats gatherer furl
+  meta: flush_handlers
+
+- name: get the stats gatherer's furl
+  register: stats_gatherer_furl_cat
+  action: command cat "{{ tahoe_basedir }}/stats-gatherer/stats_gatherer.furl"
+  retries: 20
+  delay: 1
+  until: stats_gatherer_furl_cat|success
+  changed_when: false
+
+- name: setting hostvars['{{ ansible_nodename}}']['tahoe_stats_gatherer_furl']
+  set_fact: tahoe_stats_gatherer_furl="{{ stats_gatherer_furl_cat.stdout }}"
+
+- name: print the stats gatherer's furl
+  debug: msg="Your stats gatherer's furl is
+              {{ stats_gatherer_furl_cat.stdout }}"
