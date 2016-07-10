@@ -32,3 +32,8 @@
   with_items:
     - /etc/issue
     - /etc/issue.net
+
+- name: hide PIDs between users
+  mount: src=proc name=/proc fstype=proc opts=defaults,hidepid=2
+         dump=0 passno=0 state=present
+  when: ansible_kernel | version_compare('3.3', '>=')
