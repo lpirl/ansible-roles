@@ -11,6 +11,10 @@
       host: ip6-allnodes
     - ip: ff02::2
       host: ip6-allrouters
+    - ip: fe00::0
+      host: ip6-localnet
+    - ip: ff00::0
+      host: ip6-mcastprefix
 
 - name: set v4 and v6 address for fqdn in /etc/hosts
   lineinfile: dest=/etc/hosts
