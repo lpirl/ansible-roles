@@ -12,6 +12,8 @@
        dest=/tmp/lynis
        force=yes
 
+
+
 # we cannot use ini_file, since Lynis does not use standard INI files
 - name: create sections in Lynis configuration
   lineinfile: dest=/tmp/lynis/custom.prf
@@ -28,6 +30,8 @@
   with_items: "{{ lynis_global_options |
                   union( lynis_extra_options | default([]) ) }}"
 
+
+
 - name: check if swap partition is configured or active
   shell: grep -q swap /etc/fstab || mount | grep -q swap
   register: swap_check
@@ -39,6 +43,16 @@
               line="skip-test=FILE-6336"
               insertafter="\[security\]"
   when: swap_check.rc != 0
+
+
+
+- name: disable check for kernel updates when OS-level virtualized
+  lineinfile: dest=/tmp/lynis/custom.prf
+              line="skip-test=KRNL-5788"
+              insertafter="\[security\]"
+  when: ansible_virtualization_type in ["lxc"]
+
+
 
 - name: run Lynis
   shell: 'cd /tmp/lynis &&
