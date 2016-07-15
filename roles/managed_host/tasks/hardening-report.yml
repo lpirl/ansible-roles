@@ -46,11 +46,16 @@
 
 
 
-- name: disable check for kernel updates when OS-level virtualized
+- name: disable kernel-related check when OS-level virtualized
   lineinfile: dest=/tmp/lynis/custom.prf
-              line="skip-test=KRNL-5788"
+              line="skip-test={{ item }}"
               insertafter="\[security\]"
   when: ansible_virtualization_type in ["lxc"]
+  with_items:
+    # check for kernel updates:
+    - KRNL-5788
+    # check for sysctl values:
+    - KRNL-6000
 
 
 
