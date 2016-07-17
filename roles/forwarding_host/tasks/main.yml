@@ -1,0 +1,9 @@
+---
+- name: enable IP forwarding
+  lineinfile: dest=/etc/sysctl.d/95-forwarding.conf
+              line="{{ item }} = 1"
+              regexp="^(#\s*)?{{ item|regex_escape }}\s.*"
+              create=yes
+  with_items:
+    - net.ipv4.ip_forward
+    - net.ipv4.conf.all.forwarding
