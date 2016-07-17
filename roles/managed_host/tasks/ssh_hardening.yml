@@ -6,15 +6,8 @@
 
 # ---------- BEGIN: check password auth ----------
 
-- name: check if password authentication for root disabled (JUST FAILS IF NOT)
-  when: not sshd_allow_password_auth
-  shell: 'egrep "^PermitRootLogin\s+" /etc/ssh/sshd_config|egrep -v "(without-password|no)"'
-  register: result
-  changed_when: False
-  failed_when: "result.rc != 1"
-  ignore_errors: yes
-
-- name: check if challenge-response authentication disabled (JUST FAILS IF NOT)
+- name: check if challenge-response authentication disabled
+        (JUST FAILS IF NOT)
   when: not sshd_allow_password_auth
   shell: 'egrep "^ChallengeResponseAuthentication\s+" /etc/ssh/sshd_config|grep -v no'
   register: result
@@ -22,7 +15,8 @@
   failed_when: "result.rc != 1"
   ignore_errors: yes
 
-- name: check if password authentication disabled  (JUST FAILS IF NOT)
+- name: check if password authentication disabled
+        (JUST FAILS IF NOT)
   when: not sshd_allow_password_auth
   shell: 'egrep "^PasswordAuthentication\s+" /etc/ssh/sshd_config|grep -v no'
   register: result
@@ -30,7 +24,8 @@
   failed_when: "result.rc != 1"
   ignore_errors: yes
 
-- name: check if empty password are disabled  (JUST FAILS IF NOT)
+- name: check if empty password are disabled
+        (JUST FAILS IF NOT)
   when: not sshd_allow_password_auth
   shell: 'egrep "^PermitEmptyPasswords\s+" /etc/ssh/sshd_config|grep -v no'
   register: result
@@ -48,8 +43,8 @@
               line="{{ item.key }} {{ item.value }}"
               regexp="^(#\s*)?{{ item.key|regex_escape }}\s.*"
               insertafter="^TCPKeepAlive\s.*"
-  with_items: "{{ sshd_global_options |
-                  union( sshd_extra_options | default([]) ) }}"
+  with_dict: "{{ sshd_global_options |
+                 combine(sshd_extra_options | default({})) }}"
   notify: restart sshd
 
 # ---------- END:   version-independent configuration ----------
@@ -215,7 +210,8 @@
 
 # ---------- BEGIN: files and permissions ----------
 - name: enforce permissions for .ssh directory of {{ ansible_user_id }}
-  file: dest="{{ansible_user_dir}}/.ssh" mode=go-rwx recurse=yes
+  file: dest="{{ansible_user_dir}}/.ssh" mode=u+rX,go-rwx
+        state=directory recurse=yes
 
 - name: get home directory of
         {{ ansible_env.SUDO_USER|default("[n.a.]") }}
@@ -226,7 +222,8 @@
 
 - name: enforce permissions for .ssh directory of
         {{ ansible_env.SUDO_USER|default("[n.a.]") }}
-  file: dest="{{sudo_user_home.stdout}}/.ssh" mode=go-rwx recurse=yes
+  file: dest="{{sudo_user_home.stdout}}/.ssh" mode=u+rX,go-rwx
+        state=directory recurse=yes
   when: ansible_env.SUDO_USER is defined
 
 # ---------- END:   files and permissions ----------

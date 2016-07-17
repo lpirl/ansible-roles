@@ -11,12 +11,22 @@
             value='{{ ansible_nodename|default(ansible_fqdn) }}'
   notify: restart node
 
-- name: set introducer furl
-        (from previously played role "tahoe_introducer")
+- name: set global furls
   ini_file: dest="{{ tahoe_basedir }}/node/tahoe.cfg"
-            section=client
-            option=introducer.furl
-            value='{{ tahoe_introducer_furl }}'
+            section="{{ item.section }}"
+            option="{{ item.option }}"
+            value="{{ item.value }}"
+  when: item is not undefined
+  with_items:
+    - section: node
+      option: introducer.furl
+      value: "{{ tahoe_introducer_furl|default(None) }}"
+    - section: node
+      option: log_gatherer.furl
+      value: "{{ tahoe_log_gatherer_furl|default(None) }}"
+    - section: client
+      option: stats_gatherer.furl
+      value: "{{ tahoe_stats_gatherer_furl|default(None) }}"
   notify: restart node
 
 - name: set keepalive

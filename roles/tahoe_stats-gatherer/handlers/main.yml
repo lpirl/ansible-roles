@@ -1,0 +1,15 @@
+# In a lot of cases, the stats gatherer furl file needs to be regenerated.
+# Lets delete it in order to be sure to read the re-written file later on.
+#
+# Using a separate handler, say "regenerate stats gatherer furl file",
+# is tricky since if "restart stats-gatherer" is notified fist, the node
+# first restarts and /then/ the stats gatherer furl file is deleted – what
+# is problematic.
+# Deleting the file prior every restart was considered less pain than
+# trying to hack around Ansibles order of execution regarding handlers.
+#
+# The noop command silences "Consider using file module…"
+- name: restart stats gatherer
+  shell: ":;
+          rm -f '{{ tahoe_basedir }}/stats-gatherer/stats_gatherer.furl';
+          {{ tahoe_bin }} -q restart '{{ tahoe_basedir }}/stats-gatherer'"

@@ -3,5 +3,6 @@
         dest="/etc/sysctl.d/{{ item }}"
         state=link
   with_items:
-    - net-tuning.conf
-    - hardening.conf
+    - 90-hardening.conf
+    - 80-net-tuning.conf
+    - 50-reboot-on-panic.conf

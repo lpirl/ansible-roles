@@ -16,7 +16,7 @@ postfix_global_options:
   # Example: How to add custom Postfix options
   #          (put this into your Playbook vars):
   #  - postfix_extra_options:
-  #    - {key: line_length_limit, value: 4096}
+  #    line_length_limit: 4096
 
   # Example: How to set post aliases
   #          (put this into your Playbook vars):
@@ -24,28 +24,28 @@ postfix_global_options:
   #    - { user: "{{ ansible_env.USER }}",
   #        alias: "{{ ansible_fqdn }}+{{ ansible_env.USER }}@example.com"}
 
-  - {key: smtpd_banner, value: $myhostname ESMTP}
-  - {key: biff, value: "no"}
-  - {key: readme_directory, value: "no"}
-  - {key: append_dot_mydomain, value: "no"}
-  - {key: delay_warning_time, value: 1h}
-  - {key: recipient_delimiter, value: +}
+  smtpd_banner: $myhostname ESMTP
+  biff: "no"
+  readme_directory: "no"
+  append_dot_mydomain: "no"
+  delay_warning_time: 1h
+  recipient_delimiter: +
 
-  - {key: alias_maps, value: "hash:/etc/aliases"}
-  - {key: alias_database, value: "hash:/etc/aliases"}
+  alias_maps: hash:/etc/aliases
+  alias_database: hash:/etc/aliases
 
-  - {key: mynetworks, value: "127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128"}
+  mynetworks: 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128
 
   # SMTP SSL
-  - {key: smtp_tls_session_cache_database, value: "btree:${data_directory}/smtp_scache"}
-  - {key: smtp_tls_security_level, value: may}
-  - {key: smtp_tls_protocols, value: "!SSLv2, !SSLv3"}
+  smtp_tls_session_cache_database: btree:${data_directory}/smtp_scache
+  smtp_tls_security_level: may
+  smtp_tls_protocols: "!SSLv2, !SSLv3"
 
   # apple mail may send very long lines:
-  - {key: line_length_limit, value: 2048}
+  line_length_limit: 2048
 
   # use the OS' host name lookup mechanism:
-  - {key: smtp_host_lookup, value: native}
+  smtp_host_lookup: native
 
 
 
@@ -84,43 +84,46 @@ sshd_global_options:
   # the configuration in a Playbook
 
   # reduce risk of BREACH exploit
-  - {key: "Compression", value: "no"}
+  Compression: "no"
 
   # no DNS reverse lookups for connecting hosts (unnecessary & laggy)
-  - {key: "UseDNS", value: "no"}
+  UseDNS: "no"
 
   # enable display of a login banner
-  - {key: "Banner", value: "/etc/issue.net"}
+  Banner: "/etc/issue.net"
 
   # enable display of last login upon login
-  - {key: "PrintLastLog", value: "yes"}
+  PrintLastLog: "yes"
 
   # close sessions of unresponsive clients more quickly
-  - {key: "ClientAliveCountMax", value: "2"}
+  ClientAliveCountMax: "2"
 
-  - {key: "LogLevel", value: "VERBOSE"}
-  - {key: "MaxAuthTries", value: "1"}
+  # increase logging verbosity
+  LogLevel: "VERBOSE"
+
+  # disconnect after one failed login attempt
+  MaxAuthTries: "1"
 
   # this is the maximum number of multiplexed sessions per connection
   # (however, there can be multiple connections)
-  - {key: "MaxSessions", value: "2"}
+  MaxSessions: "2"
 
   # reduce risk of TCP spoofing attacks
-  - {key: "TCPKeepAlive", value: "no"}
+  TCPKeepAlive: "no"
 
   # reduce risk of compromised machines re-using client's ssh agents
-  - {key: "AllowAgentForwarding", value: "no"}
+  AllowAgentForwarding: "no"
 
   # reduce risk of users bypassing firewalls
-  - {key: "AllowTcpForwarding", value: "no"}
+  AllowTcpForwarding: "no"
 
   # create unprivileged child process to deal with incoming traffic
   # (pre-authentication only)
-  - {key: "UsePrivilegeSeparation", value: "sandbox"}
+  UsePrivilegeSeparation: "sandbox"
 
   # reduce risk of unwanted X11 forwardings/"leaking displays"
-  - {key: "X11Forwarding", value: "no"}
+  X11Forwarding: "no"
 
   # bind the X11 forwarding server to the loopback address
   # (see man sshd_config)
-  - {key: "X11UseLocalhost", value: "yes"}
+  X11UseLocalhost: "yes"

@@ -1,0 +1,4 @@
+---
+twistd_bin: "{{ ansible_env.HOME }}/.local/bin/twistd"
+flogtool_bin: "{{ ansible_env.HOME }}/.local/bin/flogtool"
+log_gatherer_port: 4242

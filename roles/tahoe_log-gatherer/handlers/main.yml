@@ -1,0 +1,18 @@
+# In a lot of cases, the log gatherer furl file needs to be regenerated.
+# Lets delete it in order to be sure to read the re-written file later on.
+#
+# Using a separate handler, say "regenerate log gatherer furl file",
+# is tricky since if "restart log gatherer" is notified fist, the node
+# first restarts and /then/ the log gatherer furl file is deleted – what
+# is problematic.
+# Deleting the file prior every restart was considered less pain than
+# trying to hack around Ansibles order of execution regarding handlers.
+#
+# The noop command silences "Consider using file module…"
+- name: restart log gatherer
+  shell: ":;
+          rm -f '{{ tahoe_basedir }}/log-gatherer/log_gatherer.furl';
+          cd '{{ tahoe_basedir }}/log-gatherer/' && (
+            {{ tahoe_bin }} stop .;
+            {{ twistd_bin }} -y gatherer.tac
+          )"
