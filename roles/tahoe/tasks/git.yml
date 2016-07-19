@@ -1,0 +1,22 @@
+- name: get a temporary directory for checking out Tahoe-LAFS
+  register: tahoe_checkout_mktemp
+  command: mktemp -d --suffix _tahoe-git
+
+- block:
+
+  - name: check out Tahoe-LAFS from repository
+    git: repo="{{ tahoe_repository }}"
+         dest="{{ tahoe_checkout_mktemp.stdout }}"
+         force=yes refspec="{{ tahoe_repository_refspec }}"
+
+  - name: install Tahoe LAFS from source
+    pip: chdir="{{ tahoe_checkout_mktemp.stdout }}"
+         name="."
+         executable={{ pip_command|default("pip") }}
+         extra_args='--user --upgrade'
+
+  always:
+
+  - name: remove temporary checkout of Tahoe-LAFS
+    file: path="{{ tahoe_checkout_mktemp.stdout }}"
+          state=absent

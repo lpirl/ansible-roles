@@ -1,0 +1,8 @@
+- name: install Tahoe LAFS and optional packages from pip
+  pip: name="{{ item }}"
+       state=latest
+       executable={{ pip_command|default("pip") }}
+       extra_args='--user'
+  with_items:
+    - tahoe-lafs
+    - service_identity
