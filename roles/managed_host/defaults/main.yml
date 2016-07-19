@@ -1,14 +1,15 @@
 # make sure the fit in a line like "a,b,c{sshd_extra_macs}
 sshd_extra_macs: ""
 sshd_extra_kex: ""
-ssh_needs_ecdsa_host_key: False
-sshd_allow_password_auth: False
+ssh_needs_ecdsa_host_key: no
+sshd_allow_password_auth: no
 
 rkhunter_version: 1.4.2
 
 # optionally, define nameservers
 nameservers: []
 
+logcheck_enabled: yes
 
 
 postfix_global_options:
