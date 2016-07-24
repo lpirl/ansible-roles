@@ -41,7 +41,7 @@
 - name: set version-independent SSHd options
   lineinfile: dest="/etc/ssh/sshd_config"
               line="{{ item.key }} {{ item.value }}"
-              regexp="^(#\s*)?{{ item.key|regex_escape }}\s.*"
+              regexp="^(#\s?)?{{ item.key|regex_escape }}\s.*"
               insertafter="^TCPKeepAlive\s.*"
   with_dict: "{{ sshd_global_options |
                  combine(sshd_extra_options | default({})) }}"
