@@ -1,19 +1,28 @@
-- name: install rsyslog
-  apt: package=rsyslog
+- name: install packages for basic logging functionality
+  package: name="{{ item }}"
+  with_items:
+    - rsyslog
+    - logrotate
 
-- name: install logrotate
-  apt: package=logrotate
+- name: uninstall logcheck
+  apt: package={{ item }} state=absent
+  with_items:
+    - logcheck
+    - logcheck-database
+  when: not logcheck_enabled
 
 - name: install logcheck
   apt: package={{ item }}
   with_items:
     - logcheck
     - logcheck-database
+  when: logcheck_enabled
 
 - name: do not use FQDN in subject of logcheck emails
   lineinfile: line="FQDN=0"
               regexp="^\s*FQDN\s*=.*"
               dest="/etc/logcheck/logcheck.conf"
+  when: logcheck_enabled
 
 - name: symlinking extra ignore configurations for logcheck
   register: symlink_logcheck_ignore_files
@@ -21,6 +30,17 @@
   failed_when: symlink_logcheck_ignore_files.rc != 0
   with_items:
      - server
+  when: logcheck_enabled
 
 - name: remove broken symlinks from logcheck's configuration
   shell: find /etc/logcheck -xtype l -delete
+  when: logcheck_enabled
+
+- name: work around a permission bug for systemd in LXC (Launchpad #1582394)
+  lineinfile:
+    dest: /etc/logcheck/ignore.d.server/systemd_in_lxc-extra
+    line: '^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ systemd\[[[:digit:]]+\]: Failed to reset devices\.list on \/system\.slice\/systemd-tmpfiles-clean\.service: Operation not permitted$'
+    create: yes
+    # only one line in the file:
+    regexp: ".*"
+  when: ansible_virtualization_type == "lxc"

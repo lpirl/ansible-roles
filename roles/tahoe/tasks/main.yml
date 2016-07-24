@@ -2,12 +2,11 @@
   pip: name=allmydata-tahoe  state=absent
        executable={{ pip_command|default("pip") }}
 
-- name: install Tahoe LAFS and optional packages
-  pip: name="{{ item }}"  extra_args='--user' state=latest
-       executable={{ pip_command|default("pip") }}
-  with_items:
-    - tahoe-lafs
-    - service_identity
+- include: pip.yml
+  when: not tahoe_repository
+
+- include: git.yml
+  when: tahoe_repository
 
 - name: add Tahoe binaries to $PATH
   lineinfile: dest="{{ item.dest }}"
