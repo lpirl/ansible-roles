@@ -39,7 +39,7 @@
 - name: work around a permission bug for systemd in LXC (Launchpad #1582394)
   lineinfile:
     dest: /etc/logcheck/ignore.d.server/systemd_in_lxc-extra
-    line: '^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ systemd\[[[:digit:]]+\]: Failed to reset devices\.list on \/system\.slice\/systemd-tmpfiles-clean\.service: Operation not permitted$'
+    line: '^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ systemd\[[[:digit:]]+\]: Failed to reset devices\.list on [\\._[:alnum:]/-]+: Operation not permitted$'
     create: yes
     mode: 0644
     # only one line in the file:
