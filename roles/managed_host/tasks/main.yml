@@ -29,6 +29,8 @@
 - include: certbot.yml
 - include: accounts-hardening.yml
 - include: disk_space_alert.yml
+- include: email_send_test.yml
+  tags: [email_test]
 
 # this should be the last line:
 - include: hardening-report.yml
