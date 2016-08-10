@@ -1,0 +1,13 @@
+- name: install arpwatch
+  package: name=arpwatch state=present
+  when: use_arpwatch
+  tags: wip
+
+- name: uninstall arpwatch
+  package: name=arpwatch state=absent
+  when: not use_arpwatch
+  tags: wip
+
+- name: enable & start arpwatch
+  service: name=arpwatch enabled=yes state=started
+  when: use_arpwatch

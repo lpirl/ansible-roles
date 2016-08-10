@@ -45,9 +45,8 @@ postfix_global_options:
   # apple mail may send very long lines:
   line_length_limit: 2048
 
-  # use the OS' host name lookup mechanism:
-  smtp_host_lookup: native
-
+  # try the OS' host name lookup mechanism before failing
+  smtp_host_lookup: dns, native
 
 
 lynis_global_options:
@@ -128,3 +127,7 @@ sshd_global_options:
   # bind the X11 forwarding server to the loopback address
   # (see man sshd_config)
   X11UseLocalhost: "yes"
+
+# we do not use http://api.temp-mail.ru/request/domains/format/json
+# to choose a domain to avoid possible shell injection
+temp_mail_domain: lackmail.ru

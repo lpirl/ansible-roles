@@ -1,0 +1,33 @@
+# we do not use http://api.temp-mail.ru/request/domains/format/json
+# to choose a domain to avoid possible shell injection
+
+- name: choose random local part for mailing to "{{ temp_mail_domain }}"
+  register: localpart_result
+  shell: cat /dev/urandom | tr -dc 'a-z0-9' | head -c 12
+  failed_when: localpart_result|failed
+  changed_when: false
+
+- name: assemble email address
+  register: email_result
+  shell: echo -n "{{ localpart_result.stdout }}@{{ temp_mail_domain }}"
+  changed_when: false
+
+- name: send test email to "{{ email_result.stdout }}"
+  shell: "echo | mail {{ email_result.stdout }}"
+  changed_when: false
+
+- name: check if email arrived
+  register: temp_mail_result
+  uri:
+    url: "http://api.temp-mail.ru/request/mail/id/{{ email_result.stdout|hash('md5') }}/format/json"
+    return_content: yes
+  retries: 20
+  delay: 3
+  until: temp_mail_result.status == 200
+  changed_when: false
+
+- name: empty temporary inbox
+  uri:
+    url: "http://api.temp-mail.ru/request/delete/id/{{ item.mail_id }}/"
+  changed_when: false
+  with_items: "{{ temp_mail_result.json }}"

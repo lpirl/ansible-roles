@@ -1,7 +1,7 @@
 - name: restart sshd
   service: name=ssh state=restarted
 
-- name: restart Postfix
+- name: restart postfix
   service: name=postfix state=restarted
 
 - name: rehash aliases
