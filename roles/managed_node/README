@@ -1,0 +1,2 @@
+A role for nodes where we are in full (software) control of the hardware
+(i.e. physical machines or VMs with platform virtualization).
