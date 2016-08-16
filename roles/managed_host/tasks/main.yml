@@ -31,6 +31,7 @@
 - include: disk_space_alert.yml
 - include: email_send_test.yml
   tags: [email_test]
+- include: apache2.yml
 
 # this should be the last line:
 - include: hardening-report.yml
