@@ -1,4 +1,5 @@
 - name: check out admintools git
+  register: admintools_checkout
   git: repo=https://github.com/lpirl/admintools.git
        dest=/opt/admintools
        force=yes
@@ -8,3 +9,4 @@
 
 - name: ensure permissions for admintools
   file: path=/opt/admintools mode=go=u,go-w,a-s recurse=yes
+  changed_when: admintools_checkout|changed
