@@ -13,12 +13,14 @@
   package: name=openntpd state=present
   when: ansible_virtualization_type != "lxc"
 
-# service module does not work on all hosts currently (16/06)!?
+# "service" module does not work on all hosts currently (16/06)!?
 - name: ensure OpenNTPD is started
-  command: service openntpd start
+  # noop command (:) silences "Consider using service module…"
+  shell: :; service openntpd start
   when: ansible_virtualization_type != "lxc"
 
-# service module does not work on all hosts currently (16/06)!?
+# "service" module does not work on all hosts currently (16/06)!?
 - name: ensure OpenNTPD starts at boot
-  command: update-rc.d openntpd enable
+  # noop command (:) silences "Consider using service module…"
+  shell: :; update-rc.d openntpd enable
   when: ansible_virtualization_type != "lxc"
