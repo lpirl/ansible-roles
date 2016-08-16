@@ -9,16 +9,16 @@
         dest="/etc/apache2/conf-available/{{ item }}"
         state=link force=yes
   with_items:
-    - basic-hardening.conf
-    - httpoxy.conf
+    - 10-basic-hardening.conf
+    - 20-httpoxy.conf
   when: apache2_installed_check|succeeded
 
 - name: enable configurations for Apache2
   register: a2enconf_result
   command: a2enconf "{{ item }}"
   with_items:
-    - basic-hardening.conf
-    - httpoxy.conf
+    - 10-basic-hardening.conf
+    - 20-httpoxy.conf
   notify: restart apache2
   changed_when: '"Enabling conf" in a2enconf_result.stdout'
   when: apache2_installed_check|succeeded
