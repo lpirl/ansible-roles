@@ -3,11 +3,17 @@
   command: certbot --version
   failed_when: False
   changed_when: False
+  tags: wip
 
 - name: remove legacy schedule (letsencrypt)
   cron: name="weekly renewal of SSL certificates" special_time=weekly
         job="/opt/admintools/letsencrypt-renew-wrapper.sh" state=absent
   when: not certbot_version|failed
+
+- name: remove package-provided cron job to renew certificates (won't work)
+  file: dest=/etc/cron.d/certbot state=absent
+  when: not certbot_version|failed
+  tags: wip
 
 - name: schedule weekly renewal of SSL certificates
   cron: name="renewal of SSL certificates" special_time=weekly
