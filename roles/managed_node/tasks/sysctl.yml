@@ -5,6 +5,7 @@
   with_items:
     - 90-hardening.conf
     - 80-net-tuning.conf
+    - 70-numa-tuning.conf
     - 50-reboot-on-panic.conf
   notify: sysctl reload
 
