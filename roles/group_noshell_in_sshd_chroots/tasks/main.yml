@@ -62,7 +62,6 @@
               line="{{ item }}"  create=yes mode=600
   with_items:
     - /etc/rssh.conf
-    - /dev/null
 
 - name: set binaries to copy to chroots
   lineinfile: dest="{{ grequalizer_binaries2chroot_file }}"
