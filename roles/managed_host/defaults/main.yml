@@ -128,6 +128,8 @@ sshd_global_options:
   # (see man sshd_config)
   X11UseLocalhost: "yes"
 
+  "Subsystem sftp": internal-sftp
+
 # we do not use http://api.temp-mail.ru/request/domains/format/json
 # to choose a domain to avoid possible shell injection
 temp_mail_domain: lackmail.ru
