@@ -3,15 +3,18 @@
             section=storage
             option=enabled
             value=true
+  notify: restart node
 
 - name: set the storage server's reserved space in configuration
   ini_file: dest="{{ tahoe_basedir }}/node/tahoe.cfg"
             section=storage
             option=reserved_space
             value="{{ reserved_space }}"
+  notify: restart node
 
 - name: set the storage server's lease duration in configuration
   ini_file: dest="{{ tahoe_basedir }}/node/tahoe.cfg"
             section=storage
             option=expire.override_lease_duration
             value="{{ lease_duration }}"
+  notify: restart node
