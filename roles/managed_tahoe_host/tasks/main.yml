@@ -12,6 +12,12 @@
     - libffi-dev
     - python-dev
 
+- name: install packages required to install Tahoe from source
+  apt: name="{{ item }}" install_recommends=yes
+  with_items:
+    - git
+  when: tahoe_repository
+
 - name: check pip version
   register: pip_version
   command: pip --version

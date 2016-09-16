@@ -2,13 +2,10 @@
   register: check_log_gatherer_dir
   stat: path={{ tahoe_basedir }}/log-gatherer
 
-- name: create directory log gatherer
-  file: path="{{ tahoe_basedir }}/log-gatherer"
-        state=directory
-  when: check_log_gatherer_dir.stat.exists == false
-
 - name: create new log gatherer
-  command: "{{ flogtool_bin }} create-gatherer
+  command: "{{ flogtool_bin }} create-gatherer --bzip
+              --port tcp:3117
+              --location tcp:{{ ansible_ssh_host }}:3117
               {{ tahoe_basedir }}/log-gatherer"
   when: check_log_gatherer_dir.stat.exists == false
   notify: restart log gatherer
