@@ -9,6 +9,10 @@
         job="/opt/admintools/letsencrypt-renew-wrapper.sh" state=absent
   when: not certbot_version|failed
 
+- name: remove package-provided cron job to renew certificates (won't work)
+  file: dest=/etc/cron.d/certbot state=absent
+  when: not certbot_version|failed
+
 - name: schedule weekly renewal of SSL certificates
   cron: name="renewal of SSL certificates" special_time=weekly
         job="/opt/admintools/certbot-renew-wrapper.sh"

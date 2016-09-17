@@ -1,0 +1,9 @@
+- name: add udev rule to set deadline scheduler for non-rotational disks
+  blockinfile:
+    dest: /etc/udev/rules.d/60-ssd-scheduler.rules
+    block: |
+      ACTION=="add|change", KERNEL=="[svh]d[a-z]", TEST!="queue/rotational", ATTR{queue/scheduler}="deadline"
+      ACTION=="add|change", KERNEL=="[svh]d[a-z]", ATTR{queue/rotational}=="0", ATTR{queue/scheduler}="deadline"
+    create: yes
+    mode: 0644
+    regexp: ".*"

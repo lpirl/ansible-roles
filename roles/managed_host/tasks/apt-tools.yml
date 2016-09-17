@@ -26,6 +26,13 @@
               line="$nrconf{ui} = 'NeedRestart::UI::stdio';"
               state=present create=yes mode=0644
 
+- name: remove needrestart's hook into apt to make sure it doesn't require
+        user interaction (doing this via its settings seems to be unreliable)
+  register: unhook_apt_result
+  command: find /etc/apt -name "*needrestart*" -print -delete
+  changed_when: unhook_apt_result.stdout != ""
+  failed_when: unhook_apt_result|failed
+
 - name: check needrestart version
   register: needrestart_version_lt_one
   shell: needrestart --version | grep "needrestart 0"

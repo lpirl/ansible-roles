@@ -21,13 +21,18 @@
   uri:
     url: "http://api.temp-mail.ru/request/mail/id/{{ email_result.stdout|hash('md5') }}/format/json"
     return_content: yes
-  retries: 20
+  retries: 10
   delay: 3
   until: temp_mail_result.status == 200
   changed_when: false
 
 - name: empty temporary inbox
+  register: empty_mailbox_result
   uri:
     url: "http://api.temp-mail.ru/request/delete/id/{{ item.mail_id }}/"
+    follow_redirects: all
   changed_when: false
   with_items: "{{ temp_mail_result.json }}"
+  retries: 3
+  delay: "{{ 10|random(start=3, step=1) }}"
+  until: empty_mailbox_result.status == 200

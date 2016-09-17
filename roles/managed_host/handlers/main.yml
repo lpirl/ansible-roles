@@ -6,3 +6,6 @@
 
 - name: rehash aliases
   command: postalias /etc/aliases
+
+- name: restart apache2
+  shell: apache2ctl configtest && apache2ctl restart

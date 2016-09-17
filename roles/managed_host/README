@@ -1,0 +1,2 @@
+A role for nodes where we are *not* in (software) control of the hardware
+(i.e. paravirtualization) but have superuser privileges.

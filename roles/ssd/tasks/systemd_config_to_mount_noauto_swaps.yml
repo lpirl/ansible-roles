@@ -1,0 +1,13 @@
+- name: add systemd service for mounting swaps marked "noauto"
+  service:  name=/opt/admintools/etc/systemd/system/noauto-swap-partitions.service
+            enabled=yes
+
+- name: create directory for systemd-logind drop-ins
+  file: dest=/etc/systemd/system/systemd-logind.service.d/
+        state=directory
+
+- name: add configuration for systemd-logind to allow hibernation w/o swap
+        (swap will be activated right before hibernation)
+  file: src=/opt/admintools/etc/systemd/system/systemd-logind.service.d/50-can-hibernate.conf
+        dest=/etc/systemd/system/systemd-logind.service.d/50-can-hibernate.conf
+        state=link force=yes
