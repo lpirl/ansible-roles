@@ -3,22 +3,18 @@
   shell: type tlp-stat
   failed_when: false
   changed_when: false
-  tags: wip
 
 - name: uninstall laptop-mode-tools (TLP present)
   package: name=laptop-mode-tools state=absent
   when: tlp_installed_check.rc == 0
-  tags: wip
 
 - name: install laptop-mode-tools (TLP absent)
   package: name=laptop-mode-tools state=present
   when: tlp_installed_check.rc != 0
-  tags: wip
 
 - name: enable & start laptop-mode
   service: name=laptop-mode enabled=yes state=started
   when: tlp_installed_check.rc != 0
-  tags: wip
 
 - name: configure laptop-mode-tools
   lineinfile: dest=/etc/laptop-mode/laptop-mode.conf
@@ -28,5 +24,4 @@
   with_dict: "{{ laptop_mode_global_options |
                  combine(laptop_mode_extra_options | default({})) }}"
   when: tlp_installed_check.rc != 0
-  tags: wip
   notify: restart laptop-mode
