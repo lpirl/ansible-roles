@@ -24,7 +24,7 @@
 - include: ssh_hardening.yml
 - include: apt-dater.yml
 - include: scheduling_and_detaching.yml
-- include: logging.yml
+- include: logging-and-accounting.yml
 - include: hostname_and_lookups.yml
 - include: certbot.yml
 - include: accounts-hardening.yml
