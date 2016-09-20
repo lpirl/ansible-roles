@@ -32,3 +32,9 @@
               regexp='^\s*umask\s.*'
               line='umask 077'
               create=no
+
+- name: tell debsums to ignore changes in /etc/init.d/rc
+  register: set_umask_logindefs
+  lineinfile: dest=/etc/debsums-ignore
+              line="^/etc/init.d/rc$"
+              create=no

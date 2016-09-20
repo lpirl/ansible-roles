@@ -36,6 +36,8 @@
   shell: find /etc/logcheck -xtype l -delete
   when: logcheck_enabled
 
+
+
 - name: work around a permission bug for systemd in LXC (Launchpad #1582394)
   lineinfile:
     dest: /etc/logcheck/ignore.d.server/systemd_in_lxc-extra
@@ -45,3 +47,23 @@
     # only one line in the file:
     regexp: ".*"
   when: ansible_virtualization_type == "lxc"
+
+
+
+- name: install packages for accounting
+  package: name="{{ item }}" state=present
+  with_items:
+    - acct
+    - sysstat
+
+- name: enable accounting services
+  service: name="{{ item }}" enabled=yes state=started
+  with_items:
+    - acct
+    - sysstat
+
+- name: enable sysstat in it's configuration file
+  lineinfile: dest=/etc/default/sysstat
+              line='ENABLED="true"'
+              regexp='^ENABLED\s*=.*'
+  tags: wip

@@ -11,7 +11,7 @@
   register: result
   changed_when: result.stdout != ""
 
-- name: set global options for postfix
+- name: set options for postfix
   lineinfile: dest=/etc/postfix/main.cf
               regexp="^{{ item.key }}\s*"
               line="{{ item.key }} = {{ item.value }}"

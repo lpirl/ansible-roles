@@ -3,6 +3,7 @@
   with_items:
     - apticron
     - needrestart
+    - debsums
 
 - name: remove unneeded tools
   package: name="{{ item }}" state=absent

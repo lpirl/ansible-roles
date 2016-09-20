@@ -1,0 +1,12 @@
+laptop_mode_global_options:
+
+  # Example: How to add custom options
+  #          (put this into your Playbook vars):
+  #  - laptop_mode_extra_options:
+  #    LM_SECONDS_BEFORE_SYNC: 2
+
+  ENABLE_LAPTOP_MODE_TOOLS: 1
+  ENABLE_LAPTOP_MODE_ON_BATTERY: 1
+  ENABLE_LAPTOP_MODE_ON_AC: 1
+  ENABLE_LAPTOP_MODE_WHEN_LID_CLOSED: 1
+  USE_RELATIME: 0
