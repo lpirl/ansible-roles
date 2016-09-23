@@ -7,6 +7,7 @@ rsync_backup_dir_pairs:
   - { local_dir: "/", remote_dir: "/backup"}
 
 use_arpwatch: yes
+use_process_accounting: yes
 
 needs_usb_storage: no
 needs_firewire_storage: no

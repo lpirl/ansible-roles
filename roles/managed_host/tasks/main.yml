@@ -1,5 +1,10 @@
+# includes that to not alter the system can be made conditional here
+# (otherwise, we might have to undo stuff when variables change)
+
 # keep installing admintools the first thinng to do
+
 - include: git-install.yml
+
 - include: admintools.yml
 
 # keep configuring packages to install other packages the second thing to do
@@ -9,29 +14,52 @@
 - include: apt-upgrade.yml
 
 - include: git-config.yml
+
 - include: apt-tools.yml
+
 - include: editor.yml
+
 - include: shell.yml
+
 - include: interactive-monitors.yml
+
 - include: system-information.yml
+
 - include: net-utils.yml
+
 - include: postfix.yml
+
 - include: rootkit-detection.yml
+  when: create_reports
   tags: [report]
+
 - include: umask.yml
+
 - include: ntp.yml
+
 - include: haveged.yml
+
 - include: ssh_hardening.yml
+
 - include: scheduling_and_detaching.yml
+
 - include: logging-and-accounting.yml
+
 - include: hostname_and_lookups.yml
+
 - include: certbot.yml
+
 - include: accounts-hardening.yml
+
 - include: disk_space_alert.yml
+
 - include: email_send_test.yml
+  when: do_email_send_test
   tags: [email_test]
+
 - include: apache2.yml
 
 # this should be the last line:
 - include: hardening-report.yml
+  when: create_reports
   tags: [report, hardening-report]

@@ -9,8 +9,11 @@ rkhunter_version: 1.4.2
 # optionally, define nameservers
 nameservers: []
 
-logcheck_enabled: yes
-
+use_logcheck: yes
+use_haveged: yes
+do_email_send_test: yes
+create_reports: yes
+hide_processes_between_users: yes
 
 postfix_global_options:
 
@@ -74,7 +77,8 @@ pass_max_days: -1
 pass_min_days: -1
 pass_warn_age: 30
 
-# email root if a disk mounted from /dev/… fills above this percentage
+# email root if a disk mounted from /dev/… fills above this percentage,
+# negative values will disable the check
 disk_space_alert_percentage: 95
 
 
@@ -133,3 +137,12 @@ sshd_global_options:
 # we do not use http://api.temp-mail.ru/request/domains/format/json
 # to choose a domain to avoid possible shell injection
 temp_mail_domain: lackmail.ru
+
+apt_tools:
+  # maps package name to it's desired state,
+  # use apt_tools_extra just like postfix_extra_options to customize
+  # the configuration in a Playbook
+
+  apticron: present
+  needrestart: present
+  debsums: present
