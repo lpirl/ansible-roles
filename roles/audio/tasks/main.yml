@@ -1,0 +1,16 @@
+- name: install audio-related packages
+  apt: name="{{ item.key }}" state="{{ item.value }}" install_recommends=yes
+  with_dict: "{{ audio_packages |
+                 combine(audio_packages_extra | default({})) }}"
+
+- name: create configuration directory for pam_limits
+  file: path=/etc/security/limits.d state=directory
+
+- name: link in audio configuration for pam_limits
+  file:
+    src: "/opt/admintools/etc/security/limits.d/{{ item }}.conf"
+    dest: "/etc/security/limits.d/{{ item }}.conf"
+    state: link
+  with_items:
+   - real-time_audio
+  tags: wip
