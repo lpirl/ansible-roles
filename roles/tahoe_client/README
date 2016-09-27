@@ -1,4 +1,4 @@
 Creates a Tahoe-LAFS node that is part of the grid.
 
 This can be either just a client that backups to the grid or further
-extended (e.g. by other roles) to other node types.
+be extended (e.g. by other roles) to other node types.
