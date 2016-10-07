@@ -1,0 +1,29 @@
+- name: add X2Go repository
+  register: add_apt_repository
+  apt_repository:
+    repo: "deb http://packages.x2go.org/debian {{ ansible_lsb.codename }} main"
+    state: present
+
+- name: add apt key for X2Go repository
+  apt_key: keyserver=keys.gnupg.net id=E1F958385BFE2B6E
+
+- name: update the apt cache
+  apt: update_cache=yes
+  when: add_apt_repository|changed
+
+- name: install remote desktop related packages
+  apt: name="{{ item.key }}" state="{{ item.value }}"
+  with_dict: "{{ remote_desktop_packages |
+                 combine(remote_desktop_packages_extra | default({})) }}"
+
+- name: prevent users from shutting down/rebooting
+  blockinfile:
+    dest: /etc/polkit-1/localauthority/50-local.d/no-power-management-by-users.conf
+    create: yes
+    block: |
+      [disable power management by users]
+      Identity=unix-user:*
+      Action=org.freedesktop.login1.reboot;org.freedesktop.login1.reboot-multiple-sessions;org.freedesktop.login1.power-off;org.freedesktop.login1.power-off-multiple-sessions;org.freedesktop.login1.suspend;org.freedesktop.login1.suspend-multiple-sessions;org.freedesktop.login1.hibernate;org.freedesktop.login1.hibernate-multiple-sessions
+      ResultAny=no
+      ResultInactive=no
+      ResultActive=no
