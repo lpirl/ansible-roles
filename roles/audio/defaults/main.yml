@@ -1,0 +1,38 @@
+# maps package names to their desired installation state
+# Example to extend/override this list (put something like the following
+# into your variables):
+#  audio_packages_extra:
+#    "my-favorite-audio-package": present
+#    "my-hated-audio-package": absent
+audio_packages:
+  audacity:                       present
+  audacious:                      present
+  qjackctl:                       present
+  ardour:                         present
+  japa:                           present
+
+  # plugins:
+  abgate:                         present
+  amb-plugins:                    present
+  autotalent:                     present
+  bs2b-ladspa:                    present
+  calf-plugins:                   present
+  caps:                           present
+  cmt:                            present
+  eq10q:                          present
+  fil-plugins:                    present
+  fomp:                           present
+  invada-studio-plugins-ladspa:   present
+  invada-studio-plugins-lv2:      present
+  ir.lv2:                         present
+  lv2vocoder:                     present
+  mda-lv2:                        present
+  rev-plugins:                    present
+  swh-lv2:                        present
+  swh-plugins:                    present
+  tap-plugins:                    present
+  vocproc:                        present
+  wah-plugins:                    present
+  x42-plugins:                    present
+  zam-plugins:                    present
+  pd-freeverb:                    present
