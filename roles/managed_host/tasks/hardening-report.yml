@@ -56,12 +56,13 @@
     - KRNL-5788
     # check for sysctl values:
     - KRNL-6000
-
+    # check for NTP client (clock should be controlled by hypervisor):
+    - TIME-3104
 
 
 - name: run Lynis
   shell: 'cd /tmp/lynis &&
-          ./lynis audit system --checkall --cronjob | \
+          ./lynis audit system --cronjob | \
             cat -v | \
               sed -r "s/\^\[\[[0-9;]+m//g" | \
                 mail -s "$(hostname) hardening report" root'

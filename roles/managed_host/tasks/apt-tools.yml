@@ -1,8 +1,7 @@
 - name: install tools for managing apt-based systems
-  package: name="{{ item }}" state=present
-  with_items:
-    - apticron
-    - needrestart
+  package: name="{{ item.key }}" state="{{ item.value }}"
+  with_dict: "{{ apt_tools |
+                 combine(apt_tools_extra | default({})) }}"
 
 - name: remove unneeded tools
   package: name="{{ item }}" state=absent

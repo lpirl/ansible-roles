@@ -9,3 +9,14 @@
 - name: enable & start arpwatch
   service: name=arpwatch enabled=yes state=started
   when: use_arpwatch
+
+- name: disable USB storage
+  kernel_blacklist: name=usb-storage state=present
+  when: not needs_usb_storage
+
+- name: disable FireWire storage (and maybe more)
+  kernel_blacklist: name="{{ item }}" state=present
+  with_items:
+    - firewire-ohci
+    - firewire-sbp2
+  when: not needs_firewire_storage
