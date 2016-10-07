@@ -1,5 +1,5 @@
 # maps package names to their desired installation state
-# Example to extend/override this list ()put something like the following
+# Example to extend/override this list (put something like the following
 # into your variables):
 #  audio_packages_extra:
 #    "my-favorite-audio-package": present
