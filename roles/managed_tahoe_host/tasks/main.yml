@@ -1,9 +1,9 @@
 - name: create tahoe user
-  user: name={{tahoe_user}}
+  user: name="{{ tahoe_user }}"
         shell="{{ ansible_user_shell }}"
 
 - name: install required packages
-  apt: name="{{ item }}" install_recommends=yes
+  package: name="{{ item }}" state=latest
   with_items:
     - python-pip
     - python-pkg-resources
@@ -11,6 +11,7 @@
     - libssl-dev
     - libffi-dev
     - python-dev
+    - cron
 
 - name: check pip version
   register: pip_version
