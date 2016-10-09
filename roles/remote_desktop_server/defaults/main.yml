@@ -1,0 +1,15 @@
+# maps package names to their desired installation state
+# Example to extend/override this list (put something like the following
+# into your variables):
+#  remote_desktop_packages_extra:
+#    "my-favorite-browser": present
+#    "my-hated-browser": absent
+remote_desktop_packages:
+  x2goserver:           present
+  x2goserver-xsession:  present
+  lxde-core:            present
+  lxde-icon-theme:      present
+  gvfs-fuse:            present
+  gvfs-backends:        present
+  lxterminal:           present
+  chromium:             present

@@ -1,0 +1,2 @@
+A role creating an (by default LXDE) desktop environment that is
+accessible via X2Go (through SSH).
