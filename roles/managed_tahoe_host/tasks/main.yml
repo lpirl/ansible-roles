@@ -3,15 +3,9 @@
         shell="{{ ansible_user_shell }}"
 
 - name: install required packages
-  package: name="{{ item }}" state=latest
-  with_items:
-    - python-pip
-    - python-pkg-resources
-    - build-essential
-    - libssl-dev
-    - libffi-dev
-    - python-dev
-    - cron
+  package: name="{{ item.key }}" state="{{ item.value }}"
+  with_dict: "{{ tahoe_packages |
+                 combine(tahoe_packages_extra | default({})) }}"
 
 - name: check pip version
   register: pip_version

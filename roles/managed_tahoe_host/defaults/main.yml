@@ -1,0 +1,13 @@
+# maps package names to their desired installation state
+# Example to extend/override this list (put something like the following
+# into your variables):
+#  tahoe_packages_extra:
+#    "my-favorite-tahoe-package": present
+#    "my-hated-tahoe-package": absent
+tahoe_packages:
+  python-pip:       latest
+  build-essential:  latest
+  libssl-dev:       latest
+  libffi-dev:       latest
+  python-dev:       latest
+  cron:             latest
