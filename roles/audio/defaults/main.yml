@@ -10,6 +10,8 @@ audio_packages:
   qjackctl:                       present
   ardour:                         present
   japa:                           present
+  libffado2:                      present
+  ffado-tools:                    present
 
   # plugins:
   abgate:                         present
