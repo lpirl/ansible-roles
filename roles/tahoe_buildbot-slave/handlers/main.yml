@@ -1,0 +1,6 @@
+- name: restart buildslave
+  command: "{{ buildslave_bin }} restart {{ buildslave_dir}}"
+  # since the build slave needs to access packages installed by the user:
+  # (when Ansible uses su, the environment of the user is not used)
+  environment:
+    PATH: "{{ buildslave_PATH }}"

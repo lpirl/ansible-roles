@@ -1,0 +1,57 @@
+- name: install required PIP packages
+  pip: name="{{ item }}"
+       state=latest
+       executable={{ pip_command|default("pip") }}
+       extra_args='--user'
+  with_items:
+    - buildbot-slave
+    - service_identity
+    - tox
+
+- name: add buildslave binaries to $PATH
+  lineinfile: dest="{{ item.dest }}"
+              line="{{ item.line }}"
+              state=present
+              create=yes
+  when: "'{{ item.shell }}' in '{{ ansible_user_shell }}'"
+  with_items:
+    - shell: bash
+      dest: ~/.bash_profile
+      line: export PATH="$HOME/.local/bin:$PATH"
+    - shell: zsh
+      dest: ~/.zprofile
+      line: path=($HOME/.local/bin $path)
+
+- name: create buildslave base directory
+  register: create_buildslave_dir
+  file: path="{{ buildslave_dir }}"
+        state=directory
+
+- name: check if buildslave exists
+  stat: path="{{ buildslave_dir }}"
+
+- name: create new buildslave
+  register: create_buildslave_result
+  command: "{{ buildslave_bin }} create-slave {{ buildslave_dir }}
+            {{ buildmaster_url }}
+            {{ buildslave_username }} {{ buildslave_password }}"
+  when: create_buildslave_dir|changed
+  notify: restart buildslave
+
+- name: upgrade buildslave
+  register: upgrade_buildslave_result
+  command: "{{ buildslave_bin }} upgrade-slave {{ buildslave_dir }}"
+  when: not create_buildslave_dir|changed
+  changed_when: '"No changes made" not in upgrade_buildslave_result.stdout'
+  notify: restart buildslave
+
+- name: start buildslave at boot
+  cron: name="start buildslave node at boot"
+        special_time=reboot
+        job="bash -lc '{{ buildslave_bin }} start \'{{ buildslave_dir }}\''"
+
+- name: start buildslave daily (in case it crashed)
+  cron: name="start buildslave daily (in case it crashed)"
+        hour="{{ 24 |random }}"
+        minute="{{ 60 |random }}"
+        job="bash -lc '{{ buildslave_bin }} start \'{{ buildslave_dir }}\'' > /dev/null 2>&1"
