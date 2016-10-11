@@ -1,0 +1,4 @@
+Pulls in audio role and does some extra configuration to optimize for
+real-time audio tasks.
+
+You probably do not want this on you everyday multi-purpose computer.

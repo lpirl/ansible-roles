@@ -1,2 +1,7 @@
 - name: install entropy daemon haveged
-  apt: package=haveged
+  apt: package=haveged  state=present
+  when: use_haveged
+
+- name: uninstall entropy daemon haveged
+  apt: package=haveged state=absent
+  when: not use_haveged

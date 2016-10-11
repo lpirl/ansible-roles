@@ -9,20 +9,20 @@
   with_items:
     - logcheck
     - logcheck-database
-  when: not logcheck_enabled
+  when: not use_logcheck
 
 - name: install logcheck
   apt: package={{ item }}
   with_items:
     - logcheck
     - logcheck-database
-  when: logcheck_enabled
+  when: use_logcheck
 
 - name: do not use FQDN in subject of logcheck emails
   lineinfile: line="FQDN=0"
               regexp="^\s*FQDN\s*=.*"
               dest="/etc/logcheck/logcheck.conf"
-  when: logcheck_enabled
+  when: use_logcheck
 
 - name: symlinking extra ignore configurations for logcheck
   register: symlink_logcheck_ignore_files
@@ -30,11 +30,11 @@
   failed_when: symlink_logcheck_ignore_files.rc != 0
   with_items:
      - server
-  when: logcheck_enabled
+  when: use_logcheck
 
 - name: remove broken symlinks from logcheck's configuration
   shell: find /etc/logcheck -xtype l -delete
-  when: logcheck_enabled
+  when: use_logcheck
 
 
 
@@ -55,15 +55,24 @@
   with_items:
     - acct
     - sysstat
+  when: use_process_accounting
+
+- name: uninstall packages for accounting
+  package: name="{{ item }}" state=absent
+  with_items:
+    - acct
+    - sysstat
+  when: not use_process_accounting
 
 - name: enable accounting services
   service: name="{{ item }}" enabled=yes state=started
   with_items:
     - acct
     - sysstat
+  when: use_process_accounting
 
 - name: enable sysstat in it's configuration file
   lineinfile: dest=/etc/default/sysstat
               line='ENABLED="true"'
               regexp='^ENABLED\s*=.*'
-  tags: wip
+  when: use_process_accounting

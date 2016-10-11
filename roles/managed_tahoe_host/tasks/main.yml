@@ -1,16 +1,11 @@
 - name: create tahoe user
-  user: name={{tahoe_user}}
+  user: name="{{ tahoe_user }}"
         shell="{{ ansible_user_shell }}"
 
 - name: install required packages
-  apt: name="{{ item }}" install_recommends=yes
-  with_items:
-    - python-pip
-    - python-pkg-resources
-    - build-essential
-    - libssl-dev
-    - libffi-dev
-    - python-dev
+  package: name="{{ item.key }}" state="{{ item.value }}"
+  with_dict: "{{ tahoe_packages |
+                 combine(tahoe_packages_extra | default({})) }}"
 
 - name: install packages required to install Tahoe from source
   apt: name="{{ item }}" install_recommends=yes

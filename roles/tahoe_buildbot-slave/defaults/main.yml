@@ -1,0 +1,4 @@
+buildslave_bin: "{{ ansible_env.HOME }}/.local/bin/buildslave"
+buildslave_dir: "{{ ansible_env.HOME }}/buildslave"
+buildmaster_url: buildmaster.tahoe-lafs.org:9987
+buildslave_PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
