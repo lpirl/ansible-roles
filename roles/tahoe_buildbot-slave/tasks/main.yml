@@ -55,3 +55,19 @@
         hour="{{ 24 |random }}"
         minute="{{ 60 |random }}"
         job="bash -lc '{{ buildslave_bin }} start \'{{ buildslave_dir }}\'' > /dev/null 2>&1"
+
+- name: set buildslave host information
+  shell: "(
+    echo 'Python {{ ansible_python_version }}';
+    echo '{{ ansible_os_family }} {{ ansible_distribution }}
+          {{ ansible_distribution_release }} {{ ansible_distribution_version }}';
+    echo 'kernel {{ ansible_kernel }} {{ ansible_machine }}';
+    echo 'CPU {{ ansible_processor_count }} {{ ansible_processor[1] }}';
+  ) > '{{ buildslave_dir }}/info/host'"
+  notify: restart buildslave
+
+- name: set buildslave admin
+  lineinfile: dest="{{ buildslave_dir }}/info/admin"
+              line="{{ buildslave_admin }}" regexp=".*"
+  when: buildslave_admin is defined
+  notify: restart buildslave
