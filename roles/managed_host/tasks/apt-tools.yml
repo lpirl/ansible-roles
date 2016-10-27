@@ -82,4 +82,4 @@
     src: /opt/admintools/apticron-1.1.59.patch
     remote_src: yes
     backup: yes
-  when: apticron_version_result | version_compare('1.1.59', '>=')
+  when: apticron_version_result | version_compare('1.1.59', '==')
