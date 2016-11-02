@@ -68,3 +68,18 @@
   cron: name="list (and thereby email) unpurged APT packages"
         job=/opt/admintools/apt-list-unpurged-packages.sh
         special_time=yearly
+
+
+# fix apticron's "MIME-Version: 1.0: No such file or directory"
+# https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=812719
+- name: get apticron version
+  register: apticron_version_result
+  shell: "dpkg -s apticron | grep 'Version: ' | awk '{print $2}'"
+
+- name: patch apticron
+  patch:
+    dest: /usr/sbin/apticron
+    src: /opt/admintools/apticron-1.1.59.patch
+    remote_src: yes
+    backup: yes
+  when: apticron_version_result | version_compare('1.1.59', '==')

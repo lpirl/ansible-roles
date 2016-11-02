@@ -1,14 +1,14 @@
 - name: install arpwatch
   package: name=arpwatch state=present
-  when: use_arpwatch
+  when: arpwatch_enabled
 
 - name: uninstall arpwatch
   package: name=arpwatch state=absent
-  when: not use_arpwatch
+  when: not arpwatch_enabled
 
 - name: enable & start arpwatch
   service: name=arpwatch enabled=yes state=started
-  when: use_arpwatch
+  when: arpwatch_enabled
 
 - name: disable USB storage
   kernel_blacklist: name=usb-storage state=present

@@ -137,7 +137,7 @@ sshd_global_options:
 
 # we do not use http://api.temp-mail.ru/request/domains/format/json
 # to choose a domain to avoid possible shell injection
-temp_mail_domain: lackmail.ru
+temp_mail_domain: polyfaust.com
 
 apt_tools:
   # maps package name to it's desired state,
