@@ -1,0 +1,2 @@
+Prepares a managed host (i.e. we are root) to run a buildbot slave for
+Tahoe-LAFS.

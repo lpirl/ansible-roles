@@ -19,14 +19,14 @@
   when: item is not undefined
   with_items:
     - section: node
-      option: introducer.furl
-      value: "{{ tahoe_introducer_furl|default(None) }}"
-    - section: node
       option: log_gatherer.furl
       value: "{{ tahoe_log_gatherer_furl|default(None) }}"
     - section: client
       option: stats_gatherer.furl
       value: "{{ tahoe_stats_gatherer_furl|default(None) }}"
+    - section: client
+      option: introducer.furl
+      value: "{{ tahoe_introducer_furl|default(None) }}"
   notify: restart node
 
 - name: set keepalive

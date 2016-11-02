@@ -56,7 +56,8 @@
     - KRNL-5788
     # check for sysctl values:
     - KRNL-6000
-
+    # check for NTP client (clock should be controlled by hypervisor):
+    - TIME-3104
 
 
 - name: run Lynis

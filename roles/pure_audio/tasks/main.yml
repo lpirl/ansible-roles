@@ -1,0 +1,10 @@
+- name: install real-time kernel
+  package: name=linux-image-rt-amd64 state=present
+
+- name: remove non-real-time kernel
+  package: name=linux-image-amd64 state=absent
+
+- name: add systemd service for enabling real-time settings
+  service:
+    name: /opt/admintools/etc/systemd/system/real-time_settings.service
+    enabled: yes

@@ -36,4 +36,13 @@
 - name: hide PIDs between users
   mount: src=proc name=/proc fstype=proc opts=defaults,hidepid=2
          dump=0 passno=0 state=present
-  when: ansible_kernel | version_compare('3.3', '>=')
+  when: ansible_kernel | version_compare('3.3', '>=') and
+        hide_processes_between_users
+
+- name: unhide PIDs between users
+  mount: src=proc name=/proc fstype=proc opts=defaults,hidepid=2
+         dump=0 passno=0 state=absent
+  when: ansible_kernel | version_compare('3.3', '<') or
+        not hide_processes_between_users
+  # hotfix: tries to delete /proc ...
+  ignore_errors: yes
