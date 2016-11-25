@@ -54,7 +54,6 @@
   command: needrestart -bk
   register: needrestart_result
   changed_when: False
-  when: needrestart_version_lt_one.rc == 1
 
 - name: email root if machine needs a reboot
   # non-recent versions of needrestart read from stdin if newer kernels

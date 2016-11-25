@@ -3,7 +3,9 @@
   stat: path={{ tahoe_basedir }}/introducer
 
 - name: create new introducer
-  command: "{{ tahoe_bin}} create-introducer -C {{ tahoe_basedir }}/introducer"
+  command: "{{ tahoe_bin}} create-introducer
+              -C {{ tahoe_basedir }}/introducer
+              --hostname={{ ansible_ssh_host }}"
   when: check_introducer_dir.stat.exists == false
   notify: restart introducer
 

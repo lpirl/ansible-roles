@@ -4,6 +4,7 @@
 
 - name: create new stats gatherer
   command: "{{ tahoe_bin }} create-stats-gatherer
+              --hostname={{ ansible_ssh_host }}
               {{ tahoe_basedir }}/stats-gatherer"
   when: check_stats_gatherer_dir.stat.exists == false
   notify: restart stats gatherer
