@@ -29,10 +29,6 @@
 
 - include: postfix.yml
 
-- include: rootkit-detection.yml
-  when: create_reports
-  tags: [report]
-
 - include: umask.yml
 
 - include: ntp.yml
