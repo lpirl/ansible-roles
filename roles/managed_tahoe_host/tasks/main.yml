@@ -11,7 +11,7 @@
   apt: name="{{ item }}" install_recommends=yes
   with_items:
     - git
-  when: tahoe_repository
+  when: tahoe_repository|default(false)
 
 - name: check pip version
   register: pip_version
