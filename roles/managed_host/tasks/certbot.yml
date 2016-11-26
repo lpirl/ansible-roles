@@ -1,13 +1,8 @@
-- name: check if certbot is installed
+- name: check installed certbot version
   register: certbot_version
   command: certbot --version
   failed_when: False
   changed_when: False
-
-- name: remove legacy schedule (letsencrypt)
-  cron: name="weekly renewal of SSL certificates" special_time=weekly
-        job="/opt/admintools/letsencrypt-renew-wrapper.sh" state=absent
-  when: not certbot_version|failed
 
 - name: remove package-provided cron job to renew certificates (won't work)
   file: dest=/etc/cron.d/certbot state=absent
