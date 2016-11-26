@@ -8,7 +8,7 @@
 - include: git.yml
   when: tahoe_repository
 
-- name: add Tahoe binaries to $PATH
+- name: add Tahoe binaries to PATH
   lineinfile: dest="{{ item.dest }}"
               line="{{ item.line }}"
               state=present
