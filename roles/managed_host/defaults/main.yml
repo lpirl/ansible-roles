@@ -4,6 +4,7 @@ sshd_extra_kex: ""
 ssh_needs_ecdsa_host_key: no
 sshd_allow_password_auth: no
 
+tmp_hardening_report_file: /root/tmp_hardening_report.txt
 rkhunter_version: 1.4.2
 
 # optionally, define nameservers
@@ -67,6 +68,9 @@ lynis_global_options:
   # time raises the likeliness of partitions filling up.
   # We rely on email notification upon high disk usage.
   - {section: security, option: skip-test=FILE-6310}
+
+  # we rkhunter during the Playbook execution (what Lynis cannot detect):
+  - {section: security, option: skip-test=HRDN-7230}
 
 
 # Settings for password aging (will be applied for all existing accounts!)
