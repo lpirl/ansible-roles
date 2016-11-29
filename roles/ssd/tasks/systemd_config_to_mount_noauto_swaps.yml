@@ -1,6 +1,9 @@
+# not using service module because of
+# https://github.com/ansible/ansible-modules-core/issues/5755
 - name: add systemd service for mounting swaps marked "noauto"
-  service:  name=/opt/admintools/etc/systemd/system/noauto-swap-partitions.service
-            enabled=yes
+  register: systemctl_result
+  command: systemctl enable /opt/admintools/etc/systemd/system/noauto-swap-partitions.service
+  changed_when: systemctl_result.stdout != ""
 
 - name: create directory for systemd-logind drop-ins
   file: dest=/etc/systemd/system/systemd-logind.service.d/
