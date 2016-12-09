@@ -13,3 +13,4 @@ remote_desktop_packages:
   gvfs-backends:        present
   lxterminal:           present
   chromium:             present
+  policykit-1:          present
