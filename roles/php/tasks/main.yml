@@ -1,0 +1,12 @@
+- name: install PHP5
+  package: name=php5
+
+- name: set PHP5 configuration options
+  ini_file:
+    dest: /etc/php5/fpm/php.ini
+    section: PHP
+    option: "{{ item.key }}"
+    value: "{{ item.value }}"
+  with_dict: "{{ php_global_options |
+                 combine(php_extra_options|default({})) }}"
+  notify: restart Web servers

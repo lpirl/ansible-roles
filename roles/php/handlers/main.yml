@@ -1,0 +1,2 @@
+- name: restart Web servers
+  shell: for x in apache2 nginx; do service $x restart; done; true
