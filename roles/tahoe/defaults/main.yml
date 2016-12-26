@@ -1,7 +1,7 @@
 ---
 # uses PyPI/pip repository when null or undefined
 tahoe_repository: null
-tahoe_repository_refspec: master
+tahoe_repository_version: master
 
 tahoe_basedir: "{{ ansible_env.HOME }}/tahoe/"
 tahoe_bin: "{{ ansible_env.HOME }}/.local/bin/tahoe"

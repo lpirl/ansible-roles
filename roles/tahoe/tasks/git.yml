@@ -7,7 +7,7 @@
   - name: check out Tahoe-LAFS from repository
     git: repo="{{ tahoe_repository }}"
          dest="{{ tahoe_checkout_mktemp.stdout }}"
-         force=yes refspec="{{ tahoe_repository_refspec }}"
+         force=yes version="{{ tahoe_repository_version }}"
 
   - name: install Tahoe LAFS from source
     pip: chdir="{{ tahoe_checkout_mktemp.stdout }}"
