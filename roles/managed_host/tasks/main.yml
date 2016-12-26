@@ -54,6 +54,7 @@
   tags: [email_test]
 
 - include: apache2.yml
+- include: nginx.yml
 
 # this should be the last line:
 - include: hardening-report.yml

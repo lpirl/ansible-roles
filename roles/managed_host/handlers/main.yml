@@ -9,3 +9,6 @@
 
 - name: restart apache2
   shell: apache2ctl configtest && apache2ctl restart
+
+- name: restart nginx
+  service: name=nginx state=restarted
