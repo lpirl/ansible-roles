@@ -70,7 +70,7 @@
 
 - name: schedule yearly notification of unpurged APT packages
   cron: name="list (and thereby email) unpurged APT packages"
-        job=/opt/admintools/apt-list-unpurged-packages.sh
+        job=/opt/admintools/dpkg_list-unpurged-packages.sh
         special_time=yearly
 
 
