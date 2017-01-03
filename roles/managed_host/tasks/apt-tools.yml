@@ -4,9 +4,14 @@
                  combine(apt_tools_extra | default({})) }}"
 
 - name: remove unneeded tools
-  package: name="{{ item }}" state=absent
+  apt: name="{{ item }}" state=absent purge=yes
   with_items:
     - apt-xapian-index
+
+- name: cleanup files of unneeded packages
+  file: path="{{ item }}" state=absent
+  with_items:
+    - /var/cache/apt-xapian-index
 
 - name: make needrestart default to list services only
   lineinfile: dest=/etc/needrestart/conf.d/list-services-only.conf
