@@ -1,29 +1,50 @@
-# we do not use http://api.temp-mail.ru/request/domains/format/json
-# to choose a domain to avoid possible shell injection
+- name: get available domains to send test email to
+  register: mail_test_domains_result
+  uri:
+    url: "http://api.temp-mail.ru/request/domains/format/json"
+    return_content: yes
+    body_format: json
+  changed_when: false
 
-- name: choose random local part for mailing to "{{ temp_mail_domain }}"
+- name: generate random local part for test email
   register: localpart_result
   shell: cat /dev/urandom | tr -dc 'a-z0-9' | head -c 12
   failed_when: localpart_result|failed
   changed_when: false
 
 - name: assemble email address
-  register: email_result
-  shell: echo -n "{{ localpart_result.stdout }}@{{ temp_mail_domain }}"
+  set_fact:
+    mail_test_address: "{{
+        localpart_result.stdout
+      }}{{
+        mail_test_domains_result.json | random
+    }}"
   changed_when: false
 
-- name: send test email to "{{ email_result.stdout }}"
-  shell: "echo | mail {{ email_result.stdout }}"
+# This is just paranoia: we get the domain from an API and send it to
+# a shell so we make sure we didn't catch any malicious strings.
+# Since I could not figure out how to properly assert a regex match,
+# we just replace an out expected email address with an empty string
+# and assert that.
+- name: sanity check email address
+  assert:
+    that:
+      - "'' == '{{
+        mail_test_address | regex_replace('^[a-zA-Z0-9-._]+@[a-zA-Z0-9-._]+$', '')
+      }}'"
+
+- name: send test email"
+  shell: "echo | mail {{ mail_test_address | quote }}"
   changed_when: false
 
 - name: check if email arrived
-  register: temp_mail_result
+  register: mail_test_check_result
   uri:
-    url: "http://api.temp-mail.ru/request/mail/id/{{ email_result.stdout|hash('md5') }}/format/json"
+    url: "http://api.temp-mail.ru/request/mail/id/{{ mail_test_address|hash('md5') }}/format/json"
     return_content: yes
   retries: 10
   delay: 3
-  until: temp_mail_result.status == 200
+  until: mail_test_check_result.status == 200
   changed_when: false
 
 - name: empty temporary inbox
@@ -32,7 +53,9 @@
     url: "http://api.temp-mail.ru/request/delete/id/{{ item.mail_id }}/"
     follow_redirects: all
   changed_when: false
-  with_items: "{{ temp_mail_result.json }}"
+  with_items: "{{ mail_test_check_result.json }}"
   retries: 3
   delay: "{{ 10|random(start=3, step=1) }}"
   until: empty_mailbox_result.status == 200
+  loop_control:
+    label: "{{ item.mail_id }} ({{ item.mail_from|trim }} → {{ mail_test_address }})"

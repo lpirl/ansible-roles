@@ -139,10 +139,6 @@ sshd_global_options:
 
   "Subsystem sftp": internal-sftp
 
-# we do not use http://api.temp-mail.ru/request/domains/format/json
-# to choose a domain to avoid possible shell injection
-temp_mail_domain: polyfaust.com
-
 apt_tools:
   # maps package name to it's desired state,
   # use apt_tools_extra just like postfix_extra_options to customize
