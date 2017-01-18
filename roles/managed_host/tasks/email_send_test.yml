@@ -33,7 +33,7 @@
         mail_test_address | regex_replace('^[a-zA-Z0-9-._]+@[a-zA-Z0-9-._]+$', '')
       }}'"
 
-- name: send test email"
+- name: send test email
   shell: "echo | mail {{ mail_test_address | quote }}"
   changed_when: false
 
