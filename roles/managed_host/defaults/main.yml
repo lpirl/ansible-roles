@@ -1,9 +1,3 @@
-# make sure the fit in a line like "a,b,c{sshd_extra_macs}
-sshd_extra_macs: ""
-sshd_extra_kex: ""
-ssh_needs_ecdsa_host_key: no
-sshd_allow_password_auth: no
-
 tmp_hardening_report_file: /root/tmp_hardening_report.txt
 rkhunter_version: 1.4.2
 
@@ -86,59 +80,6 @@ pass_warn_age: 30
 # negative values will disable the check
 disk_space_alert_percentage: 95
 
-
-
-sshd_global_options:
-  # use sshd_extra_options just like postfix_extra_options to customize
-  # the configuration in a Playbook
-
-  # reduce risk of BREACH exploit
-  Compression: "no"
-
-  # no DNS reverse lookups for connecting hosts (unnecessary & laggy)
-  UseDNS: "no"
-
-  # enable display of a login banner
-  Banner: "/etc/issue.net"
-
-  # enable display of last login upon login
-  PrintLastLog: "yes"
-
-  # close sessions of unresponsive clients more quickly
-  ClientAliveCountMax: "2"
-
-  # increase logging verbosity
-  LogLevel: "VERBOSE"
-
-  # disconnect after one failed login attempt
-  MaxAuthTries: "1"
-
-  # this is the maximum number of multiplexed sessions per connection
-  # (however, there can be multiple connections)
-  MaxSessions: "2"
-
-  # reduce risk of TCP spoofing attacks
-  TCPKeepAlive: "no"
-
-  # reduce risk of compromised machines re-using client's ssh agents
-  AllowAgentForwarding: "no"
-
-  # reduce risk of users bypassing firewalls
-  AllowTcpForwarding: "no"
-
-  # create unprivileged child process to deal with incoming traffic
-  # (pre-authentication only)
-  UsePrivilegeSeparation: "sandbox"
-
-  # reduce risk of unwanted X11 forwardings/"leaking displays"
-  X11Forwarding: "no"
-
-  # bind the X11 forwarding server to the loopback address
-  # (see man sshd_config)
-  X11UseLocalhost: "yes"
-
-  "Subsystem sftp": internal-sftp
-
 apt_tools:
   # maps package name to it's desired state,
   # use apt_tools_extra just like postfix_extra_options to customize
@@ -147,3 +88,144 @@ apt_tools:
   apticron: present
   needrestart: present
   debsums: present
+
+########################################################################
+# ssh
+#
+
+ssh_client_and_server_extra_macs: []
+ssh_client_and_server_macs:
+  - hmac-sha2-512-etm@openssh.com
+  - hmac-sha2-256-etm@openssh.com
+  - hmac-ripemd160-etm@openssh.com
+  - umac-128-etm@openssh.com
+  - hmac-sha2-512
+  - hmac-sha2-256
+  - hmac-ripemd160
+
+ssh_client_and_server_extra_kex: []
+ssh_client_and_server_kex:
+  - curve25519-sha256@libssh.org
+  - diffie-hellman-group-exchange-sha256
+
+ssh_client_and_server_extra_ciphers: []
+ssh_client_and_server_ciphers:
+  - chacha20-poly1305@openssh.com
+  - aes256-gcm@openssh.com
+  - aes128-gcm@openssh.com
+  - aes256-ctr
+  - aes192-ctr
+  - aes128-ctr
+
+ssh_server_extra_host_keys: []
+ssh_server_host_keys:
+  - /etc/ssh/ssh_host_rsa_key
+  - /etc/ssh/ssh_host_ed25519_key
+
+ssh_client_and_server_extra_options: {}
+ssh_client_and_server_options:
+
+  # reduce risk of BREACH exploit
+  Compression: "no"
+
+  # reduce risk of TCP spoofing attacks
+  TCPKeepAlive: "no"
+
+  Ciphers: "{{ (
+    ssh_client_and_server_ciphers + ssh_client_and_server_extra_ciphers
+  ) | join(',')}}"
+
+  KexAlgorithms: "{{ (
+    ssh_client_and_server_kex + ssh_client_and_server_extra_kex
+  ) | join(',')}}"
+
+  MACs: "{{ (
+    ssh_client_and_server_macs + ssh_client_and_server_extra_macs
+  ) | join(',')}}"
+
+ssh_server_extra_options: {}
+ssh_server_options:
+
+  # increase logging verbosity
+  LogLevel: VERBOSE
+  SyslogFacility: AUTH
+
+  # ``inet``, ``inet6`` or ``any``
+  AddressFamily: any
+
+  # no DNS reverse lookups for connecting hosts (unnecessary & laggy)
+  UseDNS: "no"
+
+  # reduce risk of users bypassing firewalls
+  AllowTcpForwarding: "no"
+
+  # reduce risk of compromised machines re-using client's ssh agents
+  AllowAgentForwarding: "no"
+
+  # reduce risk of unwanted X11 forwardings/"leaking displays"
+  X11Forwarding: "no"
+
+  # bind the X11 forwarding server to the loopback address
+  # (see man sshd_config)
+  X11UseLocalhost: "yes"
+
+  # disconnect after one failed login attempt
+  MaxAuthTries: 1
+
+  # this is the maximum number of multiplexed sessions per connection
+  # (however, there can be multiple connections)
+  MaxSessions: 2
+
+  # do not read user's ~/.rhosts and ~/.shosts files
+  IgnoreRhosts: "yes"
+
+  HostbasedAuthentication: "no"
+
+  PermitRootLogin: without-password
+
+  # turn off authentication mechanisms we do not need to minimize attach
+  # surface
+  ChallengeResponseAuthentication: "no"
+  PasswordAuthentication: "no"
+  KerberosAuthentication: "no"
+  GSSAPIAuthentication: "no"
+
+  # enable display of a login banner
+  Banner: /etc/issue.net
+
+  DebianBanner: "no"
+
+  # enable display of last login upon login
+  PrintLastLog: "yes"
+
+  # close sessions after this many unanswered alive messages
+  ClientAliveCountMax: 10
+
+  # seconds after which unanswered alive message time out
+  ClientAliveInterval: 60
+
+  # create unprivileged child process to deal with incoming traffic
+  # (pre-authentication only)
+  UsePrivilegeSeparation: sandbox
+
+  "Subsystem sftp": internal-sftp
+
+ssh_server_needs_ecdsa_host_key: "no"
+
+ssh_client_extra_options: {}
+ssh_client_options:
+  ForwardAgent: "no"
+  ForwardX11: "no"
+  UseRoaming: "no"
+  CheckHostIP: "yes"
+  StrictHostKeyChecking: "ask"
+  RhostsRSAAuthentication: "no"
+  GSSAPIAuthentication: "no"
+  GSSAPIDelegateCredentials: "no"
+  PermitLocalCommand: "no"
+
+ssh_client_and_server_ciphers_deprecated_options:
+  - RSAAuthentication
+  - KeyRegenerationInterval
+  - ServerKeyBits
+  - Potocol
