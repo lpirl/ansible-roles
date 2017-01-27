@@ -47,6 +47,23 @@ postfix_global_options:
   # try the OS' host name lookup mechanism before failing
   smtp_host_lookup: dns, native
 
+postfix_extra_smtpd_milters: []
+postfix_extra_non_smtpd_milters: []
+
+# use $ opendkim-genkey -b BITS -h rsa-sha256 -r -s YYYYMM -d DOMAIN -v
+#   where BITS>=4096 and YYYYMM and DOMAIN replaced accordingly
+postfix_dkim_keys: {}
+#  example.com:
+#    selector: YYYYMM
+#    privatekey: |
+#      -----BEGIN RSA PRIVATE KEY-----
+#      …
+#      -----END RSA PRIVATE KEY-----
+
+postfix_dkim_keytable: /etc/opendkim.keytable
+postfix_dkim_signingtable: /etc/opendkim.signingtable
+postfix_dkim_trusted_list: /etc/opendkim.trusted
+
 
 lynis_global_options:
 

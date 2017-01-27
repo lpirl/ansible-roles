@@ -17,7 +17,7 @@
 
 - name: set options for postfix
   lineinfile: dest=/etc/postfix/main.cf
-              regexp="^{{ item.key }}\s*"
+              regexp="^{{ item.key }}\s+"
               line="{{ item.key }} = {{ item.value }}"
               state=present create=yes owner=root mode=0644
   with_dict: "{{ postfix_global_options |
@@ -33,3 +33,6 @@
   with_items: "{{ post_aliases|default([]) }}"
 
   notify: rehash aliases
+
+- include: postfix-dkim.yml
+  tags: [wip]
