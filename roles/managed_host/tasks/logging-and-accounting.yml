@@ -4,19 +4,13 @@
     - rsyslog
     - logrotate
 
-- name: uninstall logcheck
-  apt: package={{ item }} state=absent
+- name: "{{ 'install' if use_logcheck else 'uninstall' }} logcheck"
+  apt:
+    package: "{{ item }}"
+    state: "{{ 'present' if use_logcheck else 'absent'}}"
   with_items:
     - logcheck
     - logcheck-database
-  when: not use_logcheck
-
-- name: install logcheck
-  apt: package={{ item }}
-  with_items:
-    - logcheck
-    - logcheck-database
-  when: use_logcheck
 
 - name: do not use FQDN in subject of logcheck emails
   lineinfile: line="FQDN=0"
