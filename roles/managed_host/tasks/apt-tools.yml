@@ -79,6 +79,7 @@
 - name: get apticron version
   register: apticron_version_result
   shell: "dpkg -s apticron | grep 'Version: ' | awk '{print $2}'"
+  changed_when: false
 
 - name: patch apticron
   patch:
