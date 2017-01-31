@@ -1,8 +1,8 @@
 - name: check if Apache2 is installed
+  register: apache2_installed_check
   shell: type apache2
   changed_when: false
-  ignore_errors: true
-  register: apache2_installed_check
+  failed_when: false
 
 - name: add configuration files for Apache2
   file: src="/opt/admintools/etc/apache2/conf-available/{{ item }}"
@@ -11,7 +11,7 @@
   with_items:
     - 10-basic-hardening.conf
     - 20-httpoxy.conf
-  when: apache2_installed_check|succeeded
+  when: apache2_installed_check.rc == 0
 
 - name: enable configurations for Apache2
   register: a2enconf_result
@@ -21,4 +21,4 @@
     - 20-httpoxy.conf
   notify: restart apache2
   changed_when: '"Enabling conf" in a2enconf_result.stdout'
-  when: apache2_installed_check|succeeded
+  when: apache2_installed_check.rc == 0
