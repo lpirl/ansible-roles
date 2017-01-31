@@ -11,8 +11,8 @@
     - opendkim
     - opendkim-tools
 
-- name: start opendkim service
-  service: name=opendkim enabled=yes state=started
+- name: enable opendkim service
+  service: name=opendkim enabled=yes
   when: postfix_dkim_keys
 
 - name: add user postfix to group opendkim
@@ -23,7 +23,7 @@
   file:
     path: /var/spool/postfix/opendkim
     state: "{{ 'directory' if postfix_dkim_keys else 'absent' }}"
-    mode: "u=rwx,g=rx,o-rwx"
+    mode: 0750
     owner: opendkim
     group: opendkim
 
@@ -75,6 +75,16 @@
   loop_control:
     label: "{{ item.key }}"
 
+- name: ensure existence of directory for keys
+  file:
+    dest: /etc/dkimkeys
+    state: directory
+    owner: opendkim
+    group: root
+    mode: 0700
+  when: "postfix_dkim_keys and
+         ansible_distribution_version | version_compare('8.7', '<=')"
+
 - name: write key files
   blockinfile:
     dest: "/etc/dkimkeys/{{ item.key }}_{{ item.value.selector }}.private"
@@ -98,7 +108,7 @@
     state: file
     owner: opendkim
     group: root
-    mode: 400
+    mode: 0400
   with_dict: "{{ postfix_dkim_keys }}"
   loop_control:
     label: "{{ item.key }}"
@@ -121,6 +131,7 @@
     regexp: '^(#\s?)?{{ item.key }}\s*'
     line: "{{ item.key }}='{{ item.value }}'"
     state: present
+    create: yes
   with_dict:
     SOCKET: "/var/spool/postfix/opendkim/opendkim.sock"
   notify: restart opendkim
@@ -128,8 +139,10 @@
 
 - name: regenerate opendkim service file
   command: /lib/opendkim/opendkim.service.generate
-  notify: restart opendkim
-  when: postfix_dkim_keys and set_opendkim_daemon_options|changed
+  when: "postfix_dkim_keys and
+         set_opendkim_daemon_options | changed and
+         ansible_distribution_version | version_compare('8.7', '>')"
+  notify: reload systemd daemon
 
 - name: set options for postfix and opendkim
   lineinfile: dest=/etc/postfix/main.cf
