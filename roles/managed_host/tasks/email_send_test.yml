@@ -1,3 +1,7 @@
+- name: flushing handlers in case packages responsible for sending mail
+        got reconfigured
+  meta: flush_handlers
+
 - name: get available domains to send test email to
   register: mail_test_domains_result
   uri:
