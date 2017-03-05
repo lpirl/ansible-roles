@@ -35,4 +35,3 @@
   notify: rehash aliases
 
 - include: postfix-dkim.yml
-  tags: [wip]
