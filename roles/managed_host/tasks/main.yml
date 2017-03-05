@@ -36,6 +36,7 @@
 - include: haveged.yml
 
 - include: ssh_hardening.yml
+  tags: [ssh_hardening]
 
 - include: scheduling_and_detaching.yml
 
