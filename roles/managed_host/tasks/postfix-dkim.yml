@@ -42,6 +42,7 @@
     AutoRestartRate: 10/1M
     Background: "yes"
     DNSTimeout: 10
+    SignHeaders: MIME-Version,In-Reply-To,References,From,Date,Message-ID,Subject,To,Cc
     KeyTable: "{{ postfix_dkim_keytable }}"
     SigningTable: "refile:{{ postfix_dkim_signingtable }}"
     #~ ExternalIgnoreList: "{{ postfix_dkim_trusted_list }}"
