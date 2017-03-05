@@ -1,0 +1,19 @@
+- name: ensure directories for systemd override file exits
+  file:
+    path: "/etc/systemd/system/{{ item.key }}.service.d"
+    state: directory
+  with_dict: "{{ service_priorities |
+                 combine(extra_service_priorities | default({})) }}"
+  when: ansible_service_mgr == "systemd"
+
+- name: write systemd override file
+  ini_file:
+    dest: "/etc/systemd/system/{{ item.key }}.service.d/override.conf"
+    section: Service
+    option: Nice
+    value: "{{ item.value }}"
+    create: yes
+  with_dict: "{{ service_priorities |
+                 combine(extra_service_priorities | default({})) }}"
+  when: ansible_service_mgr == "systemd"
+  notify: reload systemd daemon

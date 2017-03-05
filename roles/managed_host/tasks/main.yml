@@ -57,6 +57,8 @@
 - include: apache2.yml
 - include: nginx.yml
 
+- include: service_priorities.yml
+
 # this should be the last line:
 - include: hardening-report.yml
   when: create_reports
