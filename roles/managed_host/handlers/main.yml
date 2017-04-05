@@ -1,5 +1,13 @@
-- name: restart sshd
+- name: _restart sshd
   service: name=ssh state=restarted
+
+# This does not actually restart SSHd but tests its configuration and
+# notifies the actual restart handler.
+# Once https://github.com/ansible/ansible/issues/14270 is resolved,
+# this can be done properly using a block.
+- name: restart sshd
+  command: sshd -T
+  notify: _restart sshd
 
 - name: restart postfix
   service: name=postfix state=restarted
