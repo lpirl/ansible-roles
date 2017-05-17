@@ -142,6 +142,7 @@
   command: /lib/opendkim/opendkim.service.generate
   when: "postfix_dkim_keys and
          set_opendkim_daemon_options | changed and
+         ansible_distribution == 'Debian' and
          ansible_distribution_version | version_compare('8.7', '>')"
   notify: reload systemd daemon
 
