@@ -12,10 +12,12 @@
 - name: add command to script for daily backups
   blockinfile:
     dest: "{{ rsync_backup_script }}"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK FOR {{ item.local_dir }}"
     block: |
       timeout 23h \
         /opt/admintools/wait_for \
           -P "{{ rsync_backup_remote_host }}:{{ rsync_backup_remote_port }}" \
+          --ac \
             /opt/admintools/backup_to_sftp.sh \
               -p {{ rsync_backup_remote_port }} \
               -s "{{ item.local_dir }}" \
