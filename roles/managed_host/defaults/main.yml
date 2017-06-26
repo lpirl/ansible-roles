@@ -40,6 +40,7 @@ postfix_global_options:
   smtp_tls_session_cache_database: btree:${data_directory}/smtp_scache
   smtp_tls_security_level: may
   smtp_tls_protocols: "!SSLv2, !SSLv3"
+  smtpd_tls_security_level: may
 
   # apple mail may send very long lines:
   line_length_limit: 2048
@@ -225,10 +226,6 @@ ssh_server_options:
   # seconds after which unanswered alive message time out
   ClientAliveInterval: 60
 
-  # create unprivileged child process to deal with incoming traffic
-  # (pre-authentication only)
-  UsePrivilegeSeparation: sandbox
-
   # check modes of files strictly
   StrictModes: "yes"
 
@@ -253,6 +250,7 @@ ssh_client_and_server_ciphers_deprecated_options:
   - RhostsRSAAuthentication
   - ServerKeyBits
   - Potocol
+  - UsePrivilegeSeparation
 
 extra_service_priorities: {}
 service_priorities:
