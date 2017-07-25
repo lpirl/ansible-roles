@@ -8,6 +8,9 @@
     url: "http://api.temp-mail.ru/request/domains/format/json"
     return_content: yes
     body_format: json
+  retries: 3
+  delay: 10
+  until: mail_test_domains_result.status == 200
   changed_when: false
 
 - name: generate random local part for test email
