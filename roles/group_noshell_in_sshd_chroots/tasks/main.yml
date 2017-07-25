@@ -1,5 +1,12 @@
-- name: add user group for users without shell but with sftp and rsync access
+- name: add group "noshell" for users without shell but sftp and rsync access
   group: name=noshell state=present
+
+- name: set default process priority for group "noshell"
+  lineinfile:
+    dest: /etc/security/limits.conf
+    regexp: '^@noshell\s+soft\s+priority\s.*'
+    line: "@noshell        soft    priority        {{ group_noshell_default_priority }}"
+    insertbefore: "# End of file"
 
 - name: create parent directory for sshd chroots
   file: path="{{ sshd_chroot_basepath }}" state=directory

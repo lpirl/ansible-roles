@@ -1,3 +1,4 @@
+group_noshell_default_priority: 5
 sshd_chroot_basepath: /srv/sshd_chroots
 grequalizer_cron_script: /etc/cron.daily/grequalizer
 grequalizer_conf_basepath: /root/
