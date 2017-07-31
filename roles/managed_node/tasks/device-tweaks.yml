@@ -1,7 +1,9 @@
 - name: get Western Digital drives present
   set_fact:
     western_digital_drives: "{{ western_digital_drives|default([]) + [item.key] }}"
-  when: item.value.model | match("WDC .+") and item.value.rotational == "1"
+  when: item.value.rotational == "1" and
+        item.value.model != None and
+        item.value.model | match("WDC .+")
   with_dict: "{{ ansible_devices }}"
   loop_control:
     label: "{{ item.key }}"
@@ -9,9 +11,10 @@
 - name: install idle3 tools for Western Digital drives
   package:
     name: idle3-tools
-    state: "{{ 'present' if western_digital_drives else 'absent' }}"
+    state: "{{ 'present' if western_digital_drives|default(false)
+                else 'absent' }}"
 
 - name: set IntelliPark timeout for Western Digital drives
   command: "idle3ctl -s {{ western_digital_idle_timer }} /dev/{{ item }}"
-  with_items: "{{ western_digital_drives }}"
+  with_items: "{{ western_digital_drives|default([]) }}"
   changed_when: false
