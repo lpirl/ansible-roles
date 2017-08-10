@@ -13,7 +13,7 @@
               line="{{ item.line }}"
               state=present
               create=yes
-  when: "'{{ item.shell }}' in '{{ ansible_user_shell }}'"
+  when: item.shell in ansible_user_shell
   with_items:
     - shell: bash
       dest: ~/.bash_profile

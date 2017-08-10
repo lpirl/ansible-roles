@@ -8,7 +8,8 @@
   loop_control:
     label: "{{ item.key }}"
 
-- name: install idle3 tools for Western Digital drives
+- name: "{{ 'install' if western_digital_drives|default(false)
+            else 'uninstall' }} idle3 tools for Western Digital drives"
   package:
     name: idle3-tools
     state: "{{ 'present' if western_digital_drives|default(false)
