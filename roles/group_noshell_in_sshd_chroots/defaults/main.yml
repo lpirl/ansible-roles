@@ -38,3 +38,17 @@ grequalizer_conf:
   - {section: user_shell, option: check, value: yes}
   - {section: user_shell, option: correct, value: yes}
   - {section: user_shell, option: shell, value: /usr/bin/rssh}
+
+grequalizer_binaries_to_chroot:
+  - /usr/bin/rsync
+  - /usr/bin/rssh
+  - /usr/lib/openssh/sftp-server
+
+grequalizer_files_to_chroot:
+  - /etc/rssh.conf
+  - /etc/passwd
+  - /dev/null
+
+  # for ssh PAM auth:
+  - /lib/arm-linux-gnueabihf/libnss_compat.so.2
+  - /lib/arm-linux-gnueabihf/libnss_files.so.2

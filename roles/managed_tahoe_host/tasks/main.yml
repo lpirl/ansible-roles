@@ -12,12 +12,3 @@
   with_items:
     - git
   when: tahoe_repository|default(false)
-
-- name: check pip version
-  register: pip_version
-  command: pip --version
-  changed_when: false
-
-- name: upgrade away from pip 8.1.1
-  pip: name=pip state=latest
-  when: "' 8.1.1 ' in pip_version.stdout"

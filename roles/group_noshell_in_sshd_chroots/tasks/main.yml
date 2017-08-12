@@ -67,15 +67,12 @@
 - name: set files to copy to chroots
   lineinfile: dest="{{ grequalizer_files2chroot_file }}"
               line="{{ item }}"  create=yes mode=600
-  with_items:
-    - /etc/rssh.conf
+  with_items: "{{ grequalizer_files_to_chroot }}"
 
 - name: set binaries to copy to chroots
   lineinfile: dest="{{ grequalizer_binaries2chroot_file }}"
               line="{{ item }}" create=yes mode=600
-  with_items:
-    - /usr/bin/rsync
-    - /usr/bin/rssh
+  with_items: "{{ grequalizer_binaries_to_chroot }}"
 
 - name: create empty script file for daily run of grequalizer
   lineinfile:   dest="{{ grequalizer_cron_script }}" regexp="^#!.*"

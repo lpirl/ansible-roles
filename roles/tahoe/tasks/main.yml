@@ -3,17 +3,17 @@
        executable={{ pip_command|default("pip") }}
 
 - include: pip.yml
-  when: not tahoe_repository
+  when: tahoe_repository|default(None) in [None, ""]
 
 - include: git.yml
-  when: tahoe_repository
+  when: tahoe_repository|default(None) not in [None, ""]
 
 - name: add Tahoe binaries to PATH
   lineinfile: dest="{{ item.dest }}"
               line="{{ item.line }}"
               state=present
               create=yes
-  when: "'{{ item.shell }}' in '{{ ansible_user_shell }}'"
+  when: item.shell in ansible_user_shell
   with_items:
     - shell: bash
       dest: ~/.bash_profile
