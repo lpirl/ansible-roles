@@ -1,5 +1,5 @@
 tmp_hardening_report_file: /root/tmp_hardening_report.txt
-rkhunter_version: 1.4.2
+rkhunter_version: 1.4.4
 
 # optionally, define nameservers
 nameservers: []
