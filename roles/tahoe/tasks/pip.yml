@@ -4,5 +4,6 @@
        executable={{ pip_command|default("pip") }}
        extra_args='--user'
   with_items:
+    - pip
     - tahoe-lafs
     - service_identity
