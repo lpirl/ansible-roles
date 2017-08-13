@@ -7,4 +7,4 @@ tahoe_basedir: "{{ ansible_env.HOME }}/tahoe/"
 tahoe_bin: "{{ ansible_env.HOME }}/.local/bin/tahoe"
 
 # externally reachable hostname/domain or IP:
-node_external_host:
+tahoe_node_external_host:

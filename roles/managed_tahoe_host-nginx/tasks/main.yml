@@ -23,7 +23,7 @@
 - name: set external port for WUI in nginx configuration
   replace:  dest=/etc/nginx/sites-available/tahoe-proxy
             regexp='^(\s*listen\s+.*)80(.*)$'
-            replace="\\g<1>{{ wui_external_port }}\\g<2>"
+            replace="\\g<1>{{ tahoe_wui_external_port }}\\g<2>"
 
 - name: enable nginx proxy host configuration for tahoe
   file: src=../sites-available/tahoe-proxy
