@@ -38,6 +38,11 @@
     - /etc/ssh/sshd_config
     - /etc/ssh/ssh_config
 
+- name: remove problematically formatted default SSH option
+  lineinfile: dest=/etc/ssh/sshd_config
+              regexp="^Subsystem\t"
+              state=absent
+
 - name: set SSH options for server
   lineinfile: dest="/etc/ssh/sshd_config"
               line="{{ item.key }} {{ item.value }}"
