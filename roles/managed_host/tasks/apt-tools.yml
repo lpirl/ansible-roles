@@ -7,6 +7,7 @@
   apt: name="{{ item }}" state=absent purge=yes
   with_items:
     - apt-xapian-index
+    - netselect-apt
 
 - name: cleanup files of unneeded packages
   file: path="{{ item }}" state=absent
