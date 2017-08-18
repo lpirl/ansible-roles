@@ -150,13 +150,32 @@
 
 
 ########################################################################
+# deborphan
+#
+
+- name: write new headline to report file
+  shell: echo "{{ item }}" >> "{{ tmp_hardening_report_file }}"
+  with_items:
+    - ""
+    - "packages which are not a dependency of any other package"
+    - "========================================================"
+    - "(check for unneeded packages that you can remove – less packages,"
+    - " less attack surface)"
+
+- name: create list of packages, which are not a dependency of any other
+        package
+  shell: deborphan -a >> "{{ tmp_hardening_report_file }}"
+
+
+
+########################################################################
 # email the report
 #
 
-- name: email (non-empty) hardening report to root
-  shell: "cat {{ tmp_hardening_report_file }}
+- name: email hardening report to root
+  shell: "cat '{{ tmp_hardening_report_file }}'
           |
-          mail -Es '{{ ansible_hostname }} hardening report' root"
+          mail -s '{{ ansible_hostname }} hardening report' root"
 
 - name: remove hardening report
   file: path="{{ tmp_hardening_report_file }}" state=absent

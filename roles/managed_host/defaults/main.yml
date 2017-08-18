@@ -115,6 +115,10 @@ apt_tools:
   apticron: present
   needrestart: present
   debsums: present
+  deborphan: present
+
+  apt-xapian-index: absent
+  netselect-apt: absent
 
 ########################################################################
 # ssh

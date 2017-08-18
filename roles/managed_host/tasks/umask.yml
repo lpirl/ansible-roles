@@ -22,7 +22,7 @@
 - name: check umask for root to be at least 026
   register: root_umask_result
   shell:  "sh -c '[ $(umask) -ge 26 ]'"
-  changed_when: "1 == 0"
+  changed_when: false
   failed_when: root_umask_result.rc != 0
   when: not set_umask_pam.changed and not set_umask_profile.changed
 
