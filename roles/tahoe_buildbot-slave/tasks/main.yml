@@ -49,13 +49,13 @@
 - name: start buildslave at boot
   cron: name="start buildslave node at boot"
         special_time=reboot
-        job="bash -lc '{{ buildslave_bin }} start \'{{ buildslave_dir }}\''"
+        job="bash -lc '{{ buildslave_bin }} start \"{{ buildslave_dir }}\"'"
 
 - name: start buildslave daily (in case it crashed)
   cron: name="start buildslave daily (in case it crashed)"
         hour="{{ 24 |random }}"
         minute="{{ 60 |random }}"
-        job="bash -lc '{{ buildslave_bin }} start \'{{ buildslave_dir }}\'' > /dev/null 2>&1"
+        job="bash -lc '{{ buildslave_bin }} start \"{{ buildslave_dir }}\"' > /dev/null 2>&1"
 
 - name: set buildslave host information
   shell: "(
