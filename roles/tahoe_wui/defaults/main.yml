@@ -1,2 +1,2 @@
 ---
-web_port: "tcp:8080:interface=127.0.0.1"
+tahoe_wui_port: "tcp:8080:interface=127.0.0.1"

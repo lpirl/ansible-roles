@@ -115,6 +115,14 @@ apt_tools:
   apticron: present
   needrestart: present
   debsums: present
+  deborphan: present
+
+  # annoyingly expensive maintenance cron jobs (i..e., build search,
+  # index, but we search packages on remote systems very seldom)
+  apt-xapian-index: absent
+
+  # obsolete due to availability of http://httpredir.debian.org/
+  netselect-apt: absent
 
 ########################################################################
 # ssh

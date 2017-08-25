@@ -4,4 +4,8 @@
   tags:
     - apt-upgrade
 
+- name: remove dependencies that are no longer required
+  apt:
+    autoremove: yes
+
 # cannot use needrestart here since it might not yet be installed
