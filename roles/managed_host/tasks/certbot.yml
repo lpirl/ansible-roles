@@ -5,7 +5,10 @@
   changed_when: False
 
 - name: remove package-provided cron job to renew certificates (won't work)
-  file: dest=/etc/cron.d/certbot state=absent
+  file: dest="{{ item }}" state=absent
+  with_items:
+    - /etc/cron.d/certbot
+    - /etc/cron.d/certbot.dpkg-dist
   when: not certbot_version|failed
 
 - name: schedule weekly renewal of SSL certificates
