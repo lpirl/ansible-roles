@@ -1,0 +1,21 @@
+- name: check if a MySQL server is installed
+  register: mysql_version_command_result
+  command: mysqld --version
+  changed_when: false
+  failed_when: false
+
+- name: apply MySQL configuration
+  include: dbms-mysql.yml
+  when: mysql_version_command_result.rc == 0
+
+
+
+- name: check if a PostgreSQL server is running
+  register: postgres_version_command_result
+  command: pg_conftool --help
+  changed_when: false
+  failed_when: false
+
+- name: apply PostgreSQL configuration
+  include: dbms-postgres.yml
+  when: postgres_version_command_result.rc == 0
