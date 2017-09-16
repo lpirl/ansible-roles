@@ -21,9 +21,9 @@
 
     # yes, load can (legitimately) be *very* high
     # under e.g., a lot of memory/swap pressure
-    "max-load-15": "{{ (ansible_processor_vcpus + ansible_devices|count) * 8 }}"
-    "max-load-5": "{{ (ansible_processor_vcpus + ansible_devices|count) * 16 }}"
-    "max-load-1": "{{ (ansible_processor_vcpus + ansible_devices|count) * 32 }}"
+    "max-load-15": "{{ (ansible_processor_vcpus + ansible_devices|count) * 16 }}"
+    "max-load-5": "{{ (ansible_processor_vcpus + ansible_devices|count) * 32 }}"
+    "max-load-1": "{{ (ansible_processor_vcpus + ansible_devices|count) * 64 }}"
 
 - name: enable watchdog service
   service:
