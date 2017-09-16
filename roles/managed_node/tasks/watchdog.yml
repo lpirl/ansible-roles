@@ -6,7 +6,7 @@
 - name: configure watchdog
   lineinfile:
     dest: /etc/watchdog.conf
-    regexp: '^#?\s*{{ item.key|regex_escape }}'
+    regexp: '^[#\s]*{{ item.key|regex_escape }}\s*='
     line: '{{ item.key }} = {{ item.value }}'
     state: present
   with_dict:
@@ -19,9 +19,11 @@
     # allow errors to persist before rebooting (seconds)
     "retry-timeout": 300
 
-    "max-load-15": "{{ (ansible_processor_vcpus + ansible_devices|count) * 4 }}"
-    "max-load-5": "{{ (ansible_processor_vcpus + ansible_devices|count) * 8 }}"
-    "max-load-1": "{{ (ansible_processor_vcpus + ansible_devices|count) * 16 }}"
+    # yes, load can (legitimately) be *very* high
+    # under e.g., a lot of memory/swap pressure
+    "max-load-15": "{{ (ansible_processor_vcpus + ansible_devices|count) * 8 }}"
+    "max-load-5": "{{ (ansible_processor_vcpus + ansible_devices|count) * 16 }}"
+    "max-load-1": "{{ (ansible_processor_vcpus + ansible_devices|count) * 32 }}"
 
 - name: enable watchdog service
   service:
