@@ -29,11 +29,18 @@
       value: "{{ tahoe_introducer_furl|default(None) }}"
   notify: restart node
 
-- name: set keepalive
+- name: set keepalive timeout
   ini_file: dest="{{ tahoe_basedir }}/node/tahoe.cfg"
             section=node
             option=timeout.keepalive
-            value=60
+            value="{{ tahoe_timeout_keepalive|default(240) }}"
+  notify: restart node
+
+- name: set disconnect timeout
+  ini_file: dest="{{ tahoe_basedir }}/node/tahoe.cfg"
+            section=node
+            option=timeout.disconnect
+            value="{{ tahoe_timeout_disconnect|default(600) }}"
   notify: restart node
 
 - name: set default mutable format
