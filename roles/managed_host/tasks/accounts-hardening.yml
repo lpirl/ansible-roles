@@ -13,17 +13,12 @@
     - { key: "PASS_WARN_AGE", value: "{{ pass_warn_age }}"}
 
 - name: set password max/min/warn age for existing accounts w/ a password set
-  shell: 'for x in $( \
-              awk -F: "{print $2\":\"$1}" /etc/shadow | \
-                egrep -v "^(\!|\*|:)" | \
-                  cut -d":" -f2 \
-          ); do \
-            chage \
-              -m "{{ pass_min_days }}" \
-              -M "{{ pass_max_days }}" \
-              -W "{{ pass_warn_age }}" \
-              $x; \
-          done'
+  shell: "awk -F: '{print $2\":\"$1}' /etc/shadow
+          | egrep '^[^\\!\\*:]'
+          | cut -d: -f2
+          | xargs -rL1 chage -m '{{ pass_min_days }}'
+                             -M '{{ pass_max_days }}'
+                             -W '{{ pass_warn_age }}'"
 
 - name: provide legal banner pre logins
   file: path="{{ item }}"

@@ -81,3 +81,32 @@
     remote_src: yes
     backup: yes
   when: apticron_version_result | version_compare('1.1.59', '==')
+
+# The default solution for the dependencies listed below results in a
+# lot of GTK-related packages get installed. This is a waste on headless
+# systems, so we replace the responsible package with an non-graphical
+# alternative.
+# dependencies: apt -> debian-archive-keyring -> gnupg-agent -> pinentry
+- name: replace pinentry package with non-graphical alternative
+  block:
+
+  - name: install non-graphical version of pinentry (required by gnupg)
+    package:
+      name: pinentry-tty
+      state: latest
+
+    # we use the command modules, since no Ansible module can mark
+    # packages automatically installed
+  - name: mark non-graphical version of pinentry automatically installed
+    command: aptitude markauto pinentry-tty
+
+  - name: remove graphical variants of pinentry
+    package:
+      name: "{{ item }}"
+      state: absent
+    with_items:
+      - pinentry-curses
+      - pinentry-gtk2
+
+  when: ansible_distribution == 'Debian' and
+        ansible_distribution_release|int > 8

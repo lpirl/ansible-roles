@@ -59,6 +59,8 @@
 
 - include: service_priorities.yml
 
+- include: dbms.yml
+
 - name: check if this the remote machine runs Armbian
   stat: path=/etc/armbian.txt
   register: stat_armbian_txt_stat_result

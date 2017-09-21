@@ -1,3 +1,24 @@
+- name: set mysqldump to ignore mysql's events
+  ini_file: dest="/etc/mysql/conf.d/mysqldump_events.cnf"
+            section=mysqldump
+            option=ignore-table
+            value=mysql.event
+            mode=644
+  notify: restart mysqld
+
+- name: set mysqldump to also dump events
+  lineinfile:   dest="/etc/mysql/conf.d/mysqldump_events.cnf"
+                insertafter="[mysqldump]"
+                line="events"
+                regexp="^events(\s+=?\s*)?"
+                mode=644
+  notify: restart mysqld
+
+- name: install automysqlbackup
+  package:
+    name: automysqlbackup
+    state: present
+
 - name: set default character set for MySQL clients and CLI
   ini_file: dest="/etc/mysql/conf.d/default-character-set.cnf"
             section={{item}}
@@ -8,8 +29,6 @@
   with_items:
     - client
     - mysql
-
-
 
 - name: set MySQL server character set
   ini_file: dest="/etc/mysql/conf.d/default-character-set.cnf"

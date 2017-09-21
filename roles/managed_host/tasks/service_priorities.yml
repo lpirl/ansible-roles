@@ -13,7 +13,17 @@
     option: Nice
     value: "{{ item.value }}"
     create: yes
+    mode: u=rwX,go=rX
   with_dict: "{{ service_priorities |
                  combine(extra_service_priorities | default({})) }}"
   when: ansible_service_mgr == "systemd"
   notify: reload systemd daemon
+
+# see https://github.com/systemd/systemd/issues/770 why this makes sense
+- name: fix permissions of systemd service files
+  file:
+    path: /etc/systemd
+    owner: root
+    group: root
+    mode: u=rwX,go=rX
+    recurse: yes

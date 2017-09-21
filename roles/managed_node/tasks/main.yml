@@ -3,3 +3,4 @@
 - include: sysctl.yml
 - include: rsync-backup.yml
 - include: device-tweaks.yml
+- include: watchdog.yml

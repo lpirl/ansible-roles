@@ -29,3 +29,6 @@
 
 - name: restart nginx
   service: name=nginx state=restarted
+
+- name: restart mysqld
+  service: name=mysql state=restarted
