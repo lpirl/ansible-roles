@@ -11,6 +11,19 @@
     - /etc/cron.d/certbot.dpkg-dist
   when: not certbot_version|failed
 
+- name: list systemd timers
+  register: systemd_timers
+  command: systemctl list-timers
+  failed_when: systemd_timers.rc != 0
+  changed_when: false
+
+- name: disable regular update of certificates via systemd timer
+  service:
+    name: certbot.timer
+    enabled: no
+  when: not certbot_version|failed and
+        "certbot.timer" in systemd_timers.stdout
+
 - name: schedule weekly renewal of SSL certificates
   cron: name="renewal of SSL certificates" special_time=weekly
         job="/opt/admintools/certbot-renew-wrapper.sh"
