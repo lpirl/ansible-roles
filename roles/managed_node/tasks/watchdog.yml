@@ -1,7 +1,7 @@
 - name: install software watchdog
   package:
     name: watchdog
-    state: present
+    state: "{{ 'pre' if use_watchdog else 'ab' }}sent"
 
 - name: configure watchdog
   lineinfile:
@@ -9,24 +9,11 @@
     regexp: '^[#\s]*{{ item.key|regex_escape }}\s*='
     line: '{{ item.key }} = {{ item.value }}'
     state: present
-  with_dict:
-
-    # how often watchdogs checks (seconds):
-    "interval": 57
-    # allow no writes to watchdog device before rebooting (seconds):
-    "watchdog-timeout": 120
-
-    # allow errors to persist before rebooting (seconds)
-    "retry-timeout": 300
-
-    # yes, load can (legitimately) be *very* high
-    # under e.g., a lot of memory/swap pressure
-    "max-load-15": "{{ ansible_processor_vcpus * 32 }}"
-    "max-load-5": "{{ ansible_processor_vcpus * 64 }}"
-    "max-load-1": "{{ ansible_processor_vcpus * 128 }}"
+  with_dict: "{{ watchdog_global_options |
+                 combine(watchdog_extra_options | default({})) }}"
 
 - name: enable watchdog service
   service:
     name: watchdog
-    state: started
-    enabled: yes
+    state: "{{ 'start' if use_watchdog else 'stopp' }}ed"
+    enabled: "{{ use_watchdog }}"

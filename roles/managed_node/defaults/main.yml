@@ -14,3 +14,20 @@ needs_firewire_storage: no
 
 # multiples of .1s for the 1-128 range, and in 30s for the 129-255 range
 western_digital_idle_timer: 148
+
+use_watchdog: yes
+watchdog_extra_options: {} # use this variable to override settings
+watchdog_global_options:
+  # how often watchdogs checks (seconds):
+  "interval": 57
+  # allow no writes to watchdog device before rebooting (seconds):
+  "watchdog-timeout": 120
+
+  # allow errors to persist before rebooting (seconds)
+  "retry-timeout": 300
+
+  # yes, load can (legitimately) be *very* high
+  # under e.g., a lot of memory/swap pressure – use liberal defaults
+  "max-load-1": "{{ ansible_processor_vcpus * 32 }}"
+  "max-load-5": "{{ ansible_processor_vcpus * 16 }}"
+  "max-load-15": "{{ ansible_processor_vcpus * 8 }}"
