@@ -139,7 +139,6 @@ ssh_client_and_server_macs:
 ssh_client_and_server_extra_kex: []
 ssh_client_and_server_kex:
   - curve25519-sha256@libssh.org
-  - curve25519-sha256
   - diffie-hellman-group-exchange-sha256
 
 ssh_client_and_server_extra_ciphers: []
