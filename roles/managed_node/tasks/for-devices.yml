@@ -1,3 +1,10 @@
+- name: install firmware packages
+  package:
+    name: firmware-linux
+    state: present
+
+
+
 - name: get Western Digital drives present
   set_fact:
     western_digital_drives: "{{ western_digital_drives|default([]) + [item.key] }}"

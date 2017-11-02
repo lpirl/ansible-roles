@@ -2,5 +2,5 @@
 - include: hardening.yml
 - include: sysctl.yml
 - include: rsync-backup.yml
-- include: device-tweaks.yml
+- include: for-devices.yml
 - include: watchdog.yml
