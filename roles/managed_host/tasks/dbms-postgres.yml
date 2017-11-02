@@ -1,0 +1,4 @@
+- name: install autopostgresqlbackup
+  package:
+    name: autopostgresqlbackup
+    state: present
