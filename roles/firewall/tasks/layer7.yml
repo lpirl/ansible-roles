@@ -1,0 +1,19 @@
+# we use the apt package, so we can ``install_recommends``
+- name: install Fail2ban
+  apt:
+    name: fail2ban
+    state: present
+    install_recommends: yes
+
+- name: processing Fail2ban jail configuration sections
+  include_tasks: _fail2ban-write-config-section.yml
+  with_dict: "{{ fail2ban_jails_config |
+                 combine(fail2ban_extra_jails_config | default({})) }}"
+  loop_control:
+    loop_var: section
+
+- name: enable and start fail2ban
+  service:
+    name: fail2ban
+    enabled: true
+    state: started

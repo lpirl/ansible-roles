@@ -1,0 +1,17 @@
+# you can use ``fail2ban_extra_jails_config`` to override values
+fail2ban_jails_config:
+  DEFAULT:
+    bantime: 1200
+    # window for ``maxretry``
+    findtime: 600
+    # retries before banning a host:
+    maxretry: 3
+
+    destemail: root
+    sender: root
+
+  sshd:
+    filter: sshd-aggressive
+
+  sshd-ddos:
+    enabled: true

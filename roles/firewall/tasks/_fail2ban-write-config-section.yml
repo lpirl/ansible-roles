@@ -1,0 +1,7 @@
+- name: processing Fail2ban jail configuration section '{{ section.key }}'
+  ini_file: dest="/etc/fail2ban/jail.d/via-ansible.conf"
+            section="{{ section.key }}"
+            option="{{ item.key}}"
+            value="{{ item.value }}"
+  with_dict: "{{ section.value }}"
+  notify: reload fail2ban
