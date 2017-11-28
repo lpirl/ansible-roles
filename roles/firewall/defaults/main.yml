@@ -10,8 +10,5 @@ fail2ban_jails_config:
     destemail: root
     sender: root
 
-  sshd:
-    filter: sshd-aggressive
-
   sshd-ddos:
     enabled: true

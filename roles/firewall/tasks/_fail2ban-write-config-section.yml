@@ -1,7 +1,17 @@
+- name: remove empty Fail2ban jail configuration section  '{{ section.key }}'
+  ini_file:
+    dest: /etc/fail2ban/jail.d/via-ansible.conf
+    section: "{{ section.key }}"
+    state: absent
+  when: not section.value
+  notify: reload fail2ban
+
 - name: processing Fail2ban jail configuration section '{{ section.key }}'
-  ini_file: dest="/etc/fail2ban/jail.d/via-ansible.conf"
-            section="{{ section.key }}"
-            option="{{ item.key}}"
-            value="{{ item.value }}"
-  with_dict: "{{ section.value }}"
+  ini_file:
+    dest: /etc/fail2ban/jail.d/via-ansible.conf
+    section: "{{ section.key }}"
+    option: "{{ item.key}}"
+    value: "{{ item.value }}"
+  when: section.value
+  with_dict: "{{ section.value if section.value is mapping else {} }}"
   notify: reload fail2ban
