@@ -1,4 +1,4 @@
-# you can use ``fail2ban_extra_jails_config`` to override values
+# you can use ``fail2ban_jails_extra_config`` to override values
 fail2ban_jails_config:
   DEFAULT:
     bantime: 1200
