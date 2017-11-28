@@ -20,4 +20,4 @@
 - name: install automysqlbackup
   apt: package=automysqlbackup
 
-- include: default-character-set.yml
+- include_tasks: default-character-set.yml

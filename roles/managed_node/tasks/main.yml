@@ -1,4 +1,4 @@
-- include: utils.yml
-- include: hardening.yml
-- include: sysctl.yml
-- include: rsync-backup.yml
+- include_tasks: utils.yml
+- include_tasks: hardening.yml
+- include_tasks: sysctl.yml
+- include_tasks: rsync-backup.yml

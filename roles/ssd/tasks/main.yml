@@ -1,4 +1,4 @@
-- include: check_tmpfs_mounts.yml
-- include: mount_tmpfs_on_home_cache_dirs.yml
-- include: systemd_config_to_mount_noauto_swaps.yml
-- include: configure_scheduler_for_ssd_drives.yml
+- include_tasks: check_tmpfs_mounts.yml
+- include_tasks: mount_tmpfs_on_home_cache_dirs.yml
+- include_tasks: systemd_config_to_mount_noauto_swaps.yml
+- include_tasks: configure_scheduler_for_ssd_drives.yml
