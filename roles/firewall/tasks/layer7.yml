@@ -5,6 +5,18 @@
     state: present
     install_recommends: yes
 
+- name: load kernel module for ip_tables
+  register: modprobe_iptables_result
+  modprobe:
+    name: ip_tables
+    state: present
+
+- name: ensure kernel module for ip_tables is loaded at boot
+  lineinfile:
+    path: /etc/modules
+    line: ip_tables
+    regexp: '^ip_tables(\s.*)?'
+
 - name: processing Fail2ban jail configuration sections
   include_tasks: _fail2ban-write-config-section.yml
   with_dict: "{{ fail2ban_jails_config |
