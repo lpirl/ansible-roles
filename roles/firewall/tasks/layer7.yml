@@ -1,3 +1,8 @@
+#
+# OSI layer 7 firewall is currently Fail2ban.
+# This file takes care of Fail2ban's configuration.
+#
+
 # we use the apt package, so we can ``install_recommends``
 - name: install Fail2ban
   apt:
@@ -16,6 +21,21 @@
     path: /etc/modules
     line: ip_tables
     regexp: '^ip_tables(\s.*)?'
+    create: yes
+  when: modprobe_iptables_result.changed
+
+- name: enable and start fail2ban
+  service:
+    name: fail2ban
+    enabled: true
+    state: started
+
+- name: processing Fail2ban jail configuration sections
+  include_tasks: _fail2ban-auto-enable-jail.yml
+  with_dict: "{{ fail2ban_jails_auto_enable |
+                 combine(fail2ban_jails_extra_auto_enable | default({})) }}"
+  loop_control:
+    loop_var: fail2ban_jail_auto_enable
 
 - name: processing Fail2ban jail configuration sections
   include_tasks: _fail2ban-write-config-section.yml
@@ -23,9 +43,3 @@
                  combine(fail2ban_jails_extra_config | default({})) }}"
   loop_control:
     loop_var: section
-
-- name: enable and start fail2ban
-  service:
-    name: fail2ban
-    enabled: true
-    state: started

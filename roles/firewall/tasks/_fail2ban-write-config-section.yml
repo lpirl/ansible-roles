@@ -1,6 +1,6 @@
 - name: remove empty Fail2ban jail configuration section  '{{ section.key }}'
   ini_file:
-    dest: /etc/fail2ban/jail.d/via-ansible.conf
+    dest: "{{ fail2ban_jails_config_file }}"
     section: "{{ section.key }}"
     state: absent
   when: not section.value
@@ -8,7 +8,7 @@
 
 - name: processing Fail2ban jail configuration section '{{ section.key }}'
   ini_file:
-    dest: /etc/fail2ban/jail.d/via-ansible.conf
+    dest: "{{ fail2ban_jails_config_file }}"
     section: "{{ section.key }}"
     option: "{{ item.key}}"
     value: "{{ item.value }}"
