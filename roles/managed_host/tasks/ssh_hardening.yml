@@ -61,7 +61,7 @@
               state=absent
   with_nested:
     - [ssh, sshd]
-    - "{{ ssh_client_and_server_ciphers_deprecated_options }}"
+    - "{{ ssh_client_and_server_deprecated_options }}"
 
 
 

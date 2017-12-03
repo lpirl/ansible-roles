@@ -236,7 +236,7 @@ ssh_client_options:
   GSSAPIDelegateCredentials: "no"
   PermitLocalCommand: "no"
 
-ssh_client_and_server_ciphers_deprecated_options:
+ssh_client_and_server_deprecated_options:
   - RSAAuthentication
   - KeyRegenerationInterval
   - RhostsRSAAuthentication
