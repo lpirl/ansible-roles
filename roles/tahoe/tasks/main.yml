@@ -2,10 +2,10 @@
   pip: name=allmydata-tahoe  state=absent
        executable={{ pip_command|default("pip") }}
 
-- include: pip.yml
+- include_tasks: pip.yml
   when: tahoe_repository|default(None) in [None, ""]
 
-- include: git.yml
+- include_tasks: git.yml
   when: tahoe_repository|default(None) not in [None, ""]
 
 - name: add Tahoe binaries to PATH

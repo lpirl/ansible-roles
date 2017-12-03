@@ -35,7 +35,7 @@
 
 - include_tasks: haveged.yml
 
-- include: ssh_hardening.yml
+- include_tasks: ssh_hardening.yml
   tags: [ssh_hardening]
 
 - include_tasks: scheduling_and_detaching.yml
@@ -57,14 +57,14 @@
 - include_tasks: apache2.yml
 - include_tasks: nginx.yml
 
-- include: service_priorities.yml
+- include_tasks: service_priorities.yml
 
-- include: dbms.yml
+- include_tasks: dbms.yml
 
 - name: check if this the remote machine runs Armbian
   stat: path=/etc/armbian.txt
   register: stat_armbian_txt_stat_result
-- include: armbian.yml
+- include_tasks: armbian.yml
   when: stat_armbian_txt_stat_result.stat.exists
 
 # this should be the last line:

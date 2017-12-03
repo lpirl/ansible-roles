@@ -5,7 +5,7 @@
   failed_when: false
 
 - name: apply MySQL configuration
-  include: dbms-mysql.yml
+  include_tasks: dbms-mysql.yml
   when: mysql_version_command_result.rc == 0
 
 
@@ -17,5 +17,5 @@
   failed_when: false
 
 - name: apply PostgreSQL configuration
-  include: dbms-postgres.yml
+  include_tasks: dbms-postgres.yml
   when: postgres_version_command_result.rc == 0
