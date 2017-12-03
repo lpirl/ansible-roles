@@ -1,4 +1,6 @@
 - name: reload fail2ban
   service:
     name: fail2ban
-    state: reloaded
+    # fail2ban.service currently (12/2017) does not support reloading,
+    # so we restart:
+    state: restarted

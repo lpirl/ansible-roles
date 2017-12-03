@@ -1,4 +1,4 @@
-fail2ban_jails_config_file: /etc/fail2ban/jail.d/via-ansible.conf
+fail2ban_jails_config_file: /etc/fail2ban/jail.d/50-via-ansible.local
 
 # Statically sets Fail2ban jail configuration.
 # You can use ``fail2ban_jails_extra_config`` to override values.
@@ -13,31 +13,24 @@ fail2ban_jails_config:
     destemail: root
     sender: root
 
-  sshd-ddos:
-    enabled: true
 
-# Maps from shell commands to jails to enable. If command exits with
-# code 0, the listed jails will be enabled, disabled otherwise.
+# Maps from jail names to a shell commands. If command exits with
+# code 0, the listed jails will be enabled, or disabled otherwise.
 # You can use ``fail2ban_jails_extra_auto_enable`` to override values.
 fail2ban_jails_auto_enable:
-  'apache2 -v':
-    - apache-auth
-    - apache-badbots
-    - apache-botsearch
-    - apache-modsecurity
-    - apache-modsecurity
-    - apache-nohome
-    - apache-noscript
-    - apache-overflows
-    - apache-shellshock
-  'dovecot --version':
-    - 'dovecot'
-  'nginx -v':
-    - nginx-botsearch
-    - nginx-http-auth
-  'mysqld --version':
-    - mysqld-auth
-  'postconf -nh | grep -q rbl':
-    - postfix-rbl
-  'postconf -nh | grep -q sasl':
-    - postfix-sasl
+  apache-auth: apache2 -v
+  apache-badbots: apache2 -v
+  apache-botsearch: apache2 -v
+  apache-modsecurity: apache2 -v
+  apache-nohome: apache2 -v
+  apache-noscript: apache2 -v
+  apache-overflows: apache2 -v
+  apache-shellshock: apache2 -v
+  dovecot: dovecot --version'
+  mysqld-auth: mysqld --version
+  nginx-botsearch: nginx -v
+  nginx-http-auth: nginx -v
+  postfix-rbl: postconf -nh | grep -q rbl
+  postfix-sasl: postconf -nh | grep -q sasl
+  sshd: pgrep sshd
+  sshd-ddos: pgrep sshd
