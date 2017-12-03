@@ -1,6 +1,6 @@
-- name: check if Apache2 is installed
+- name: check if Apache2 configuration tool is installed
   register: apache2_installed_check
-  shell: type apache2
+  shell: type a2enconf
   changed_when: false
   failed_when: false
 

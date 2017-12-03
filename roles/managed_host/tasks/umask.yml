@@ -22,7 +22,7 @@
 - name: check umask for root to be at least 026
   register: root_umask_result
   shell:  "sh -c '[ $(umask) -ge 26 ]'"
-  changed_when: "1 == 0"
+  changed_when: false
   failed_when: root_umask_result.rc != 0
   when: not set_umask_pam.changed and not set_umask_profile.changed
 
@@ -31,10 +31,10 @@
   lineinfile: dest=/etc/init.d/rc
               regexp='^\s*umask\s.*'
               line='umask 077'
-              create=no
+              create=yes
 
 - name: tell debsums to ignore changes in /etc/init.d/rc
   register: set_umask_logindefs
   lineinfile: dest=/etc/debsums-ignore
               line="^/etc/init.d/rc$"
-              create=no
+              create=yes

@@ -5,10 +5,28 @@
   changed_when: False
 
 - name: remove package-provided cron job to renew certificates (won't work)
-  file: dest=/etc/cron.d/certbot state=absent
-  when: not certbot_version|failed
+  file: dest="{{ item }}" state=absent
+  with_items:
+    - /etc/cron.d/certbot
+    - /etc/cron.d/certbot.dpkg-dist
+  when: certbot_version.rc == 0
+
+- name: list systemd timers
+  register: systemd_timers
+  command: systemctl list-timers
+  failed_when: systemd_timers.rc != 0
+  changed_when: false
+
+- name: disable regular update of certificates via systemd timer
+  service:
+    name: certbot.timer
+    enabled: no
+  when: certbot_version.rc == 0 and
+        "certbot.timer" in systemd_timers.stdout
 
 - name: schedule weekly renewal of SSL certificates
-  cron: name="renewal of SSL certificates" special_time=weekly
-        job="/opt/admintools/certbot-renew-wrapper.sh"
-  when: not certbot_version|failed
+  cron:
+    name: "renewal of SSL certificates"
+    special_time: weekly
+    job: "/opt/admintools/certbot-renew-wrapper.sh"
+    state: "{{ 'present' if certbot_version.rc == 0 else 'absent' }}"

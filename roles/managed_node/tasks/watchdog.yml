@@ -1,0 +1,19 @@
+- name: install software watchdog
+  package:
+    name: watchdog
+    state: "{{ 'pre' if use_watchdog else 'ab' }}sent"
+
+- name: configure watchdog
+  lineinfile:
+    dest: /etc/watchdog.conf
+    regexp: '^[#\s]*{{ item.key|regex_escape }}\s*='
+    line: '{{ item.key }} = {{ item.value }}'
+    state: present
+  with_dict: "{{ watchdog_global_options |
+                 combine(watchdog_extra_options | default({})) }}"
+
+- name: enable watchdog service
+  service:
+    name: watchdog
+    state: "{{ 'start' if use_watchdog else 'stopp' }}ed"
+    enabled: "{{ use_watchdog }}"

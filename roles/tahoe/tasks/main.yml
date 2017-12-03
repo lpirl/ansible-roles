@@ -2,18 +2,18 @@
   pip: name=allmydata-tahoe  state=absent
        executable={{ pip_command|default("pip") }}
 
-- include_tasks: pip.yml
-  when: not tahoe_repository
+- include: pip.yml
+  when: tahoe_repository|default(None) in [None, ""]
 
-- include_tasks: git.yml
-  when: tahoe_repository
+- include: git.yml
+  when: tahoe_repository|default(None) not in [None, ""]
 
 - name: add Tahoe binaries to PATH
   lineinfile: dest="{{ item.dest }}"
               line="{{ item.line }}"
               state=present
               create=yes
-  when: "'{{ item.shell }}' in '{{ ansible_user_shell }}'"
+  when: item.shell in ansible_user_shell
   with_items:
     - shell: bash
       dest: ~/.bash_profile

@@ -3,11 +3,6 @@
   with_dict: "{{ apt_tools |
                  combine(apt_tools_extra | default({})) }}"
 
-- name: remove unneeded tools
-  apt: name="{{ item }}" state=absent purge=yes
-  with_items:
-    - apt-xapian-index
-
 - name: cleanup files of unneeded packages
   file: path="{{ item }}" state=absent
   with_items:
@@ -65,27 +60,53 @@
   # are available, since we use '-b'
   shell: needrestart -bk | mail -s "$(hostname -f) needs a reboot" root
   # see https://github.com/ansible/ansible/issues/2769:
-  when: >
-    'NEEDRESTART-KSTA: 0' not in needrestart_result.stdout and
-    'NEEDRESTART-KSTA: 1' not in needrestart_result.stdout
+  when: "'NEEDRESTART-KSTA: 0' not in needrestart_result.stdout and
+         'NEEDRESTART-KSTA: 1' not in needrestart_result.stdout"
 
 - name: schedule yearly notification of unpurged APT packages
   cron: name="list (and thereby email) unpurged APT packages"
         job=/opt/admintools/dpkg_list-unpurged-packages.sh
         special_time=yearly
 
-
-# fix apticron's "MIME-Version: 1.0: No such file or directory"
 # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=812719
 - name: get apticron version
   register: apticron_version_result
   shell: "dpkg -s apticron | grep 'Version: ' | awk '{print $2}'"
   changed_when: false
 
-- name: patch apticron
+- name: patch apticron's bug "MIME-Version … No such file or directory"
   patch:
     dest: /usr/sbin/apticron
     src: /opt/admintools/apticron-1.1.59.patch
     remote_src: yes
     backup: yes
   when: apticron_version_result | version_compare('1.1.59', '==')
+
+# The default solution for the dependencies listed below results in a
+# lot of GTK-related packages get installed. This is a waste on headless
+# systems, so we replace the responsible package with an non-graphical
+# alternative.
+# dependencies: apt -> debian-archive-keyring -> gnupg-agent -> pinentry
+- name: replace pinentry package with non-graphical alternative
+  block:
+
+  - name: install non-graphical version of pinentry (required by gnupg)
+    package:
+      name: pinentry-tty
+      state: latest
+
+    # we use the command modules, since no Ansible module can mark
+    # packages automatically installed
+  - name: mark non-graphical version of pinentry automatically installed
+    command: aptitude markauto pinentry-tty
+
+  - name: remove graphical variants of pinentry
+    package:
+      name: "{{ item }}"
+      state: absent
+    with_items:
+      - pinentry-curses
+      - pinentry-gtk2
+
+  when: ansible_distribution == 'Debian' and
+        ansible_distribution_release|int > 8

@@ -1,5 +1,12 @@
-- name: add user group for users without shell but with sftp and rsync access
+- name: add group "noshell" for users without shell but sftp and rsync access
   group: name=noshell state=present
+
+- name: set default process priority for group "noshell"
+  lineinfile:
+    dest: /etc/security/limits.conf
+    regexp: '^@noshell\s+soft\s+priority\s.*'
+    line: "@noshell        soft    priority        {{ group_noshell_default_priority }}"
+    insertbefore: "# End of file"
 
 - name: create parent directory for sshd chroots
   file: path="{{ sshd_chroot_basepath }}" state=directory
@@ -60,15 +67,12 @@
 - name: set files to copy to chroots
   lineinfile: dest="{{ grequalizer_files2chroot_file }}"
               line="{{ item }}"  create=yes mode=600
-  with_items:
-    - /etc/rssh.conf
+  with_items: "{{ grequalizer_files_to_chroot }}"
 
 - name: set binaries to copy to chroots
   lineinfile: dest="{{ grequalizer_binaries2chroot_file }}"
               line="{{ item }}" create=yes mode=600
-  with_items:
-    - /usr/bin/rsync
-    - /usr/bin/rssh
+  with_items: "{{ grequalizer_binaries_to_chroot }}"
 
 - name: create empty script file for daily run of grequalizer
   lineinfile:   dest="{{ grequalizer_cron_script }}" regexp="^#!.*"

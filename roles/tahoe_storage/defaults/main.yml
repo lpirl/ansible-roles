@@ -1,2 +1,2 @@
-reserved_space: 5G
-lease_duration: "3 month"
+tahoe_reserved_space: 5G
+tahoe_lease_duration: "3 month"

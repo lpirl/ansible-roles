@@ -1,3 +1,6 @@
+- name: ensure udev rules directory exits
+  file: path=/etc/udev/rules.d state=directory
+
 - name: add udev rule to set deadline scheduler for non-rotational disks
   blockinfile:
     dest: /etc/udev/rules.d/60-ssd-scheduler.rules

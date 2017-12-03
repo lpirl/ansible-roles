@@ -1,0 +1,17 @@
+- name: make log2ram Cron job quiet
+  lineinfile: dest="/etc/cron.daily/log2ram"
+              line="/usr/sbin/log2ram write > /dev/null"
+              regexp="[^\s]*/log2ram write"
+
+- name: force network interface to 100Mbps since 1Gps appears not to
+        work (on Armbian)
+  lineinfile: dest="/etc/rc.local"
+              line="ethtool -s {{ item }} autoneg off speed 100 duplex full"
+              insertbefore="exit 0"
+  with_items: "{{ ansible_interfaces }}"
+  when: item | match("eth.+")
+
+- name: increase boot verbosity
+  lineinfile: dest="/boot/armbianEnv.txt"
+              line="verbosity=7"
+              regexp="verbosity=.+"

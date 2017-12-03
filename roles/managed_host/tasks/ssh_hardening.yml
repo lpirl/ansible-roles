@@ -28,6 +28,21 @@
 
 # ---------- BEGIN: version-independent configuration ----------
 
+- name: normalize configuration file to use spaces instead of tabs between
+        configuration keys consisting of more than one word
+  replace:
+    dest: "{{ item }}"
+    regexp: '(.+)\t+(.+)'
+    replace: '\1 \2'
+  with_items:
+    - /etc/ssh/sshd_config
+    - /etc/ssh/ssh_config
+
+- name: remove problematically formatted default SSH option
+  lineinfile: dest=/etc/ssh/sshd_config
+              regexp="^Subsystem\t"
+              state=absent
+
 - name: set SSH options for server
   lineinfile: dest="/etc/ssh/sshd_config"
               line="{{ item.key }} {{ item.value }}"

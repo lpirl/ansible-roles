@@ -34,5 +34,4 @@
 
   notify: rehash aliases
 
-- include_tasks: postfix-dkim.yml
-  tags: [wip]
+- include: postfix-dkim.yml

@@ -1,5 +1,5 @@
 tmp_hardening_report_file: /root/tmp_hardening_report.txt
-rkhunter_version: 1.4.2
+rkhunter_version: 1.4.4
 
 # optionally, define nameservers
 nameservers: []
@@ -34,18 +34,28 @@ postfix_global_options:
   alias_maps: hash:/etc/aliases
   alias_database: hash:/etc/aliases
 
+  myhostname: "{{ ansible_fqdn }}"
+
+  # what to deliver locally
+  mydestination: "{{ ansible_hostname }} $myhostname localhost.$mydomain localhost"
+
   mynetworks: 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128
 
   # SMTP SSL
   smtp_tls_session_cache_database: btree:${data_directory}/smtp_scache
   smtp_tls_security_level: may
   smtp_tls_protocols: "!SSLv2, !SSLv3"
+  smtpd_tls_security_level: may
 
   # apple mail may send very long lines:
   line_length_limit: 2048
 
   # try the OS' host name lookup mechanism before failing
   smtp_host_lookup: dns, native
+
+  # Disable SMTP VRFY command
+  # (stops some techniques to harvest email addresses)
+  disable_vrfy_command: "yes"
 
 postfix_extra_smtpd_milters: []
 postfix_extra_non_smtpd_milters: []
@@ -105,6 +115,14 @@ apt_tools:
   apticron: present
   needrestart: present
   debsums: present
+  deborphan: present
+
+  # annoyingly expensive maintenance cron jobs (i..e., build search,
+  # index, but we search packages on remote systems very seldom)
+  apt-xapian-index: absent
+
+  # obsolete due to availability of http://httpredir.debian.org/
+  netselect-apt: absent
 
 ########################################################################
 # ssh
@@ -221,6 +239,9 @@ ssh_server_options:
   # seconds after which unanswered alive message time out
   ClientAliveInterval: 60
 
+  # check modes of files strictly
+  StrictModes: "yes"
+
   "Subsystem sftp": internal-sftp
 
 ssh_server_needs_ecdsa_host_key: "no"
@@ -243,3 +264,12 @@ ssh_client_and_server_deprecated_options:
   - ServerKeyBits
   - Potocol
   - UsePrivilegeSeparation
+
+extra_service_priorities: {}
+service_priorities:
+  ssh: -5
+  openntpd: 2
+  smartd: 2
+  lxc: 4
+  atd: 6
+  cron: 8
