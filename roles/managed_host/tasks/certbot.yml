@@ -24,7 +24,7 @@
   when: certbot_version.rc == 0 and
         "certbot.timer" in systemd_timers.stdout
 
-- name: schedule weekly renewal of SSL certificates
+- name: "{{ 'no' if certbot_version.rc != 0 }} weekly renewal of SSL certificates"
   cron:
     name: "renewal of SSL certificates"
     special_time: weekly
