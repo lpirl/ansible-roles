@@ -7,6 +7,10 @@
 remote_desktop_packages:
   x2goserver:           present
   x2goserver-xsession:  present
+
+  # for x2go to enable folder sharing between server and client:
+  sshfs:                present
+
   lxde-core:            present
   lxde-icon-theme:      present
   gvfs-fuse:            present
