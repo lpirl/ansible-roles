@@ -31,6 +31,6 @@ fail2ban_jails_auto_enable:
   nginx-botsearch: nginx -v
   nginx-http-auth: nginx -v
   postfix-rbl: postconf -nh | grep -q rbl
-  postfix-sasl: postconf -nh | grep -q sasl
+  postfix-sasl: postconf -nh | egrep '^[^\s]*_sasl_'
   sshd: pgrep sshd
   sshd-ddos: pgrep sshd

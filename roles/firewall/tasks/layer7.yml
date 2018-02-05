@@ -29,7 +29,7 @@
   service:
     name: fail2ban
     enabled: true
-    state: started
+  notify: reload fail2ban
 
 - name: processing Fail2ban jails to automatically enable/disable
   include_tasks: _fail2ban-auto-enable-jail.yml
