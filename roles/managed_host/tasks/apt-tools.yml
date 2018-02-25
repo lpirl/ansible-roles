@@ -68,20 +68,6 @@
         job=/opt/admintools/dpkg_list-unpurged-packages.sh
         special_time=yearly
 
-# https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=812719
-- name: get apticron version
-  register: apticron_version_result
-  shell: "dpkg -s apticron | grep 'Version: ' | awk '{print $2}'"
-  changed_when: false
-
-- name: patch apticron's bug "MIME-Version … No such file or directory"
-  patch:
-    dest: /usr/sbin/apticron
-    src: /opt/admintools/apticron-1.1.59.patch
-    remote_src: yes
-    backup: yes
-  when: apticron_version_result | version_compare('1.1.59', '==')
-
 # The default solution for the dependencies listed below results in a
 # lot of GTK-related packages get installed. This is a waste on headless
 # systems, so we replace the responsible package with an non-graphical
