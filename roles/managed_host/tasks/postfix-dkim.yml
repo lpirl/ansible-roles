@@ -75,16 +75,6 @@
   loop_control:
     label: "{{ item.key }}"
 
-- name: ensure existence of directory for keys
-  file:
-    dest: /etc/dkimkeys
-    state: directory
-    owner: opendkim
-    group: root
-    mode: 0700
-  when: "postfix_dkim_keys and
-         ansible_distribution_version | version_compare('8.7', '<=')"
-
 - name: write key files
   blockinfile:
     dest: "/etc/dkimkeys/{{ item.key }}_{{ item.value.selector }}.private"
@@ -126,8 +116,7 @@
   command: /lib/opendkim/opendkim.service.generate
   when: "postfix_dkim_keys and
          set_opendkim_daemon_options | changed and
-         ansible_distribution == 'Debian' and
-         ansible_distribution_version | version_compare('8.7', '>')"
+         ansible_distribution == 'Debian'"
   notify: reload systemd daemon
 
 - name: set options for postfix and opendkim
