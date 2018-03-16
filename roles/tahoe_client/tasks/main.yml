@@ -6,4 +6,4 @@
   command: "{{ tahoe_bin }} create-client -C {{ tahoe_basedir }}/node"
   when: check_node_dir.stat.exists == false
 
-- include_tasks: configuration.yml
+- import_tasks: configuration.yml

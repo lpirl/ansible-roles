@@ -34,4 +34,4 @@
 
   notify: rehash aliases
 
-- include_tasks: postfix-dkim.yml
+- import_tasks: postfix-dkim.yml

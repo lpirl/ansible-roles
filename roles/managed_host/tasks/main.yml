@@ -3,71 +3,71 @@
 
 # keep installing admintools the first thinng to do
 
-- include_tasks: git-install.yml
+- import_tasks: git-install.yml
 
-- include_tasks: admintools.yml
+- import_tasks: admintools.yml
 
 # keep configuring packages to install other packages the second thing to do
-- include_tasks: apt-config.yml
+- import_tasks: apt-config.yml
 
 # before installing new packages, upgrade:
-- include_tasks: apt-upgrade.yml
+- import_tasks: apt-upgrade.yml
 
-- include_tasks: git-config.yml
+- import_tasks: git-config.yml
 
-- include_tasks: apt-tools.yml
+- import_tasks: apt-tools.yml
 
-- include_tasks: editor.yml
+- import_tasks: editor.yml
 
-- include_tasks: shell.yml
+- import_tasks: shell.yml
 
-- include_tasks: interactive-monitors.yml
+- import_tasks: interactive-monitors.yml
 
-- include_tasks: system-information.yml
+- import_tasks: system-information.yml
 
-- include_tasks: net-utils.yml
+- import_tasks: net-utils.yml
 
-- include_tasks: postfix.yml
+- import_tasks: postfix.yml
 
-- include_tasks: umask.yml
+- import_tasks: umask.yml
 
-- include_tasks: ntp.yml
+- import_tasks: ntp.yml
 
-- include_tasks: haveged.yml
+- import_tasks: haveged.yml
 
-- include_tasks: ssh_hardening.yml
+- import_tasks: ssh_hardening.yml
   tags: [ssh_hardening]
 
-- include_tasks: scheduling_and_detaching.yml
+- import_tasks: scheduling_and_detaching.yml
 
-- include_tasks: logging-and-accounting.yml
+- import_tasks: logging-and-accounting.yml
 
-- include_tasks: hostname_and_lookups.yml
+- import_tasks: hostname_and_lookups.yml
 
-- include_tasks: certbot.yml
+- import_tasks: certbot.yml
 
-- include_tasks: accounts-hardening.yml
+- import_tasks: accounts-hardening.yml
 
-- include_tasks: disk_space_alert.yml
+- import_tasks: disk_space_alert.yml
 
-- include_tasks: email_send_test.yml
+- import_tasks: email_send_test.yml
   when: do_email_send_test
   tags: [email_test]
 
-- include_tasks: apache2.yml
-- include_tasks: nginx.yml
+- import_tasks: apache2.yml
+- import_tasks: nginx.yml
 
-- include_tasks: service_priorities.yml
+- import_tasks: service_priorities.yml
 
-- include_tasks: dbms.yml
+- import_tasks: dbms.yml
 
 - name: check if this the remote machine runs Armbian
   stat: path=/etc/armbian.txt
   register: stat_armbian_txt_stat_result
-- include_tasks: armbian.yml
+- import_tasks: armbian.yml
   when: stat_armbian_txt_stat_result.stat.exists
 
 # this should be the last line:
-- include_tasks: hardening-report.yml
+- import_tasks: hardening-report.yml
   when: create_reports
   tags: [report, hardening-report]

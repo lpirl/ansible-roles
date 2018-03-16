@@ -1,6 +1,6 @@
-- include_tasks: utils.yml
-- include_tasks: hardening.yml
-- include_tasks: sysctl.yml
-- include_tasks: rsync-backup.yml
-- include_tasks: for-devices.yml
-- include_tasks: watchdog.yml
+- import_tasks: utils.yml
+- import_tasks: hardening.yml
+- import_tasks: sysctl.yml
+- import_tasks: rsync-backup.yml
+- import_tasks: for-devices.yml
+- import_tasks: watchdog.yml
