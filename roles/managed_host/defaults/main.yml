@@ -24,6 +24,8 @@ postfix_global_options:
   #    - { user: "{{ ansible_env.USER }}",
   #        alias: "{{ ansible_fqdn }}+{{ ansible_env.USER }}@example.com"}
 
+  compatibility_level: 2
+
   smtpd_banner: $myhostname ESMTP
   biff: "no"
   readme_directory: "no"
