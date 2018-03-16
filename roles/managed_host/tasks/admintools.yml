@@ -9,4 +9,4 @@
 
 - name: ensure permissions for admintools
   file: path=/opt/admintools mode=go=u,go-w,a-s recurse=yes
-  changed_when: admintools_checkout|changed
+  changed_when: admintools_checkout is changed

@@ -30,7 +30,7 @@
   register: unhook_apt_result
   command: find /etc/apt -name "*needrestart*" -print -delete
   changed_when: unhook_apt_result.stdout != ""
-  failed_when: unhook_apt_result|failed
+  failed_when: unhook_apt_result is failed
 
 - name: check needrestart version
   register: needrestart_version_lt_one

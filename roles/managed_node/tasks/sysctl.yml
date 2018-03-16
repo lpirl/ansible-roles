@@ -13,11 +13,11 @@
   file: src=/opt/admintools/etc/sysctl.d/CVE-2016-5696.conf
         dest=/etc/sysctl.d/CVE-2016-5696.conf
         state=link
-  when: ansible_kernel | version_compare('4.7', '<')
+  when: ansible_kernel is version_compare('4.7', '<')
   notify: sysctl reload
 
 - name: disable hotfix for CVE-2016-5696 for patched Kernels
   file: dest=/etc/sysctl.d/CVE-2016-5696.conf
         state=absent
-  when: ansible_kernel | version_compare('4.7', '>=')
+  when: ansible_kernel is version_compare('4.7', '>=')
   notify: sysctl reload
