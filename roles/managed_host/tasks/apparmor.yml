@@ -1,0 +1,4 @@
+- name: install apparmor
+  package:
+    name: apparmor
+    state: present

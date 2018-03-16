@@ -67,6 +67,8 @@
 - import_tasks: armbian.yml
   when: stat_armbian_txt_stat_result.stat.exists
 
+- include_tasks: apparmor.yml
+
 # this should be the last line:
 - import_tasks: hardening-report.yml
   when: create_reports
