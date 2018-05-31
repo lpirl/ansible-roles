@@ -28,5 +28,5 @@
   cron:
     name: "renewal of SSL certificates"
     special_time: weekly
-    job: "/opt/admintools/certbot-renew-wrapper.sh"
+    job: "/opt/admintools/scripts/certbot-renew-wrapper"
     state: "{{ 'present' if certbot_version.rc == 0 else 'absent' }}"

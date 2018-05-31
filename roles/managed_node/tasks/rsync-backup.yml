@@ -15,10 +15,10 @@
     marker: "# {mark} ANSIBLE MANAGED BLOCK FOR {{ item.local_dir }}"
     block: |
       timeout 23h \
-        /opt/admintools/wait_for \
+        /opt/admintools/scripts/wait-for \
           -P "{{ rsync_backup_remote_host }}:{{ rsync_backup_remote_port }}" \
           --ac \
-            /opt/admintools/backup_to_sftp.sh \
+            /opt/admintools/scripts/backup-to-sftp \
               -p {{ rsync_backup_remote_port }} \
               -s "{{ item.local_dir }}" \
                 "{{ rsync_backup_remote_host }}" \
