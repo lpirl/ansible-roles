@@ -1,0 +1,29 @@
+- name: create cron scripts for disk space alert
+  lineinfile:   dest=/etc/cron.hourly/90-disk_space_alert
+                line='#!/bin/sh'
+                insertbefore=BOF
+                create=yes
+                mode=700
+  when: disk_space_alert_percentage >= 0
+
+- name: delete cron scripts for disk space alert
+  file: path=/etc/cron.hourly/90-disk_space_alert
+        state=absent
+  when: disk_space_alert_percentage < 0
+
+- name: write command for disk space alert to cron script
+  lineinfile: dest=/etc/cron.hourly/90-disk_space_alert
+          line='/opt/admintools/scripts/disk-space-alert-all
+                  {{ disk_space_alert_percentage }}'
+          regexp=".*disk_space_alert_all.*"
+          create=yes
+  when: disk_space_alert_percentage >= 0
+
+- name: set up regular fstrim
+  cron:
+      name: fstrim
+      minute: 21
+      hour: 3
+      day: 18
+      month: "*/2"
+      job: fstrim -a

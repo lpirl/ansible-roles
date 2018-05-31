@@ -48,7 +48,7 @@
 
 - import_tasks: accounts-hardening.yml
 
-- import_tasks: disk_space_alert.yml
+- import_tasks: file-system-maintenance.yml
 
 - import_tasks: email_send_test.yml
   when: do_email_send_test
