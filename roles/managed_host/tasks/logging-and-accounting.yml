@@ -44,6 +44,22 @@
 
 
 
+# We "abuse" the ``compresscmd`` to apply a global "filter" to the log
+# files once they get "compressed"
+- name: anonymize logs (instead of compressing them)
+  lineinfile:
+    dest: /etc/logrotate.d/000-anonymize-instead-of-compress
+    line: '{{ item.key }} {{ item.value }}'
+    regexp: '^\s*#*\s*{{ item.key }}\s*'
+    create: yes
+  with_dict:
+    compress: ""
+    compresscmd: /bin/sh
+    compressoptions: >
+      -c '/opt/admintools/scripts/anonymize-log --inplace "$0" && gzip "$0"'
+
+
+
 - name: install packages for accounting
   package: name="{{ item }}" state=present
   with_items:
