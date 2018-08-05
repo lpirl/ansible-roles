@@ -48,16 +48,14 @@
 # files once they get "compressed"
 - name: anonymize logs (instead of compressing them)
   lineinfile:
-    dest: /etc/logrotate.d/000-anonymize-instead-of-compress
+    dest: /etc/logrotate.d/000-anonymize-before-compression
     line: '{{ item.key }} {{ item.value }}'
-    regexp: '^\s*#*\s*{{ item.key }}\s*'
+    regexp: '^\s*#*\s*{{ item.key }}(\s+|$)'
     create: yes
   with_dict:
     compress: ""
     compresscmd: /bin/sh
-    compressoptions: >
-      -c '/opt/admintools/scripts/anonymize-log --inplace "$0" && gzip "$0"'
-
+    compressoptions: -c '/opt/admintools/scripts/anonymize-log | gzip'
 
 
 - name: install packages for accounting
