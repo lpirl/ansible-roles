@@ -13,14 +13,17 @@
         owner=root group=root mode=755
 
 - name: configure ssh server to chroot group noshell
-  lineinfile: dest=/etc/ssh/sshd_config line="{{ item }}"
-              insertafter="Match group noshell"
-  with_items:
-    - "Match group noshell"
-    - "\tChrootDirectory \"{{ sshd_chroot_basepath }}/%u\""
-    - "\tAuthorizedKeysFile \"{{ sshd_chroot_basepath }}/%u/%h/.ssh/authorized_keys\""
-    - "\tX11Forwarding no"
-    - "\tAllowTcpForwarding no"
+  blockinfile:
+    path: /etc/ssh/sshd_config
+    insertafter: EOF
+    marker: '# {mark} ANSIBLE MANAGED BLOCK: chroot for group noshell'
+    block: |
+      Match group noshell
+        ChrootDirectory "{{ sshd_chroot_basepath }}/%u"
+        AuthorizedKeysFile "{{ sshd_chroot_basepath }}/%u/%h/.ssh/authorized_keys"
+        X11Forwarding no
+        AllowTcpForwarding no
+
   notify: restart sshd
 
 - name: configure ssh server to use it's own sftp subsystem
