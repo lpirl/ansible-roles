@@ -155,9 +155,6 @@ ssh_client_and_server_ciphers:
   - aes128-ctr
 
 ssh_server_extra_host_keys: []
-ssh_server_host_keys:
-  - /etc/ssh/ssh_host_rsa_key
-  - /etc/ssh/ssh_host_ed25519_key
 
 ssh_client_and_server_extra_options: {}
 ssh_client_and_server_options:
