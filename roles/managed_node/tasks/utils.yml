@@ -1,6 +1,7 @@
 - name: install hardware analyses and monitoring tools
-  package: name="{{ item }}" state=present
-  with_items:
-    - ethtool
-    - smartmontools
-    - hdparm
+  apt:
+    name: "{{ item.key }}"
+    state: "{{ item.value }}"
+  with_dict: "{{ hardware_analysis_and_monitoring_packages |
+                 combine(hardware_analysis_and_monitoring_packages_extra |
+                         default({})) }}"

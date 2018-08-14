@@ -31,3 +31,13 @@ watchdog_global_options:
   "max-load-1": "{{ ansible_processor_vcpus * 32 }}"
   "max-load-5": "{{ ansible_processor_vcpus * 16 }}"
   "max-load-15": "{{ ansible_processor_vcpus * 8 }}"
+
+# Example to extend/override this list (put something like the following
+# in your variables):
+#  hardware_analysis_and_monitoring_packages_extra:
+#    "my-favorite-hw-package": present
+#    "my-hated-hw-package": absent
+hardware_analysis_and_monitoring_packages:
+  ethtool:        present
+  hdparm:         present
+  smartmontools:  present
