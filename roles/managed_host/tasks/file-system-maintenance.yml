@@ -19,6 +19,13 @@
           create=yes
   when: disk_space_alert_percentage >= 0
 
+- name: install file system utilities
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - util-linux
+
 - name: set up regular fstrim
   cron:
       name: fstrim
