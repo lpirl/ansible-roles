@@ -35,6 +35,8 @@
   lineinfile: dest=/etc/resolv.conf state=present
               regexp="^nameserver\s+{{ item }}\s+.*"
               line='nameserver {{ item }}'
+              create=yes
+              mode=0644
   with_items: "{{ nameservers }}"
 
 - name: install DNS utilities
