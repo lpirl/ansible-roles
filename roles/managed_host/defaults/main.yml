@@ -261,7 +261,7 @@ ssh_client_and_server_deprecated_options:
   - KeyRegenerationInterval
   - RhostsRSAAuthentication
   - ServerKeyBits
-  - Potocol
+  - Protocol
   - UsePrivilegeSeparation
 
 extra_service_priorities: {}
