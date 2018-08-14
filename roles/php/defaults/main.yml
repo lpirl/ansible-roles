@@ -9,6 +9,7 @@ php_global_options:
   allow_url_include: "Off"
   register_globals: "Off"
   display_errors: "Off"
+  expose_php: "Off"
   disable_functions:  php_uname,
                       getmyuid,
                       getmypid,
