@@ -21,6 +21,12 @@
 - name: symlinking extra ignore configurations for logcheck
   register: symlink_logcheck_ignore_files
   shell: 'ln -vsf /opt/admintools/etc/logcheck/ignore.d.{{item}}/* /etc/logcheck/ignore.d.{{item}}'
+  args:
+    # Ansible complains we should use the file module. However, we use a
+    # shell glob above, so using the file module would be cumbersome.
+    # However, feel very free to enhance this.
+    warn: no
+
   failed_when: symlink_logcheck_ignore_files.rc != 0
   with_items:
      - server
