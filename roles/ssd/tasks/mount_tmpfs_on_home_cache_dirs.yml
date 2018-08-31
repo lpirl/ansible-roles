@@ -2,6 +2,8 @@
   register: check_systemd_system_services_dir
   stat: path=/etc/systemd/system/mount-tmpfs-on-home-cache-dirs.service
 
+# Ansible false positively warns here (The service (<path>) is actually
+# an init script but the system is managed by systemd).
 - name: enable service to mount users\'s .cache directories to tmpfs
   service:  name=/opt/admintools/etc/systemd/system/mount-tmpfs-on-home-cache-dirs.service
             enabled=yes

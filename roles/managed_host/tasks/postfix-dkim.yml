@@ -115,7 +115,7 @@
 - name: regenerate opendkim service file
   command: /lib/opendkim/opendkim.service.generate
   when: "postfix_dkim_keys and
-         set_opendkim_daemon_options | changed and
+         set_opendkim_daemon_options is changed and
          ansible_distribution == 'Debian'"
   notify: reload systemd daemon
 

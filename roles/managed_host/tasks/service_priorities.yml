@@ -27,3 +27,4 @@
     group: root
     mode: u=rwX,go=rX
     recurse: yes
+    follow: no

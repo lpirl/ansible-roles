@@ -9,7 +9,7 @@
 
 - name: update the apt cache
   apt: update_cache=yes
-  when: add_apt_repository|changed
+  when: add_apt_repository is changed
 
 - name: install remote desktop related packages
   apt: name="{{ item.key }}" state="{{ item.value }}"
