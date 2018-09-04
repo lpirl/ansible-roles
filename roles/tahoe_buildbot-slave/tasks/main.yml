@@ -36,13 +36,13 @@
   command: "{{ buildslave_bin }} create-slave {{ buildslave_dir }}
             {{ buildmaster_url }}
             {{ buildslave_username }} {{ buildslave_password }}"
-  when: create_buildslave_dir|changed
+  when: create_buildslave_dir is changed
   notify: restart buildslave
 
 - name: upgrade buildslave
   register: upgrade_buildslave_result
   command: "{{ buildslave_bin }} upgrade-slave {{ buildslave_dir }}"
-  when: not create_buildslave_dir|changed
+  when: not create_buildslave_dir is changed
   changed_when: '"No changes made" not in upgrade_buildslave_result.stdout'
   notify: restart buildslave
 
