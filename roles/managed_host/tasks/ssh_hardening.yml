@@ -101,7 +101,9 @@
 
 - name: rename deprecated DSA host key
   register: disable_dsa_host_key_result
-  shell: "find /etc/ssh -iname '*_dsa_*' -not -name '*INSECURE*' -exec rename -v 's/(.*)/$1.INSECURE_{{ ansible_date_time.iso8601 }}/' {} \\;"
+  shell: "find /etc/ssh -iname '*_dsa_*' -not -name '*INSECURE*'
+          -exec rename -v
+          's/(.*)/$1.INSECURE_{{ ansible_date_time.iso8601 }}/' {} \\;"
   changed_when: disable_dsa_host_key_result.stdout != ""
   notify: restart sshd
 
@@ -162,13 +164,16 @@
 
 - name: check RSA host key length
   register: check_rsa_host_key_length
-  shell: '[ `ssh-keygen -lf /etc/ssh/ssh_host_rsa_key.pub | cut -d" " -f1` -lt 4096 ]'
+  shell: '[ `ssh-keygen -lf /etc/ssh/ssh_host_rsa_key.pub
+             | cut -d" " -f1` -lt 4096 ]'
   changed_when: false
   failed_when: false
 
 - name: disable insecure RSA host key (too short)
   register: disable_rsa_host_key_result
-  shell: "find /etc/ssh -iname '*_rsa_*' -not -name '*INSECURE*' -exec rename -v 's/(.*)/$1.INSECURE_{{ ansible_date_time.iso8601 }}/' {} \\;"
+  shell: "find /etc/ssh -iname '*_rsa_*' -not -name '*INSECURE*'
+          -exec rename -v
+          's/(.*)/$1.INSECURE_{{ ansible_date_time.iso8601 }}/' {} \\;"
   changed_when: disable_rsa_host_key_result.stdout != ""
   when: check_rsa_host_key_length.rc == 0
   notify: restart sshd
