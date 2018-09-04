@@ -50,7 +50,7 @@
 
 - import_tasks: file-system-maintenance.yml
 
-- import_tasks: email_send_test.yml
+- import_tasks: email-send-test.yml
   when: do_email_send_test
   tags: [email_test]
 

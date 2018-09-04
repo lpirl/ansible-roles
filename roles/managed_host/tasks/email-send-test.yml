@@ -1,0 +1,80 @@
+# It does not make much sense to set this variable in the role's
+# defaults, since the "implementation" in this file is very API specific
+# and the API does not follow any standards. Hence, one has to alter
+# this file anyway if one wants to use another API.
+- name: set API base URL
+  set_fact:
+    email_send_test_url: http://api.guerrillamail.com/ajax.php?f=
+  changed_when: false
+
+- name: flushing handlers
+        got reconfigured
+  meta: flush_handlers
+
+- name: get email address to send to
+  register: mail_test_address_result
+  uri:
+    url: "{{ email_send_test_url }}get_email_address"
+    return_content: yes
+    body_format: json
+  retries: 3
+  delay: 10
+  until: mail_test_address_result.status == 200
+  changed_when: false
+
+- name: generate random subject for test email
+  register: subject_result
+  shell: cat /dev/urandom | tr -dc 'a-z0-9' | head -c 12
+  failed_when: subject_result|failed
+  changed_when: false
+
+# This is just paranoia: we get the domain from an API and send it to
+# a shell so we make sure we didn't catch any malicious strings.
+# Since I could not figure out how to properly assert a regex match,
+# we just replace an out expected email address with an empty string
+# and assert that.
+- name: sanity check email address
+  assert:
+    that:
+      - "'' == '{{
+        mail_test_address_result.json.email_addr |
+          regex_replace('^[a-zA-Z0-9-._]+@[a-zA-Z0-9-._]+$', '')
+      }}'"
+
+- name: send test email
+  shell: "echo |
+          mail -s {{ subject_result.stdout_lines.0 | quote }}
+            {{ mail_test_address_result.json.email_addr | quote }}"
+  changed_when: false
+
+- name: check if email arrived
+  register: mail_test_check_result
+  uri:
+    url: "{{ email_send_test_url }}check_email&seq=0"
+    return_content: yes
+    headers:
+      Cookie: "PHPSESSID={{ mail_test_address_result.json.sid_token }}"
+  retries: 10
+  delay: 3
+  until:
+    mail_test_check_result.status == 200 and
+    mail_test_check_result.json.list | length == 2
+  changed_when: false
+
+- name: delete test email
+  register: empty_mailbox_result
+  uri:
+    url: "{{ email_send_test_url }}del_email&email_ids[]={{
+      item.mail_id
+    }}"
+    follow_redirects: all
+  changed_when: false
+  retries: 3
+  delay: "{{ 10|random(start=3, step=1) }}"
+  until: empty_mailbox_result.status == 200
+  with_items: "{{ mail_test_check_result.json.list }}"
+  loop_control:
+    label: "{{ item.mail_id }} (
+              {{ item.mail_from|trim }} →
+              {{ mail_test_address_result.json.email_addr }}
+            )"

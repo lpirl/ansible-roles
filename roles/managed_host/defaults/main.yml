@@ -243,7 +243,7 @@ ssh_server_options:
 
   "Subsystem sftp": internal-sftp
 
-ssh_server_needs_ecdsa_host_key: "no"
+ssh_server_needs_ecdsa_host_key: no
 
 ssh_client_extra_options: {}
 ssh_client_options:
