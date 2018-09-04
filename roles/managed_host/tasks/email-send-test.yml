@@ -74,7 +74,5 @@
   until: empty_mailbox_result.status == 200
   with_items: "{{ mail_test_check_result.json.list }}"
   loop_control:
-    label: "{{ item.mail_id }} (
-              {{ item.mail_from|trim }} →
-              {{ mail_test_address_result.json.email_addr }}
-            )"
+    label: "({{ item.mail_from|trim }} →
+             {{ mail_test_address_result.json.email_addr }})"
