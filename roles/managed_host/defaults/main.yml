@@ -52,7 +52,8 @@ postfix_global_options:
   # apple mail may send very long lines:
   line_length_limit: 2048
 
-  # try the OS' host name lookup mechanism before failing
+  # if DNS lookup does not succeed, try the OS' host name lookup
+  # mechanism before failing
   smtp_host_lookup: dns, native
 
   # Disable SMTP VRFY command
