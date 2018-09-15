@@ -1,12 +1,24 @@
-This repository contains my personal Ansible roles for Debian(-based) systems.
+This repository contains Ansible roles for Debian(-based) systems
+which I use for my administrative tasks.
 
-**They do not intend to be generic and ready to use.**
+The roles are intended to be somewhat generic and reusable,
+but please do not apply them blindly.
+Make sure you read and understand a role before running it.
+Otherwise, you'll possibly loose something you love.
 
-However, fell free to read/use/extend them and to contact me if you have
-any questions.
+If you *do* run this roles, have recent backups.
 
-Please make sure you read and understand every role before running
-it. Otherwise, you'll possibly loose something you love.
+Feel free to read/try/use/extend them
+and to contact me if you have any questions.
 
-If you *do* run them, have recent backups.
+The most intensively developed, used and maintained role is
+``managed_host``. You (should) find README files in the roles'
+directories.
 
+For the most part, the roles work by **modifying default configuration
+files** of Debian installations **instead of replacing them** with
+files or files created from templates. This "design" was required
+because the roles were developed for already configured systems with
+existing different configurations. Hence, configuration files could not
+be replaced, but had to be edited by the roles; ideally without
+wracking the other existing configuration symbols.
