@@ -25,11 +25,23 @@
     create: yes
   when: modprobe_iptables_result.changed
 
+- name: processing static Fail2ban configuration
+  include_tasks: _fail2ban-write-config-section.yml
+  with_dict: "{{ fail2ban_config |
+                 combine(fail2ban_extra_config | default({})) }}"
+  loop_control:
+    loop_var: section
+  vars:
+    config_file: "{{ fail2ban_config_file }}"
+  notify: reload fail2ban
+
 - name: enable and start fail2ban
   service:
     name: fail2ban
     enabled: true
   notify: reload fail2ban
+
+
 
 - name: processing Fail2ban jails to automatically enable/disable
   include_tasks: _fail2ban-auto-enable-jail.yml
@@ -37,6 +49,7 @@
                  combine(fail2ban_jails_extra_auto_enable | default({})) }}"
   loop_control:
     loop_var: fail2ban_jail_auto_enable
+  notify: reload fail2ban
 
 - name: processing static Fail2ban jail configuration
   include_tasks: _fail2ban-write-config-section.yml
@@ -44,3 +57,25 @@
                  combine(fail2ban_jails_extra_config | default({})) }}"
   loop_control:
     loop_var: section
+  vars:
+    config_file: "{{ fail2ban_jails_config_file }}"
+  notify: reload fail2ban
+
+
+
+- name: get SSH port
+  register: get_ssh_port_results
+  shell: sshd -T | grep -i '^port ' | cut -d" " -f2
+  changed_when: false
+
+- name: set SSH port for fail2ban
+  include_tasks: _fail2ban-write-config-section.yml
+  with_dict:
+    sshd:
+      port: "{{ get_ssh_port_results.stdout_lines.0 }}"
+  loop_control:
+    loop_var: section
+  vars:
+    config_file: "{{ fail2ban_jails_config_file }}"
+  when: get_ssh_port_results is success
+  notify: reload fail2ban

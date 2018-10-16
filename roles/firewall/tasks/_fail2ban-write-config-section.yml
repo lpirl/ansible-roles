@@ -1,6 +1,6 @@
 - name: remove empty static Fail2ban jail configuration section  '{{ section.key }}'
   ini_file:
-    dest: "{{ fail2ban_jails_config_file }}"
+    dest: "{{ config_file }}"
     section: "{{ section.key }}"
     state: absent
   when: not section.value
@@ -8,9 +8,9 @@
 
 - name: processing static Fail2ban jail configuration section '{{ section.key }}'
   ini_file:
-    dest: "{{ fail2ban_jails_config_file }}"
+    dest: "{{ config_file }}"
     section: "{{ section.key }}"
-    option: "{{ item.key}}"
+    option: "{{ item.key }}"
     value: "{{ item.value }}"
   when: section.value
   with_dict: "{{ section.value if section.value is mapping else {} }}"

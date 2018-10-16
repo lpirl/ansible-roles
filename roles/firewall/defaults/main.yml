@@ -1,18 +1,37 @@
+fail2ban_config_file: /etc/fail2ban/fail2ban.d/50-via-ansible.local
+
+# Statically sets Fail2ban configuration.
+# You can use ``fail2ban_extra_config`` to override values.
+fail2ban_config:
+  Definition:
+    logtarget: SYSLOG
+
+
+
 fail2ban_jails_config_file: /etc/fail2ban/jail.d/50-via-ansible.local
 
 # Statically sets Fail2ban jail configuration.
 # You can use ``fail2ban_jails_extra_config`` to override values.
+#
+# For the "mode" settings, see the corresponding file in
+# https://github.com/fail2ban/fail2ban/blob/master/config/filter.d/
 fail2ban_jails_config:
   DEFAULT:
-    bantime: 1200
+    bantime: 1800
+
     # window for ``maxretry``
-    findtime: 600
+    findtime: 1810
     # retries before banning a host:
     maxretry: 3
 
     destemail: root
     sender: root
 
+  sshd:
+    mode: aggressive
+
+  postfix:
+    mode: aggressive
 
 # Maps from jail names to a shell commands. If command exits with
 # code 0, the listed jails will be enabled, or disabled otherwise.
@@ -30,7 +49,12 @@ fail2ban_jails_auto_enable:
   mysqld-auth: mysqld --version
   nginx-botsearch: nginx -v
   nginx-http-auth: nginx -v
-  postfix-rbl: postconf -nh | grep -q rbl
-  postfix-sasl: postconf -nh | egrep '^[^\s]*_sasl_'
+
+  # deactivate separate RBL/SASL jails, since their filters are included
+  # in the Postfix jail in mode "aggressive" anyway
+  postfix-rbl: false
+  postfix-sasl: false
+
   sshd: pgrep sshd
-  sshd-ddos: pgrep sshd
+  # ``sshd-ddos`` included in mode "aggressive" for jail ``sshd``:
+  sshd-ddos: false
