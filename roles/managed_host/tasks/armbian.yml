@@ -4,7 +4,7 @@
               line="ethtool -s {{ item }} autoneg off speed 100 duplex full"
               insertbefore="exit 0"
   with_items: "{{ ansible_interfaces }}"
-  when: item | match("eth.+")
+  when: item is match("eth.+")
 
 - name: increase boot verbosity
   lineinfile: dest="/boot/armbianEnv.txt"
