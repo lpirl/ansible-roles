@@ -25,7 +25,7 @@
 - name: generate random subject for test email
   register: subject_result
   shell: cat /dev/urandom | tr -dc 'a-z0-9' | head -c 12
-  failed_when: subject_result|failed
+  failed_when: subject_result is failed
   changed_when: false
 
 # This is just paranoia: we get the domain from an API and send it to
