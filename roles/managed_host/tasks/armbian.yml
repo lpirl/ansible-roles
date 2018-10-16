@@ -1,8 +1,3 @@
-- name: make log2ram Cron job quiet
-  lineinfile: dest="/etc/cron.daily/log2ram"
-              line="/usr/sbin/log2ram write > /dev/null"
-              regexp="[^\s]*/log2ram write"
-
 - name: force network interface to 100Mbps since 1Gps appears not to
         work (on Armbian)
   lineinfile: dest="/etc/rc.local"
