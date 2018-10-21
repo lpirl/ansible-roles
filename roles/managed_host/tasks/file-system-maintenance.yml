@@ -39,7 +39,7 @@
     # We use Bash's random number generator instead of Ansible's, so
     # the test is not reported as "changed" every time the Playbook is
     # run.
-    job: bash -c "sleep $[ ( $RANDOM % 60 ) ]m;
+    job: bash -c 'sleep $[ ( $RANDOM \% 60 ) ]m;
                   ionice -c3
                     nice -n15
-                      /sbin/fstrim -a" &
+                      /sbin/fstrim -a' &
