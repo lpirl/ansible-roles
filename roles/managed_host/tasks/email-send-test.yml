@@ -55,7 +55,7 @@
     headers:
       Cookie: "PHPSESSID={{ mail_test_address_result.json.sid_token }}"
   retries: 10
-  delay: 3
+  delay: 6
   until:
     mail_test_check_result.status == 200 and
     mail_test_check_result.json.list | length == 2
