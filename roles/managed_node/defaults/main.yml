@@ -12,9 +12,6 @@ use_process_accounting: yes
 needs_usb_storage: no
 needs_firewire_storage: no
 
-# multiples of .1s for the 1-128 range, and in 30s for the 129-255 range
-western_digital_idle_timer: 148
-
 use_watchdog: yes
 watchdog_extra_options: {} # use this variable to override settings
 watchdog_global_options:
