@@ -26,9 +26,11 @@
               line='SHELL=/usr/bin/zsh'
               state=present
 
-- name: set zsh as shell for the current user (if not root)
-  user: name='{{ansible_user_id}}' shell=/usr/bin/zsh
-  when: ansible_user_id != "root"
+- name: set zsh as shell for non-root user
+  user:
+    name: '{{ ansible_env.SUDO_USER|default(ansible_user_id) }}'
+    shell: /usr/bin/zsh
+  when: ansible_env.SUDO_USER|default(ansible_user_id) != "root"
 
 - name: set zsh as shell for root
   user: name=root shell=/usr/bin/zsh
