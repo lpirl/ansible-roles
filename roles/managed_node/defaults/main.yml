@@ -5,6 +5,7 @@ rsync_backup_remote_port: 22
 rsync_backup_remote_user: "{{ ansible_hostname }}"
 rsync_backup_dir_pairs:
   - { local_dir: "/", remote_dir: "/backup"}
+rsync_backup_wait_for_args_extra: ""
 
 arpwatch_enabled: yes
 use_process_accounting: yes

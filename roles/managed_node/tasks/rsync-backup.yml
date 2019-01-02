@@ -17,7 +17,7 @@
       timeout 23h \
         /opt/admintools/scripts/wait-for \
           -P "{{ rsync_backup_remote_host }}:{{ rsync_backup_remote_port }}" \
-          --ac \
+          --ac {{ rsync_backup_wait_for_args_extra }} \
             /opt/admintools/scripts/backup-to-sftp \
               -p {{ rsync_backup_remote_port }} \
               -s "{{ item.local_dir }}" \
