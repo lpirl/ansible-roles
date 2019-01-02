@@ -1,1 +1,23 @@
 # TODO: iptables hardening
+# #. install iptables-persistent
+# #. create custom chains
+# #. add rules
+# #. persist iptables
+
+- name: install required iptables packages
+  package:
+    name:
+      - iptables
+      - iptables-persistent
+    state: present
+
+- name: setup/tear down custom chains
+  include_tasks: _iptables-custom-chain.yml
+  with_dict: "{{ iptables_custom_chains |
+                 combine(iptables_custom_chains_extra | default({})) }}"
+  vars:
+    table: "{{ item.value.table }}"
+    chain_name: "{{ item.key }}"
+    add_to_chain: "{{ item.value.add_to_chain }}"
+  loop_control:
+    label: "{{ item.key }}"
