@@ -1,0 +1,20 @@
+- name: "custom chain '{{ chain_name }}' : check if exists already"
+  register: iptables_list_result
+  command: "iptables -t {{ table }} -L"
+  changed_when: false
+
+- name: "custom chain '{{ chain_name }}' : delete"
+  command: "iptables -t {{ table }} --delete-chain {{ chain_name }}"
+  when: "not add_to_chain"
+
+- name: "custom chain '{{ chain_name }}' : create"
+  command: "iptables -t {{ table }} --new-chain {{ chain_name }}"
+  when: "add_to_chain and
+         'Chain ' + chain_name not in iptables_list_result.stdout"
+
+- name: "custom chain '{{ chain_name }}' : add to '{{ add_to_chain }}'"
+  iptables:
+    table: "{{ table }}"
+    chain: "{{ add_to_chain }}"
+    jump: "{{ chain_name }}"
+    state: "{{ 'present' if add_to_chain else 'absent' }}"
