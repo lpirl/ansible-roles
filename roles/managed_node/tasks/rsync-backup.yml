@@ -1,3 +1,9 @@
+- name: install required packages
+  package:
+    name:
+      - rsync
+  when: configure_rsync_backup
+
 # we use /etc/cron.daily instead of crontab since it is compatible
 # with anacron
 
