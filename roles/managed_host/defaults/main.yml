@@ -127,6 +127,36 @@ apt_tools:
   # obsolete due to availability of http://httpredir.debian.org/
   netselect-apt: absent
 
+# You can overwrite this variable, or just override certain keys with
+# ``apt_release_priorities_extra`` or – traditionally –  put a file in
+# ``/etc/apt/preferences.d``.
+# If the priority evaluates to false, the corresponding configuration
+# will be removed.
+apt_release_priorities_extra: {}
+apt_release_priorities:
+
+  stretch: 900
+  stretch-updates: 900
+  #stretch-backports: 400
+
+  # You can add other releases if you wish, e.g.:
+  #buster: 300
+
+  # You can alternatively use the "release status" (``oldstable``,
+  # ``stable``, ``testing``) as keys, but be careful: this will
+  # lead to automatic (full) upgrades once there is a new release.
+  # Example lines (all disabled):
+  #oldstable: false
+  #oldstable-updates: false
+  #oldstable-backports: false
+  #stable: false
+  #stable-updates: false
+  #stable-backports: false
+  #testing: false
+  #testing-updates: false
+
+  #unstable: false
+
 ########################################################################
 # ssh
 #
