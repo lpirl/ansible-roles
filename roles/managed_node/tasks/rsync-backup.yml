@@ -7,6 +7,11 @@
 # we use /etc/cron.daily instead of crontab since it is compatible
 # with anacron
 
+- name: install rsync for doing backups
+  package:
+    name: rsync
+  when: configure_rsync_backup
+
 # this is separate from the "blockinfile" below because the shebang
 # must be the very first line of the script
 - name: create script file for daily backups
