@@ -14,7 +14,7 @@
 
 - name: create configuration file to set release priorities
   blockinfile:
-    dest: /etc/apt/preferences.d/000-pinning
+    dest: /etc/apt/preferences.d/000-release-pinning
     create: yes
     insertbefore: BOF
     marker: "# {mark} ANSIBLE MANAGED README BLOCK"
@@ -24,50 +24,20 @@
       # Instead, create a separate file in this directory or use the
       # role's variable ``apt_release_priorities_extra``.
 
-- name: set default release priorities
-  blockinfile:
-    dest: /etc/apt/preferences.d/000-pinning
-    create: yes
+  when: apt_release_priorities
+        | combine(apt_release_priorities_extra
+                  | default({}))
+
+- name: configure apt repositories for standard releases (stable, testing, …)
+  include_tasks: _apt-config-configure-standard-release.yml
+
+  vars:
+    base_url: http://deb.debian.org
+    suite: "{{ item.key }}"
+    release: "{{ suite.split('-').0.split('/').0 }}"
+    pin_priority: "{{ item.value }}"
+    file: "/etc/apt/sources.list.d/{{ release }}.list"
     state: "{{ 'present' if item.value else 'absent' }}"
-    marker: "# {mark} ANSIBLE MANAGED BLOCK for {{ item.key }} release"
-    block: |
-      Package: *
-      Pin: release a={{ item.key }}
-      Pin-Priority: {{ item.value }}
-
-  with_dict: "{{
-    apt_release_priorities
-    | combine(apt_release_priorities_extra
-              | default({}))
-  }}"
-
-- name: add apt repositories for standard releases (stable, testing, …)
-  apt_repository:
-    repo: "deb http://deb.debian.org/debian/ {{
-      item.key
-    }} main contrib non-free"
-    state: "{{ 'present' if item.value else 'absent' }}"
-    filename: "{{ item.key }}"
-
-  with_dict: "{{
-    apt_release_priorities
-    | combine(apt_release_priorities_extra
-              | default({}))
-  }}"
-
-  loop_control:
-    label: "{{ item.key }}"
-
-- name: add apt security repositories for standard releases
-        (stable, testing, …)
-  apt_repository:
-    repo: "deb http://deb.debian.org/debian-security/ {{
-      item.key
-    }}/updates main contrib non-free"
-    state: "{{ 'present' if item.value else 'absent' }}"
-    filename: "{{ item.key }}"
-
-  when: item.key not in ['sid', 'unstable']
 
   with_dict: "{{
     apt_release_priorities
@@ -95,5 +65,6 @@
       {{ cat_sources_list_result.stdout }}
       """
       EOM
-  when: not cat_sources_list_result.stdout | regex_findall('^(?!\s*#).*$', multiline=True)
+  when: not cat_sources_list_result.stdout
+            | regex_findall('^(?!\s*#).*$', multiline=True)
   tags: [report]

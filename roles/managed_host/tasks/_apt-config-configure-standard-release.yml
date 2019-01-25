@@ -1,0 +1,47 @@
+- name: set default release priority {{ release }}
+  blockinfile:
+    dest: /etc/apt/preferences.d/000-release-pinning
+    create: yes
+    state: "{{ state }}"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK for {{ suite }}"
+    block: |
+      Package: *
+      Pin: release a={{ suite }}
+      Pin-Priority: {{ pin_priority }}
+
+- name: add repository to file in /etc/apt/sources.list.d
+  lineinfile:
+    path: "{{ file }}"
+    regexp: '\s{{ suite }}\s'
+    line: 'deb {{ base_url }}/debian {{
+             suite
+           }} main contrib non-free'
+    state: "{{ state }}"
+    create: yes
+
+- name: remove repository from /etc/apt/sources.list
+  lineinfile:
+    path: "/etc/apt/sources.list"
+    regexp: '\s{{ suite }}\s'
+    state: absent
+  when: state == "present"
+
+- name: add security repository to file in /etc/apt/sources.list.d
+  lineinfile:
+    path: "{{ file }}"
+    regexp: 'security.*\s{{ suite }}[-/]updates\s'
+    line: 'deb {{ base_url }}/debian-security {{
+             suite
+           }}/updates main contrib non-free'
+    state: "{{ state }}"
+    create: yes
+  when: release not in ['sid', 'unstable']
+        and '-' not in suite
+        and '/' not in suite
+
+- name: remove security repository from /etc/apt/sources.list
+  lineinfile:
+    path: "/etc/apt/sources.list"
+    regexp: 'security.*\s{{ suite }}[-/]updates\s'
+    state: absent
+  when: state == "present"
