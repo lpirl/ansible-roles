@@ -280,7 +280,6 @@ ssh_client_extra_options: {}
 ssh_client_options:
   ForwardAgent: "no"
   ForwardX11: "no"
-  UseRoaming: "no"
   CheckHostIP: "yes"
   StrictHostKeyChecking: "ask"
   GSSAPIAuthentication: "no"
@@ -295,6 +294,7 @@ ssh_client_and_server_deprecated_options:
   - Protocol
   - UseLogin
   - UsePrivilegeSeparation
+  - UseRoaming
 
 extra_service_priorities: {}
 service_priorities:
