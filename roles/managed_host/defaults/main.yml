@@ -127,6 +127,8 @@ apt_tools:
   # obsolete due to availability of http://httpredir.debian.org/
   netselect-apt: absent
 
+# We provide no defaults here since wrong values might lead to accidental
+# release upgrade etc. so set this variable explicitly.
 # You can overwrite this variable, or just override certain keys with
 # ``apt_release_priorities_extra`` or – traditionally –  put a file in
 # ``/etc/apt/preferences.d``.
@@ -135,8 +137,8 @@ apt_tools:
 apt_release_priorities_extra: {}
 apt_release_priorities:
 
-  stretch: 900
-  stretch-updates: 900
+  #stretch: 900
+  #stretch-updates: 900
   #stretch-backports: 400
 
   # You can add other releases if you wish, e.g.:
