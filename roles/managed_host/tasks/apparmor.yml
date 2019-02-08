@@ -1,4 +1,17 @@
-- name: install apparmor
+- name: install packages needed for apparmor
   package:
-    name: apparmor
+    name: "{{ item }}"
     state: present
+  with_items:
+    - apparmor
+    - apparmor-profiles
+
+- name: enable apparmor in kernel boot parameters
+  lineinfile:
+    dest: /etc/default/grub.d/apparmor.cfg
+    create: yes
+    line: >
+      GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT
+      apparmor=1 security=apparmor"
+    regexp: '^GRUB_CMDLINE_LINUX_DEFAULT(\s|=)'
+  notify: update grub
