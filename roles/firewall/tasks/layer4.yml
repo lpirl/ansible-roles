@@ -1,8 +1,4 @@
-# TODO: iptables hardening
-# #. install iptables-persistent
-# #. create custom chains
-# #. add rules
-# #. persist iptables
+# #todo #goonhere: move (replace) the "persist iptables rules" to handlers
 
 - name: install required iptables packages
   package:
@@ -21,3 +17,15 @@
     add_to_chain: "{{ item.value.add_to_chain }}"
   loop_control:
     label: "{{ item.key }}"
+
+- name: persist iptables rules
+  include_tasks: _iptables-persist.yml
+  with_dict:
+    - iptables-save: /etc/iptables/rules.v4
+    - ip6tables-save: /etc/iptables/rules.v6
+  loop_control:
+    loop_var: outer_item
+  vars:
+    dump_command: "{{ outer_item.key }}"
+    rules_file: "{{ outer_item.value }}"
+    rules_backup_file: "{{ outer_item.value }}.BAK-{{ ansible_date_time.iso8601 }}"

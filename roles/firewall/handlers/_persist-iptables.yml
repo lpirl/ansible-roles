@@ -1,0 +1,13 @@
+- name: backup currently persisted iptables v4
+  command: "cp /etc/iptables/rules.v4
+               /etc/iptables/rules.v4.BAK-{{ ansible_date_time.iso8601 }}"
+
+- name: backup currently persisted iptables v6
+  command: "cp /etc/iptables/rules.v6
+               /etc/iptables/rules.v6.BAK-{{ ansible_date_time.iso8601 }}"
+
+- name: persist iptables v4
+  shell: iptables-save > /etc/iptables/rules.v4
+
+- name: persist iptables v6
+  shell: ip6tables-save > /etc/iptables/rules.v6
