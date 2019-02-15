@@ -6,7 +6,6 @@
   package: name="{{ item }}" state=present force=yes
   with_items:
     - postfix
-    - procmail
     - mailutils
   notify: restart postfix
 

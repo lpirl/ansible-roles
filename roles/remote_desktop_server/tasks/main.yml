@@ -1,15 +1,14 @@
+- name: add apt key for X2Go repository
+  apt_key:
+    id: E1F958385BFE2B6E
+    keyserver: keys.gnupg.net
+
 - name: add X2Go repository
   register: add_apt_repository
   apt_repository:
     repo: "deb http://packages.x2go.org/debian {{ ansible_lsb.codename }} main"
     state: present
-
-- name: add apt key for X2Go repository
-  apt_key: keyserver=keys.gnupg.net id=E1F958385BFE2B6E
-
-- name: update the apt cache
-  apt: update_cache=yes
-  when: add_apt_repository is changed
+    update_cache: yes
 
 - name: install remote desktop related packages
   apt: name="{{ item.key }}" state="{{ item.value }}"

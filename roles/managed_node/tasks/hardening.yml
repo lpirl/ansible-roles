@@ -20,3 +20,13 @@
     - firewire-ohci
     - firewire-sbp2
   when: not needs_firewire_storage
+
+- name: enable apparmor in kernel boot parameters
+  lineinfile:
+    dest: /etc/default/grub.d/apparmor.cfg
+    create: yes
+    line: >
+      GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT
+      apparmor=1 security=apparmor"
+    regexp: '^GRUB_CMDLINE_LINUX_DEFAULT(\s|=)'
+  notify: update grub

@@ -1,27 +1,25 @@
 - name: create shell scripts to delay cron tasks
-  lineinfile:   dest=/etc/cron.{{item}}/000-delay
-                line='#!/bin/sh'
-                insertbefore=BOF
-                create=yes
-                mode=500
+  lineinfile:
+    dest: /etc/cron.{{ item }}/000-delay
+    line: '#!/bin/sh'
+    insertbefore: BOF
+    create: yes
+    mode: 500
+
   with_items:
      - hourly
      - daily
      - weekly
      - monthly
 
-- name: add delay to hourly cron tasks
-  lineinfile:   dest=/etc/cron.hourly/000-delay
-                line='sleep {{sh_random_integer}}m'
+- name: add delay to cron tasks
+  lineinfile:
+    dest: /etc/cron.{{ item.key }}/000-delay
+    line: sleep $({{ random_integer_cmd }}){{ item.value }}
+    regexp: '^sleep '
 
-- name: add delay to daily cron tasks
-  lineinfile:   dest=/etc/cron.daily/000-delay
-                line='sleep {{sh_random_integer}}h'
-
-- name: add delay to weekly cron tasks
-  lineinfile:   dest=/etc/cron.weekly/000-delay
-                line='sleep {{sh_random_integer}}h'
-
-- name: add delay to monthly cron tasks
-  lineinfile:   dest=/etc/cron.monthly/000-delay
-                line='sleep {{sh_random_integer}}h'
+  with_dict:
+    hourly: m
+    daily: h
+    weekly: h
+    monthly: h
