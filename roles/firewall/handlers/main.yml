@@ -4,3 +4,21 @@
     # fail2ban.service currently (12/2017) does not support reloading,
     # so we restart:
     state: restarted
+
+- name: persist ip4tables
+  include_tasks: handlers/_persist-iptables.yml
+  vars:
+    dump_command: iptables-save
+    rules_file: /etc/iptables/rules.v4
+    rules_backup_file: "{{ rules_file }}.Ansible-backup-{{
+     ansible_date_time.iso8601
+    }}"
+
+- name: persist ip6tables
+  include_tasks: handlers/_persist-iptables.yml
+  vars:
+    dump_command: ip6tables-save
+    rules_file: /etc/iptables/rules.v6
+    rules_backup_file: "{{ rules_file }}.Ansible-backup-{{
+     ansible_date_time.iso8601
+    }}"

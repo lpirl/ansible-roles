@@ -5,12 +5,14 @@
 
 - name: "custom chain '{{ chain_name }}' : delete"
   command: "iptables -t {{ table }} --delete-chain {{ chain_name }}"
-  when: "not add_to_chain"
+  when: not add_to_chain
+  notify: persist ip4tables
 
 - name: "custom chain '{{ chain_name }}' : create"
   command: "iptables -t {{ table }} --new-chain {{ chain_name }}"
-  when: "add_to_chain and
-         'Chain ' + chain_name not in iptables_list_result.stdout"
+  when: add_to_chain and
+        'Chain ' + chain_name not in iptables_list_result.stdout
+  notify: persist ip4tables
 
 - name: "custom chain '{{ chain_name }}' : add to '{{ add_to_chain }}'"
   iptables:
@@ -18,3 +20,4 @@
     chain: "{{ add_to_chain }}"
     jump: "{{ chain_name }}"
     state: "{{ 'present' if add_to_chain else 'absent' }}"
+  notify: persist ip4tables

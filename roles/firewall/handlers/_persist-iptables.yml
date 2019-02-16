@@ -1,13 +1,17 @@
-- name: backup currently persisted iptables v4
-  command: "cp /etc/iptables/rules.v4
-               /etc/iptables/rules.v4.BAK-{{ ansible_date_time.iso8601 }}"
+- name: backup currently persisted iptables
+  copy:
+    remote_src: true
+    src: "{{ rules_file }}"
+    dest: "{{ rules_backup_file }}"
 
-- name: backup currently persisted iptables v6
-  command: "cp /etc/iptables/rules.v6
-               /etc/iptables/rules.v6.BAK-{{ ansible_date_time.iso8601 }}"
+- name: persist iptables
+  command: "{{ dump_command|quote }} -f {{ rules_file|quote }}"
 
-- name: persist iptables v4
-  shell: iptables-save > /etc/iptables/rules.v4
+- name: schedule deletion of iptables backup file a year from now
+  at:
+    command: "rm -f {{ rules_backup_file|quote }}"
+    count: 365
+    units: days
 
-- name: persist iptables v6
-  shell: ip6tables-save > /etc/iptables/rules.v6
+  # ``at`` might not be installed and that's okay
+  ignore_errors: true
