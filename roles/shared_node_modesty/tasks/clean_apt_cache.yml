@@ -7,5 +7,5 @@
 
 - name: set up weekly clearing of apt cache
   lineinfile: dest=/etc/cron.weekly/10apt_cache_clean
-          line='aptitude clean || true'
+          line='apt-get clean || true'
           create=yes
