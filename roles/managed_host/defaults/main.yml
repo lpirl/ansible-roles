@@ -135,7 +135,7 @@ apt_tools:
 # If the priority evaluates to false, the corresponding configuration
 # will be removed.
 apt_release_priorities_extra: {}
-apt_release_priorities:
+apt_release_priorities: {}
 
   #stretch: 900
   #stretch-updates: 900
