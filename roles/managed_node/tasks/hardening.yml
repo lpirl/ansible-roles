@@ -21,6 +21,11 @@
     - firewire-sbp2
   when: not needs_firewire_storage
 
+- name: check if Grub is (probably) installed
+  register: stat_boot_grub_result
+  stat:
+    path: /boot/grub
+
 - name: enable apparmor in kernel boot parameters
   lineinfile:
     dest: /etc/default/grub.d/apparmor.cfg
@@ -29,4 +34,5 @@
       GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT
       apparmor=1 security=apparmor"
     regexp: '^GRUB_CMDLINE_LINUX_DEFAULT(\s|=)'
+  when: stat_boot_grub_result.stat.exists
   notify: update grub
