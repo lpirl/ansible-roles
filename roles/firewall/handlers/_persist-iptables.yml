@@ -15,3 +15,9 @@
 
   # ``at`` might not be installed and that's okay
   ignore_errors: true
+
+- name: workaround https://github.com/ansible/ansible/issues/29405
+  include_tasks: handlers/_iptables-workaround-29405.yml
+  loop:
+    - /etc/iptables/rules.v4
+    - /etc/iptables/rules.v6

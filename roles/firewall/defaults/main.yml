@@ -56,50 +56,58 @@ iptables_rules:
     ctstate: ESTABLISHED,RELATED
     jump: ACCEPT
 
-  "block NULL packets":
-    chain: ansible-input
-    tcp_flags:
-      flags: ALL
-      flags_set:
-        - ALL
-    jump: DROP
-
   "block XMAS packets":
     chain: ansible-input
+    protocol: tcp
     tcp_flags:
       flags: ALL
-      flags_set:
-        - NONE
+      flags_set: ALL
+    jump: DROP
+
+  "block NULL packets":
+    chain: ansible-input
+    protocol: tcp
+    tcp_flags:
+      flags: ALL
+      flags_set: NONE
     jump: DROP
 
   ####################################################################
   # ICMP (http://shouldiblockicmp.com/)
   #
 
-  "rate-limit all ICMP traffic":
-    chain: ansible-input
-    protocol: icmp
-    limit: 1000/second
-    jump: ACCEPT
+  # considered harmful when not used with conntrack/hashlimit
+  # (https://serverfault.com/a/716092)
+  #"rate-limit all ICMP traffic":
+  #  chain: ansible-input
+  #  protocol: icmp
+  #
+  #  limit_burst: 10
+  #  limit: 100/second
+  #
+  #  jump: ACCEPT
 
   "allow ICMP echo replies":
     chain: ansible-input
+    protocol: icmp
     icmp_type: 0/0
     jump: ACCEPT
 
   "allow ICMP Fragmentation Required replies":
     chain: ansible-input
+    protocol: icmp
     icmp_type: 3/4
     jump: ACCEPT
 
   "allow ICMP echo requests":
     chain: ansible-input
+    protocol: icmp
     icmp_type: 8/0
-    limit: 100/second
     jump: ACCEPT
 
   "allow ICMP Time Exceeded replies":
     chain: ansible-input
+    protocol: icmp
     icmp_type: 11/0
     jump: ACCEPT
 
@@ -115,16 +123,18 @@ iptables_rules:
     jump: ACCEPT
 
   # keep this last
-  "rate-limit SYN packets":
-    chain: ansible-input
-    protocol: tcp
-    syn: match
-    limit_burst: 100
-    limit: 100/second
-    jump: ACCEPT
+  # considered harmful when not used with conntrack/hashlimit
+  # (https://serverfault.com/a/716092)
+  #"rate-limit SYN packets":
+  #  chain: ansible-input
+  #  protocol: tcp
+  #  syn: match
+  #  limit_burst: 10
+  #  limit: 10/second
+  #  jump: ACCEPT
 
-  "input policy":
-    chain: ansible-input
+  "input policy drop":
+    chain: INPUT
     policy: DROP
 
 # Use this variable to extend ``iptables_rules``.

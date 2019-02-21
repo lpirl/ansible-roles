@@ -1,5 +1,3 @@
-# #todo #goonhere: apply rules
-
 - name: install required iptables packages
   package:
     name:
@@ -15,5 +13,16 @@
     table: "{{ item.value.table }}"
     chain_name: "{{ item.key }}"
     add_to_chain: "{{ item.value.add_to_chain }}"
+    ip_version: "{{ item.ip_version | default('ipv4') }}"
   loop_control:
     label: "{{ item.key }}"
+
+- name: configure iptables rules
+  iptables: "{{ {'comment': item.key}
+                | combine(item.value) }}"
+  loop: "{{ iptables_rules | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+  notify: "persist ip{{ item.value.ip_version
+                        | default('ipv4')
+                        | regex_search('[0-9]') }}tables"

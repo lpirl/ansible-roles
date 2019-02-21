@@ -1,0 +1,14 @@
+- name: get temporary file
+  register: iptables_workaround_tempfile
+  tempfile:
+    state: file
+
+- name: remove duplicate rules
+  shell: "awk '/^COMMIT$/ { delete x; }; !x[$0]++' {{ item }}
+          > {{ iptables_workaround_tempfile.path }};
+          mv {{ iptables_workaround_tempfile.path }} {{ item }}"
+
+- name: reload iptables
+  service:
+    name: netfilter-persistent
+    state: restarted
