@@ -1,3 +1,7 @@
+# This *has* to be set explicitly when using this role so we can be a
+# bit more confident that we don't lock ourselves out.
+firewall_ssh_port: "needs to be set explicitly"
+
 # Per built-in chain, we add a custom chain, which makes scripting
 # easier. It is recommended that those custom chains are used.
 iptables_custom_chains:
@@ -34,10 +38,6 @@ iptables_custom_chains:
 # Use this variable to modify/extend ``iptables_custom_rules``.
 # If ``add_to_chain`` evaluates to false, the chain will be removed.
 iptables_custom_chains_extra: {}
-
-# This *has* to be set explicitly when using this role so we can be a
-# bit more confident that we don't lock ourselves out.
-iptables_ssh_port: null
 
 # This role's default rules: a map, mapping from "names" to "rules".
 # A "name" can be anything unique. The name will be automatically set
@@ -117,7 +117,7 @@ iptables_rules:
   "allow SSH connections":
     chain: ansible-input
     protocol: tcp
-    destination_port: "{{ iptables_ssh_port }}"
+    destination_port: "{{ firewall_ssh_port }}"
     ctstate: NEW
     syn: match
     jump: ACCEPT
