@@ -28,7 +28,9 @@
 - name: configure iptables rules
   iptables: "{{ {'comment': item.key}
                 | combine(item.value) }}"
-  loop: "{{ iptables_rules | dict2items }}"
+  loop: "{{ iptables_rules
+            | combine(iptables_rules_extra)
+            | dict2items }}"
   loop_control:
     label: "{{ item.key }}"
   notify: "persist ip{{ item.value.ip_version
