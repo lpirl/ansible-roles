@@ -1,12 +1,17 @@
 - name: add configuration files for sysctl (kernel parameters)
-  file: src="/opt/admintools/etc/sysctl.d/{{ item }}"
-        dest="/etc/sysctl.d/{{ item }}"
-        state=link
-  with_items:
-    - 90-hardening.conf
-    - 80-net-tuning.conf
-    - 70-numa-tuning.conf
-    - 50-reboot-on-panic.conf
+  file:
+    src: "/opt/admintools/etc/sysctl.d/{{ item.key }}"
+    dest: "/etc/sysctl.d/{{ item.key }}"
+    state: "{{ item.value }}"
+  with_dict:
+    90-hardening.conf: link
+    80-net-tuning.conf: link
+    70-memory-management.conf: link
+    50-reboot-on-panic.conf: link
+
+    # deprecated Feb 2019
+    70-numa-tuning.conf: absent
+
   notify: sysctl reload
 
 - name: add hotfix for CVE-2016-5696 for vulnerable Kernels
