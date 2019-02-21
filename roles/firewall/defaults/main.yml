@@ -46,22 +46,15 @@ iptables_custom_chains_extra: {}
 #   https://docs.ansible.com/ansible/latest/modules/iptables_module.html
 iptables_rules:
 
-  "allow loopback connections":
-    chain: ansible-input
-    in_interface: lo
-    jump: ACCEPT
-
-  "allow established and related connections":
-    chain: ansible-input
-    ctstate: ESTABLISHED,RELATED
-    jump: ACCEPT
-
   "block XMAS packets":
     chain: ansible-input
     protocol: tcp
     tcp_flags:
       flags: ALL
-      flags_set: ALL
+      flags_set:
+        - FIN
+        - PSH
+        - URG
     jump: DROP
 
   "block NULL packets":
@@ -71,6 +64,16 @@ iptables_rules:
       flags: ALL
       flags_set: NONE
     jump: DROP
+
+  "allow loopback connections":
+    chain: ansible-input
+    in_interface: lo
+    jump: ACCEPT
+
+  "allow established and related connections":
+    chain: ansible-input
+    ctstate: ESTABLISHED,RELATED
+    jump: ACCEPT
 
   ####################################################################
   # ICMP (http://shouldiblockicmp.com/)
