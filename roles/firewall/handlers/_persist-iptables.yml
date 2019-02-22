@@ -5,7 +5,7 @@
     dest: "{{ rules_backup_file }}"
 
 - name: persist iptables
-  command: "{{ dump_command|quote }} -f {{ rules_file|quote }}"
+  shell: "{{ dump_command|quote }} > {{ rules_file|quote }}"
 
 - name: schedule deletion of iptables backup file a year from now
   at:
