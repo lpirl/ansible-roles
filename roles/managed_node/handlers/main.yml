@@ -1,2 +1,12 @@
 - name: sysctl reload
   command: sysctl -p
+
+- name: update grub
+  command: update-grub
+  notify: notify root about pending reboot due to updated grub
+
+- name: notify root about pending reboot due to updated grub
+  mail:
+    subject: "{{ ansible_fqdn }} needs a reboot (Grub updated) EOM"
+    body: " "
+  notify: grub updated

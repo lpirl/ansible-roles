@@ -9,6 +9,19 @@
   when: not stat_armbian_txt_stat_result.stat.exists
 
 
+- name: install ``irqbalance`` on multi-core machines
+  package:
+    name: irqbalance
+    state: "{{ 'present' if ansible_processor_vcpus > 1 else 'absent' }}"
+
+- name: enable and start ``irqbalance`` on multi-core machines
+  service:
+    name: irqbalance
+    state: started
+    enabled: yes
+  when: ansible_processor_vcpus > 1
+
+
 - name: get Western Digital drives present
   set_fact:
     western_digital_drives: "{{ western_digital_drives|default([]) + [item.key] }}"
