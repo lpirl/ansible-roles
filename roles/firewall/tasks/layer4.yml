@@ -1,1 +1,45 @@
-# TODO: iptables hardening
+- name: sanity check variable which defines the SSH port
+  assert:
+    that:
+      - "firewall_ssh_port | string | regex_search('[0-9]+')
+         ==
+         firewall_ssh_port | string"
+    fail_msg: "please set the ``firewall_ssh_port`` variable to use this role"
+
+- name: install required iptables packages
+  package:
+    name:
+      - iptables
+      - iptables-persistent
+    state: present
+
+- name: setup ipv4 and ipv6 chains and rules
+  include_tasks: _layer4.yml
+  with_items:
+    - ip_version: ipv4
+      command: iptables
+      custom_chains: "{{
+        ip46tables_custom_chains
+        | combine(ip4tables_custom_chains | default({}))
+        | combine(ip4tables_custom_chains_extra | default({}))
+      }}"
+      rules: "{{
+        ip46tables_rules
+        | combine(ip4tables_rules | default({}))
+        | combine(ip4tables_rules_extra | default({}))
+      }}"
+    - ip_version: ipv6
+      command: ip6tables
+      custom_chains: "{{
+        ip46tables_custom_chains
+        | combine(ip6tables_custom_chains | default({}))
+        | combine(ip6tables_custom_chains_extra | default({}))
+      }}"
+      rules: "{{
+        ip46tables_rules
+        | combine(ip6tables_rules | default({}))
+        | combine(ip6tables_rules_extra | default({}))
+      }}"
+  loop_control:
+    label: "{{ outer_item.ip_version }}"
+    loop_var: outer_item
