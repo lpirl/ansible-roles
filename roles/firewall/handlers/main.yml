@@ -5,7 +5,7 @@
     # so we restart:
     state: restarted
 
-- name: persist ip4tables
+- name: persist ipv4 tables
   include_tasks: handlers/_persist-iptables.yml
   vars:
     dump_command: iptables-save
@@ -14,7 +14,7 @@
      ansible_date_time.iso8601
     }}"
 
-- name: persist ip6tables
+- name: persist ipv6 tables
   include_tasks: handlers/_persist-iptables.yml
   vars:
     dump_command: ip6tables-save

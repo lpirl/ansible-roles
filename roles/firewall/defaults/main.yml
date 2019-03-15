@@ -4,7 +4,11 @@ firewall_ssh_port: "needs to be set explicitly"
 
 # Per built-in chain, we add a custom chain, which makes scripting
 # easier. It is recommended that those custom chains are used.
-iptables_custom_chains:
+# This variable is used for IPv4 and IPv6; to define chains for either
+# one separately, see below.
+# The dictionary maps from chain names to a dictionary specifying the
+# table name and the chain name custom chain should be added to.
+ip46tables_custom_chains:
 
   ansible-input:
     table: filter
@@ -35,16 +39,27 @@ iptables_custom_chains:
     table: nat
     add_to_chain: POSTROUTING
 
-# Use this variable to modify/extend ``iptables_custom_rules``.
-# If ``add_to_chain`` evaluates to false, the chain will be removed.
-iptables_custom_chains_extra: {}
+# This variable is mainly intended to extend ``ip46tables_custom_chains``
+# for providing default configurations.
+ip4tables_custom_chains: {}
 
-# This role's default rules: a map, mapping from "names" to "rules".
+# Use this variable to modify/extend ``ip4tables_custom_chains``.
+# If a key's value evaluates to false, the chain will be removed.
+ip4tables_custom_chains_extra: {}
+
+# See ``ip46tables_custom_chains[_extra]``.
+ip6tables_custom_chains: {}
+ip6tables_custom_chains_extra: {}
+
+# This role's default rules for IPv4 and IPv6
+# (a map, mapping from "names" to "rules").
 # A "name" can be anything unique. The name will be automatically set
 # as ``comment`` argument to the ``iptables`` module.
 # A "rule" is a map of arguments to Ansible's module ``iptables``:
 #   https://docs.ansible.com/ansible/latest/modules/iptables_module.html
-iptables_rules:
+# This variable is used for IPv4 and IPv6; to define rules for either
+# one separately, see below.
+ip46tables_rules:
 
   "block XMAS packets":
     chain: ansible-input
@@ -74,6 +89,32 @@ iptables_rules:
     chain: ansible-input
     ctstate: ESTABLISHED,RELATED
     jump: ACCEPT
+
+  "allow SSH connections":
+    chain: ansible-input
+    protocol: tcp
+    destination_port: "{{ firewall_ssh_port }}"
+    ctstate: NEW
+    syn: match
+    jump: ACCEPT
+
+  # considered harmful when not used with conntrack/hashlimit
+  # (https://serverfault.com/a/716092)
+  #"rate-limit SYN packets":
+  #  chain: ansible-input
+  #  protocol: tcp
+  #  syn: match
+  #  limit_burst: 10
+  #  limit: 10/second
+  #  jump: ACCEPT
+
+  # keep this last
+  "input policy drop":
+    chain: INPUT
+    policy: DROP
+
+# Extends ``ip46tables_rules`` to provide default IPv4 rules.
+ip4tables_rules:
 
   ####################################################################
   # ICMP (http://shouldiblockicmp.com/)
@@ -117,37 +158,30 @@ iptables_rules:
   #
   ####################################################################
 
-  "allow SSH connections":
-    chain: ansible-input
-    protocol: tcp
-    destination_port: "{{ firewall_ssh_port }}"
-    ctstate: NEW
-    syn: match
-    jump: ACCEPT
-
-  # keep this last
-  # considered harmful when not used with conntrack/hashlimit
-  # (https://serverfault.com/a/716092)
-  #"rate-limit SYN packets":
-  #  chain: ansible-input
-  #  protocol: tcp
-  #  syn: match
-  #  limit_burst: 10
-  #  limit: 10/second
-  #  jump: ACCEPT
-
-  "input policy drop":
-    chain: INPUT
-    policy: DROP
-
-# Use this variable to extend ``iptables_rules``.
-#   iptables_rules_extra:
+# Use this variable to extend ``ip4tables_rules``.
+# Example to disable a rule::
+#
+#   ip4tables_rules_extra:
 #     "the rule to disable": null
-iptables_rules_extra: {}
+ip4tables_rules_extra: {}
 
   # If you want to disable a rule from ``iptables_rules``,
   # set it to ``null``, e.g.:
   #"input policy": null
+
+# See ``ip4tables_rules``.
+ip6tables_rules:
+
+  # IPv6 relies a lot more on ICMP for operation
+  "allow ICMP":
+    chain: ansible-input
+    protocol: icmpv6
+    jump: ACCEPT
+
+# See ``ip4tables_rules_extra``.
+ip6tables_rules_extra: {}
+
+
 
 fail2ban_config_file: /etc/fail2ban/fail2ban.d/50-via-ansible.local
 

@@ -4,9 +4,9 @@
     state: file
 
 - name: remove duplicate rules
-  shell: "awk '/^COMMIT$/ { delete x; }; !x[$0]++' {{ item }}
+  shell: "awk '/^COMMIT$/ { delete x; }; !x[$0]++' {{ rules_file }}
           > {{ iptables_workaround_tempfile.path }};
-          mv {{ iptables_workaround_tempfile.path }} {{ item }}"
+          mv {{ iptables_workaround_tempfile.path }} {{ rules_file }}"
 
 - name: reload iptables
   service:

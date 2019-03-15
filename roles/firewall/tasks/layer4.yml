@@ -13,26 +13,33 @@
       - iptables-persistent
     state: present
 
-- name: setup/tear down custom chains
-  include_tasks: _iptables-custom-chain.yml
-  with_dict: "{{ iptables_custom_chains |
-                 combine(iptables_custom_chains_extra | default({})) }}"
-  vars:
-    table: "{{ item.value.table }}"
-    chain_name: "{{ item.key }}"
-    add_to_chain: "{{ item.value.add_to_chain }}"
-    ip_version: "{{ item.ip_version | default('ipv4') }}"
+- name: setup ipv4 and ipv6 chains and rules
+  include_tasks: _layer4.yml
+  with_items:
+    - ip_version: ipv4
+      command: iptables
+      custom_chains: "{{
+        ip46tables_custom_chains
+        | combine(ip4tables_custom_chains | default({}))
+        | combine(ip4tables_custom_chains_extra | default({}))
+      }}"
+      rules: "{{
+        ip46tables_rules
+        | combine(ip4tables_rules | default({}))
+        | combine(ip4tables_rules_extra | default({}))
+      }}"
+    - ip_version: ipv6
+      command: ip6tables
+      custom_chains: "{{
+        ip46tables_custom_chains
+        | combine(ip6tables_custom_chains | default({}))
+        | combine(ip6tables_custom_chains_extra | default({}))
+      }}"
+      rules: "{{
+        ip46tables_rules
+        | combine(ip6tables_rules | default({}))
+        | combine(ip6tables_rules_extra | default({}))
+      }}"
   loop_control:
-    label: "{{ item.key }}"
-
-- name: configure iptables rules
-  iptables: "{{ {'comment': item.key}
-                | combine(item.value) }}"
-  loop: "{{ iptables_rules
-            | combine(iptables_rules_extra)
-            | dict2items }}"
-  loop_control:
-    label: "{{ item.key }}"
-  notify: "persist ip{{ item.value.ip_version
-                        | default('ipv4')
-                        | regex_search('[0-9]') }}tables"
+    label: "{{ outer_item.ip_version }}"
+    loop_var: outer_item
