@@ -41,6 +41,11 @@
 
 - name: disable IntelliPark for Western Digital drives
         (power management takes care)
-  command: "idle3ctl -d /dev/{{ item }}"
+  # check if ``idle3ctl`` works on this drive;
+  #   if so, disable IntelliPark;
+  #   if not, exit with return code ``0``
+  shell: "idle3ctl -g /dev/{{ item }}
+          && idle3ctl -d /dev/{{ item }}
+          || true"
   with_items: "{{ western_digital_drives|default([]) }}"
   changed_when: false
