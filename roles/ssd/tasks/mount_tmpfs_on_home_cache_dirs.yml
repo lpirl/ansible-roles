@@ -1,10 +1,15 @@
-- name: check if service to mount users\'s .cache directories to tmpfs exists
-  register: check_systemd_system_services_dir
-  stat: path=/etc/systemd/system/mount-tmpfs-on-home-cache-dirs.service
+# March 2019:
+# SSD wear out is not really an issue any more (for the average desktop
+# system), so the tasks below **disable** mounting a tmpfs to the cache
+# directories in users' home directories.
 
 # Ansible false positively warns here (The service (<path>) is actually
 # an init script but the system is managed by systemd).
-- name: enable service to mount users\'s .cache directories to tmpfs
-  service:  name=/opt/admintools/etc/systemd/system/mount-tmpfs-on-home-cache-dirs.service
-            enabled=yes
-  when: check_systemd_system_services_dir.stat.exists == False
+- name: disable service to mount users\'s .cache directories to tmpfs
+  register: disable_mount_user_cache_dirs_result
+  service:
+    name: mount-tmpfs-on-home-cache-dirs.service
+    enabled: no
+  failed_when:  not disable_mount_user_cache_dirs_result.changed and
+                "Could not find the requested service" not in
+                  disable_mount_user_cache_dirs_result.msg
