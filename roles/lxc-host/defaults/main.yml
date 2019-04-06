@@ -1,0 +1,31 @@
+lxc_user: lxc
+
+lxc_create_args_extra: ''
+
+# Default values for nested dictionaries of ``lxc_containers``.
+lxc_container_defaults:
+  create_args: >
+    --template download --dist debian --release stable --arch amd64
+    {{ lxc_create_args_extra | default('') }}
+
+# you can use this variable to override individual keys in
+# ``lxc_container_defaults``
+lxc_container_defaults_extra: {}
+
+# Dictionary (of dictionaries) defining the containers to set up.
+# The keys are the container names,
+# the values the containers' properties.
+#   /!\ If a key's value evaluates to ``False`` the container
+#   /!\ and its configuration will be removed.
+# The following keys are required/supported for the nested dictionaries:
+#   name (required): name of the container
+#   subnet (required): IPv6 subnet for the container (e.g., "fd01::/16")
+lxc_containers:
+
+  # /!\ TODO: my config, move away from role defaults
+
+  rproxy:
+    subnet: "fd00::/16"
+
+  drop:
+    subnet: "fd01::/16"

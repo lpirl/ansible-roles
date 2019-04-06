@@ -1,0 +1,105 @@
+- name: un/install packages
+  package:
+    name: "{{ item.key }}"
+    state: "{{ item.value }}"
+  with_dict:
+    lxc:                    present
+    bridge-utils:           present
+
+
+
+- name: set sysctl configuration
+  register: sysctl_config_result
+  blockinfile:
+    dest: /etc/sysctl.d/80-lxc-host-unprivileged.conf
+    create: yes
+    block: |
+      kernel.unprivileged_userns_clone=1
+      net.ipv6.conf.all.forwarding=1
+
+- name: reload sysctl
+  command: sysctl --system
+  when: sysctl_config_result.changed
+
+
+
+- name: create user which will run unprivileged containers
+  user:
+    name: "{{ lxc_user }}"
+    comment: runs unprivileged containers
+
+- name: "get home directory of user '{{ lxc_user }}'"
+  register: lxc_user_home_result
+  shell: "echo -n ~{{ lxc_user }}"
+
+- name: "set home directory of user '{{ lxc_user }}' as fact"
+  set_fact:
+    lxc_user_home: "{{ lxc_user_home_result.stdout }}"
+
+- name: add sub(g|u)ids
+  include_tasks: _add-subids.yml
+  with_items:
+    - subuid
+    - subgid
+
+
+
+- name: create user's lxc configuration directory
+  file:
+    path: "{{ lxc_user_home }}/.config/lxc/"
+    state: directory
+
+# We do not use ``lineinfile`` with the configuration parameters in a
+# dictionary here, because some keys are allowed multiple times
+# (e.g., ``lxc.mount.entry``) and thus, detecting the right key to
+# replace would be complex and error-prone.
+- name: set default lxc container configuration
+  blockinfile:
+    dest: "{{ lxc_user_home }}/.config/lxc/default.conf"
+    create: yes
+    insertbefore: BOF
+    block: |
+      # common configuration for all containers
+      #
+      # include with::
+      #
+      #   lxc.include = {{ lxc_user_home }}/.config/lxc/default.conf
+      #
+      # at top of individual configuration files
+
+      lxc.include = /etc/lxc/default.conf
+
+      lxc.lxcpath = {{ ansible_user_dir }}
+
+      lxc.arch = x86_64
+      lxc.start.auto = 1
+      lxc.start.delay = 20
+
+      # systemd does this by itself, no?
+      #lxc.mount.entry = tmpfs run tmpfs defaults,size=1%
+      #lxc.mount.entry = tmpfs tmp tmpfs defaults,size=1%
+
+      lxc.network.type = veth
+      lxc.network.name = eth0
+      lxc.network.flags = up
+      lxc.network.ipv6.gateway = auto
+
+      # per default, containers get this many CPU shares
+      #   i.e., if container should have twice the priority compared
+      #   to the others, give it twice as many shares
+      lxc.cgroup.cpu.shares = 1024
+
+  become: yes
+  become_user: "{{ lxc_user }}"
+
+- name: configure containers
+  include_tasks: _configure-container.yml
+  vars:
+    container_name: "{{ lxc_container_item.key }}"
+    container_args: "{{
+      lxc_container_defaults
+      | combine(lxc_container_item.value) }}"
+  with_dict: "{{ lxc_containers }}"
+  loop_control:
+    loop_var: lxc_container_item
+    label: "{{ lxc_container_item.key }}"

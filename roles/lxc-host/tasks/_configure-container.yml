@@ -1,0 +1,52 @@
+- name: "{{ container_name }} : sanity check variables"
+  assert:
+    that:
+      - "container_name | default('') | string != ''"
+      - "container_args.subnet | string | regex_search('[-:/0-9a-f]+')
+         ==
+         container_args.subnet | string"
+
+- name: "{{ container_name }} : add network bridge configuration file"
+  blockinfile:
+    dest: "/etc/network/interfaces.d/lxc-br-{{
+            container_name
+          }}"
+    create: yes
+    block: |
+      # file managed by Ansible
+      # (role "lxc-host-unprivileged" of lpirl/ansible-roles)
+
+      allow-hotplug lxc-br-{{ container_name }}
+      auto lxc-br-{{ container_name }}
+      iface lxc-br-{{ container_name }} inet6 static
+        address {{ container_args.subnet | ipaddr('1') }}
+        netmask {{ container_args.subnet }}
+        bridge_fd 0
+        bridge_stp off
+        bridge_maxwait 0
+        bridge_ports none
+  when: container_args
+
+- name: "{{ container_name }} : remove network bridge configuration file"
+  file:
+    path: "/etc/network/interfaces.d/lxc-br-{{
+            container_name
+          }}"
+    state: absent
+  when: not container_args
+
+#~ - name: "{{ container_name }} :
+         #~ create container under user '{{ lxc_user }}'"
+  #~ block:
+
+    #~ - name: create container
+      #~ command: "
+        #~ lxc-create --name '{{ container_name }}' {{ create_args }}
+      #~ "
+      #~ args:
+        #~ creates: "/var/lib/lxc/{{ container_name }}"
+
+  #~ become: yes
+  #~ become_user: "{{ lxc_user }}"
+  #~ tags:
+    #~ - wip
