@@ -5,7 +5,7 @@
   with_dict:
     lxc:                    present
     bridge-utils:           present
-
+    uidmap:                 present
 
 
 - name: set sysctl configuration
@@ -31,6 +31,7 @@
 - name: "get home directory of user '{{ lxc_user }}'"
   register: lxc_user_home_result
   shell: "echo -n ~{{ lxc_user }}"
+  changed_when: false
 
 - name: "set home directory of user '{{ lxc_user }}' as fact"
   set_fact:
@@ -42,20 +43,31 @@
     - subuid
     - subgid
 
-
-
 - name: create user's lxc configuration directory
   file:
     path: "{{ lxc_user_home }}/.config/lxc/"
     state: directory
+  become: yes
+  become_user: "{{ lxc_user }}"
 
-# We do not use ``lineinfile`` with the configuration parameters in a
-# dictionary here, because some keys are allowed multiple times
-# (e.g., ``lxc.mount.entry``) and thus, detecting the right key to
-# replace would be complex and error-prone.
-- name: set default lxc container configuration
+# We do not use ``lineinfile`` the configuration parameters in a
+# dictionary for the LXC configurations, because some keys are allowed
+# multiple times (e.g., ``lxc.mount.entry``) and thus, detecting the
+# right key to replace would be complex and error-prone.
+
+- name: set lxc configuration
   blockinfile:
-    dest: "{{ lxc_user_home }}/.config/lxc/default.conf"
+    dest: "{{ lxc_user_home }}/.config/lxc/lxc.conf"
+    create: yes
+    insertbefore: BOF
+    block: |
+      lxc.lxcpath = {{ lxc_user_home }}
+  become: yes
+  become_user: "{{ lxc_user }}"
+
+- name: set common lxc container configuration
+  blockinfile:
+    dest: "{{ lxc_user_home }}/.config/lxc/common.conf"
     create: yes
     insertbefore: BOF
     block: |
@@ -63,13 +75,17 @@
       #
       # include with::
       #
-      #   lxc.include = {{ lxc_user_home }}/.config/lxc/default.conf
+      #   lxc.include = {{ lxc_user_home }}/.config/lxc/common.conf
       #
       # at top of individual configuration files
-
+      lxc.include = /usr/share/lxc/config/common.conf
+      lxc.include = /usr/share/lxc/config/userns.conf
       lxc.include = /etc/lxc/default.conf
 
-      lxc.lxcpath = {{ ansible_user_dir }}
+      # TODO: remove since obsolete/false negative?
+      # See the following link for a discussion on this:
+      # https://groups.google.com/forum/#!topic/linux.debian.bugs.dist/wj9x4CsPLck
+      #lxc.apparmor.profile = unconfined
 
       lxc.arch = x86_64
       lxc.start.auto = 1
@@ -79,10 +95,10 @@
       #lxc.mount.entry = tmpfs run tmpfs defaults,size=1%
       #lxc.mount.entry = tmpfs tmp tmpfs defaults,size=1%
 
-      lxc.network.type = veth
-      lxc.network.name = eth0
-      lxc.network.flags = up
-      lxc.network.ipv6.gateway = auto
+      lxc.net.0.type = veth
+      lxc.net.0.name = eth0
+      lxc.net.0.flags = up
+      lxc.net.0.ipv6.gateway = auto
 
       # per default, containers get this many CPU shares
       #   i.e., if container should have twice the priority compared
@@ -92,14 +108,32 @@
   become: yes
   become_user: "{{ lxc_user }}"
 
+- name: set default lxc container configuration
+  blockinfile:
+    dest: "{{ lxc_user_home }}/.config/lxc/default.conf"
+    create: yes
+    insertbefore: BOF
+    block: |
+      lxc.include = {{ lxc_user_home }}/.config/lxc/common.conf
+  become: yes
+  become_user: "{{ lxc_user }}"
+
 - name: configure containers
   include_tasks: _configure-container.yml
   vars:
     container_name: "{{ lxc_container_item.key }}"
-    container_args: "{{
+    container_conf: "{{
       lxc_container_defaults
-      | combine(lxc_container_item.value) }}"
+      | combine(lxc_container_defaults_extra | default({}))
+      | combine(lxc_container_item.value)
+    }}"
   with_dict: "{{ lxc_containers }}"
   loop_control:
     loop_var: lxc_container_item
     label: "{{ lxc_container_item.key }}"
+
+- name: unconfigure containers
+  include_tasks: _unconfigure-container.yml
+  with_items: "{{ lxc_containers_to_delete_permanently }}"
+  loop_control:
+    loop_var: container_name

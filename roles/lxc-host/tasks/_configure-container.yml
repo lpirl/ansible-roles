@@ -2,15 +2,13 @@
   assert:
     that:
       - "container_name | default('') | string != ''"
-      - "container_args.subnet | string | regex_search('[-:/0-9a-f]+')
+      - "container_conf.subnet | string | regex_search('[-:/0-9a-f]+')
          ==
-         container_args.subnet | string"
+         container_conf.subnet | string"
 
 - name: "{{ container_name }} : add network bridge configuration file"
   blockinfile:
-    dest: "/etc/network/interfaces.d/lxc-br-{{
-            container_name
-          }}"
+    dest: "/etc/network/interfaces.d/lxc-br-{{ container_name }}"
     create: yes
     block: |
       # file managed by Ansible
@@ -19,34 +17,35 @@
       allow-hotplug lxc-br-{{ container_name }}
       auto lxc-br-{{ container_name }}
       iface lxc-br-{{ container_name }} inet6 static
-        address {{ container_args.subnet | ipaddr('1') }}
-        netmask {{ container_args.subnet }}
+        address {{ container_conf.subnet | ipaddr('1') }}
         bridge_fd 0
         bridge_stp off
         bridge_maxwait 0
         bridge_ports none
-  when: container_args
+  notify: restart networking
 
-- name: "{{ container_name }} : remove network bridge configuration file"
-  file:
-    path: "/etc/network/interfaces.d/lxc-br-{{
-            container_name
-          }}"
-    state: absent
-  when: not container_args
+- name: get list of existing containers
+  register: lxc_ls_result
+  command: lxc-ls
+  changed_when: false
+  become: yes
+  become_user: "{{ lxc_user }}"
 
-#~ - name: "{{ container_name }} :
-         #~ create container under user '{{ lxc_user }}'"
-  #~ block:
+- name: "{{ container_name }} : create container"
+  command: >
+    lxc-create
+      --name '{{ container_name }}'
+      {{ container_conf.create_args }}
 
-    #~ - name: create container
-      #~ command: "
-        #~ lxc-create --name '{{ container_name }}' {{ create_args }}
-      #~ "
-      #~ args:
-        #~ creates: "/var/lib/lxc/{{ container_name }}"
+  # last line in ``lxc_ls_result.stdout_lines`` has trailing white spaces
+  when: container_name not in lxc_ls_result.stdout_lines | map('trim')
+  become: yes
+  become_user: "{{ lxc_user }}"
 
-  #~ become: yes
-  #~ become_user: "{{ lxc_user }}"
-  #~ tags:
-    #~ - wip
+- name: "{{ container_name }} : set additional container configuration"
+  blockinfile:
+    dest: "{{ lxc_user_home }}/{{ container_name }}/config"
+    block: |
+      lxc.net.0.link = lxc-br-{{ container_name }}
+  become: yes
+  become_user: "{{ lxc_user }}"

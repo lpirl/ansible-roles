@@ -15,12 +15,12 @@
                (expected exactly one range,
                 got '{{ get_range_result.stdout_lines }}')"
 
-- name: "add {{ item }}s to lxc configuration of user '{{ lxc_user }}'"
+- name: "add {{ item }}s to common lxc configuration of user '{{ lxc_user }}'"
   lineinfile:
-    dest: "{{ lxc_user_home }}/.config/lxc/default.conf"
+    dest: "{{ lxc_user_home }}/.config/lxc/common.conf"
     create: yes
-    regexp: '^\s*lxc\.id_map\s*=\s*{{ item.3 }}'
-    line: "lxc.id_map = {{ item.3 }} 0 {{
+    regexp: '^\s*lxc\.idmap\s*=\s*{{ item.3 }}'
+    line: "lxc.idmap = {{ item.3 }} 0 {{
       get_range_result.stdout_lines.0 | regex_replace(':', ' ')
     }}"
   become: yes
