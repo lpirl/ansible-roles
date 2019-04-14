@@ -35,7 +35,7 @@
            }}/updates main contrib non-free'
     state: "{{ state }}"
     create: yes
-  when: release not in ['sid', 'unstable']
+  when: release not in ['sid', 'unstable', 'experimental']
         and '-' not in suite
         and '/' not in suite
 
