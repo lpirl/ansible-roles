@@ -5,7 +5,19 @@
   with_dict:
     lxc:                    present
     bridge-utils:           present
+
+    # provides ``new(u|g)idmap`` commands
     uidmap:                 present
+
+    # allows non-root users to manage cgroups
+    libpam-cgfs:            present
+
+    # can move (all) processes (of a user) into a cgroup
+    # (replaces ``cgmanager``, I guess)
+    libpam-cgroup:          present
+
+    # provides ``setfacl`` command
+    acl:                    present
 
 
 - name: set sysctl configuration
@@ -23,6 +35,15 @@
 
 
 
+- name: configure ``libpam-cgfs`` to allow ``cpu`` and ``cpuset``
+        controllers
+  lineinfile:
+    dest: /etc/pam.d/common-session
+    regexp: '^session\woptional\wpam_cgfs.so\w(.*)'
+    line: 'session	optional	pam_cgfs.so -c freezer,memory,name=systemd,cpu,cpuset'
+
+
+
 - name: create user which will run unprivileged containers
   user:
     name: "{{ lxc_user }}"
@@ -30,7 +51,7 @@
 
 - name: "get home directory of user '{{ lxc_user }}'"
   register: lxc_user_home_result
-  shell: "echo -n ~{{ lxc_user }}"
+  shell: "readlink -fn ~{{ lxc_user }}"
   changed_when: false
 
 - name: "set home directory of user '{{ lxc_user }}' as fact"
@@ -38,7 +59,7 @@
     lxc_user_home: "{{ lxc_user_home_result.stdout }}"
 
 - name: add sub(g|u)ids
-  include_tasks: _add-subids.yml
+  include_tasks: _configure-subids.yml
   with_items:
     - subuid
     - subgid
@@ -59,6 +80,7 @@
   blockinfile:
     dest: "{{ lxc_user_home }}/.config/lxc/lxc.conf"
     create: yes
+    marker: "# {mark} ANSIBLE MANAGED BLOCK main lxc configuration"
     insertbefore: BOF
     block: |
       lxc.lxcpath = {{ lxc_user_home }}
@@ -69,6 +91,7 @@
   blockinfile:
     dest: "{{ lxc_user_home }}/.config/lxc/common.conf"
     create: yes
+    marker: "# {mark} ANSIBLE MANAGED BLOCK: main common configuration"
     insertbefore: BOF
     block: |
       # common configuration for all containers
@@ -82,10 +105,10 @@
       lxc.include = /usr/share/lxc/config/userns.conf
       lxc.include = /etc/lxc/default.conf
 
-      # TODO: remove since obsolete/false negative?
-      # See the following link for a discussion on this:
-      # https://groups.google.com/forum/#!topic/linux.debian.bugs.dist/wj9x4CsPLck
-      #lxc.apparmor.profile = unconfined
+      # unprivileged users (i.e., ``lxc_user`` in our case) are not
+      # allowed to create apparmor namespaces, we hence cannot use
+      # apparmor
+      lxc.apparmor.profile = unconfined
 
       lxc.arch = x86_64
       lxc.start.auto = 1
@@ -112,6 +135,7 @@
   blockinfile:
     dest: "{{ lxc_user_home }}/.config/lxc/default.conf"
     create: yes
+    marker: "# {mark} ANSIBLE MANAGED BLOCK: main default configuration"
     insertbefore: BOF
     block: |
       lxc.include = {{ lxc_user_home }}/.config/lxc/common.conf

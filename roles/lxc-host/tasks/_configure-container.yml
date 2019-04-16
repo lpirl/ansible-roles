@@ -45,6 +45,10 @@
 - name: "{{ container_name }} : set additional container configuration"
   blockinfile:
     dest: "{{ lxc_user_home }}/{{ container_name }}/config"
+    marker: >
+      # {mark} ANSIBLE MANAGED BLOCK: container-specific network
+      configuration
+    insertafter: EOF
     block: |
       lxc.net.0.link = lxc-br-{{ container_name }}
   become: yes
