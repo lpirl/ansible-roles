@@ -15,11 +15,24 @@
 - name: add delay to cron tasks
   lineinfile:
     dest: /etc/cron.{{ item.key }}/000-delay
-    line: sleep $({{ random_integer_cmd }}){{ item.value }}
     regexp: '^sleep '
+    line: >
+      sleep $(
+        python -c 'import random as r; print(
+          r.randint({{ item.min }}, {{ item.max }})
+        )'
+      )m
 
   with_dict:
-    hourly: m
-    daily: h
-    weekly: h
-    monthly: h
+    hourly:
+      min: 15
+      max: 45
+    monthly:
+      min: 100
+      max: 200
+    weekly:
+      min: 200
+      max: 300
+    daily:
+      min: 300
+      max: 400
