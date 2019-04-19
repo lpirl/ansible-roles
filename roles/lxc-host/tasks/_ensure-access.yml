@@ -1,12 +1,9 @@
-- name: check if uid has access to direcotry"
-  register: check_access_result
-  command: "test -x {{ dir | quote }}"
-  changed_when: false
-  failed_when: false
-  become: yes
-  become_user: "{{ lxc_user }}"
+# We'd rather prevent setting an ACL where we don't need it
+# (e.g. ``/`` is accessible anyway, so we do not want to add an ACL),
+# but how to find out? We'd need to run ``test`` in the user name space
+# but I could not get it to work with ``lxc-usernsexec``.
 
-- name: "grant uid x access to direcotry"
+- name: "grant uid execute rights to direcotry"
   acl:
     path: "{{ dir }}"
     entity: "{{ uid }}"

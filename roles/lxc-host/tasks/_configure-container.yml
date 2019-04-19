@@ -8,21 +8,33 @@
 
 - name: "{{ container_name }} : add network bridge configuration file"
   blockinfile:
-    dest: "/etc/network/interfaces.d/lxc-br-{{ container_name }}"
+    dest: "/etc/network/interfaces.d/{{ container_bridge }}"
     create: yes
     block: |
       # file managed by Ansible
       # (role "lxc-host-unprivileged" of lpirl/ansible-roles)
 
-      allow-hotplug lxc-br-{{ container_name }}
-      auto lxc-br-{{ container_name }}
-      iface lxc-br-{{ container_name }} inet6 static
+      allow-hotplug {{ container_bridge }}
+      auto {{ container_bridge }}
+      iface {{ container_bridge }} inet6 static
         address {{ container_conf.subnet | ipaddr('1') }}
         bridge_fd 0
         bridge_stp off
         bridge_maxwait 0
         bridge_ports none
   notify: restart networking
+
+- name: "{{ container_name }} : allow user '{{ lxc_user }}' to use bridge
+         '{{ container_bridge }}'"
+  lineinfile:
+    path: /etc/lxc/lxc-usernet
+    create: yes
+    regexp: '^{{
+        lxc_user | regex_escape()
+      }}\s+.*\s+{{
+        container_bridge | regex_escape()
+      }}.*'
+    line: "{{ lxc_user }} veth {{ container_bridge }} 1"
 
 - name: get list of existing containers
   register: lxc_ls_result
@@ -50,6 +62,6 @@
       configuration
     insertafter: EOF
     block: |
-      lxc.net.0.link = lxc-br-{{ container_name }}
+      lxc.net.0.link = {{ container_bridge }}
   become: yes
   become_user: "{{ lxc_user }}"

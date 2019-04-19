@@ -12,3 +12,14 @@
     path: "/etc/network/interfaces.d/lxc-br-{{ container_name }}"
     state: absent
   notify: restart networking
+
+- name: "{{ container_name }} : unallow user '{{ lxc_user }}' to use
+         bridge '{{ container_bridge }}'"
+  lineinfile:
+    path: /etc/lxc/lxc-usernet
+    state: absent
+    regexp: '^{{
+        lxc_user | regex_escape()
+      }}\s+.*\s+{{
+        container_bridge | regex_escape()
+      }}.*'

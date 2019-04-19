@@ -151,6 +151,10 @@
       | combine(lxc_container_defaults_extra | default({}))
       | combine(lxc_container_item.value)
     }}"
+
+    # some more variables for convenience:
+    container_bridge: "lxc-br-{{ container_name }}"
+
   with_dict: "{{ lxc_containers }}"
   loop_control:
     loop_var: lxc_container_item
@@ -158,6 +162,11 @@
 
 - name: unconfigure containers
   include_tasks: _unconfigure-container.yml
+  vars:
+
+    # variables for convenience:
+    container_bridge: "lxc-br-{{ container_name }}"
+
   with_items: "{{ lxc_containers_to_delete_permanently }}"
   loop_control:
     loop_var: container_name
