@@ -19,7 +19,7 @@
   blockinfile:
     dest: "{{ lxc_user_home }}/.config/lxc/common.conf"
     create: yes
-    marker: "# {mark} ANSIBLE MANAGED BLOCK: {{ item }} configuration"
+    marker: "# {mark} ANSIBLE MANAGED {{ item }} configuration"
     block: >
       lxc.idmap = {{ item.3 }} 0 {{
         get_range_result.stdout_lines.0 | regex_replace(':', ' ')

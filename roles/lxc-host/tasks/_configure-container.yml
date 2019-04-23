@@ -43,11 +43,21 @@
   become: yes
   become_user: "{{ lxc_user }}"
 
-- name: "{{ container_name }} : create container"
-  command: >
-    lxc-create
-      --name '{{ container_name }}'
-      {{ container_conf.create_args }}
+- name: create the container
+  block:
+
+    - name: "{{ container_name }} : create container"
+      command: >
+        lxc-create
+          --name '{{ container_name }}'
+          {{ container_conf.create_args }}
+
+    # see ``default.conf`` for comments on why we do this
+    - name: "{{ container_name }} : drop the initially created
+             container configuration"
+      file:
+        path: "{{ lxc_user_home }}/{{ container_name}}/config"
+        state: absent
 
   # last line in ``lxc_ls_result.stdout_lines`` has trailing white spaces
   when: container_name not in lxc_ls_result.stdout_lines | map('trim')
@@ -57,11 +67,14 @@
 - name: "{{ container_name }} : set additional container configuration"
   blockinfile:
     dest: "{{ lxc_user_home }}/{{ container_name }}/config"
-    marker: >
-      # {mark} ANSIBLE MANAGED BLOCK: container-specific network
-      configuration
+    create: yes
+    marker: "# {mark} ANSIBLE MANAGED container configuration"
     insertafter: EOF
     block: |
+      lxc.include = {{ lxc_user_home }}/.config/lxc/common.conf
+      lxc.uts.name = {{ container_name }}
+      lxc.rootfs.path = btrfs:/home/lxc/{{ container_name }}/rootfs
       lxc.net.0.link = {{ container_bridge }}
+      lxc.net.0.ipv6.address = {{ container_conf.subnet | ipaddr('2') }}
   become: yes
   become_user: "{{ lxc_user }}"

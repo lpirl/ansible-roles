@@ -39,7 +39,7 @@
         controllers
   lineinfile:
     dest: /etc/pam.d/common-session
-    regexp: '^session\woptional\wpam_cgfs.so\w(.*)'
+    regexp: '^session\soptional\spam_cgfs\.so\s.*'
     line: 'session	optional	pam_cgfs.so -c freezer,memory,name=systemd,cpu,cpuset'
 
 
@@ -80,7 +80,7 @@
   blockinfile:
     dest: "{{ lxc_user_home }}/.config/lxc/lxc.conf"
     create: yes
-    marker: "# {mark} ANSIBLE MANAGED BLOCK main lxc configuration"
+    marker: "# {mark} ANSIBLE MANAGED main lxc configuration"
     insertbefore: BOF
     block: |
       lxc.lxcpath = {{ lxc_user_home }}
@@ -91,7 +91,7 @@
   blockinfile:
     dest: "{{ lxc_user_home }}/.config/lxc/common.conf"
     create: yes
-    marker: "# {mark} ANSIBLE MANAGED BLOCK: main common configuration"
+    marker: "# {mark} ANSIBLE MANAGED main common configuration"
     insertbefore: BOF
     block: |
       # common configuration for all containers
@@ -138,7 +138,20 @@
     marker: "# {mark} ANSIBLE MANAGED BLOCK: main default configuration"
     insertbefore: BOF
     block: |
+      # Be aware that we provide this file only for ``lxc-create`` to
+      # have the configuration it needs to do its job. After container
+      # creation, this file will be overwritten (by Ansible).
+
+      # Background:
+      # We don't use this file to provide all the default configuration
+      # options since ``lxc-start`` (or the template ``lxc-download``,
+      # I am not sure) is quite unpredictable in a way that it
+      # re-arranges the options specified in ``default.conf``.
+      # Hence, we drop the configuration file assembled by ``lxc-start``
+      # and set all options manually (i.e., using Ansible).
+
       lxc.include = {{ lxc_user_home }}/.config/lxc/common.conf
+
   become: yes
   become_user: "{{ lxc_user }}"
 
