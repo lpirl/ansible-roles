@@ -1,0 +1,20 @@
+#todo #wip
+# * merge with postfix-dkim
+# * add spf conf
+
+- name: install packages required DMARC
+  apt:
+    name: "{{ item }}"
+  with_items:
+    - opendmarc
+
+- name: set daemon defaults for opendmarc
+  lineinfile:
+    dest: /etc/default/opendmarc
+    regexp: '^(#\s?)?{{ item.key }}\s*'
+    line: "{{ item.key }}='{{ item.value }}'"
+    state: present
+    create: yes
+  with_dict:
+    SOCKET: "/var/spool/postfix/opendmarc/opendmarc.sock"
+  notify: restart opendmarc

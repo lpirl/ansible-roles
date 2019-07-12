@@ -18,6 +18,7 @@
            }} main contrib non-free'
     state: "{{ 'present' if present else 'absent' }}"
     create: yes
+  notify: update apt cache
 
 - name: remove repository from /etc/apt/sources.list
   lineinfile:
@@ -25,6 +26,7 @@
     regexp: '\s{{ suite }}\s'
     state: absent
   when: not present
+  notify: update apt cache
 
 - name: add security repository to file in /etc/apt/sources.list.d
         (old format)
@@ -57,6 +59,7 @@
   when: release not in no_security_repo_releases
         and '-' not in suite
         and '/' not in suite
+  notify: update apt cache
 
 - name: remove security repository from /etc/apt/sources.list
   lineinfile:
@@ -64,3 +67,4 @@
     regexp: 'security.*\s{{ suite }}[-/]updates\s'
     state: absent
   when: not present
+  notify: update apt cache

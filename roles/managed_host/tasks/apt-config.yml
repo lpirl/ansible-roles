@@ -58,6 +58,9 @@
   loop_control:
     label: "{{ item.key }}"
 
+- name: flush handlers in case apt cache needs to be updated
+  meta: flush_handlers
+
 - name: get contents of /etc/apt/sources.list
   register: cat_sources_list_result
   shell: cat /etc/apt/sources.list
