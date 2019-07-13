@@ -32,12 +32,22 @@
   include_tasks: _apt-config-configure-standard-release.yml
 
   vars:
-    base_url: http://deb.debian.org
     suite: "{{ item.key }}"
     release: "{{ suite.split('-').0.split('/').0 }}"
     pin_priority: "{{ item.value }}"
     file: "/etc/apt/sources.list.d/{{ release }}.list"
-    state: "{{ 'present' if item.value else 'absent' }}"
+    present: "{{ true if item.value else false }}"
+    no_security_repo_releases:
+      - sid
+      - unstable
+      - experimental
+    security_old_format_releases:
+      - buster
+      - jessie
+      - oldoldstable
+      - oldstable
+      - stable
+      - stretch
 
   with_dict: "{{
     apt_release_priorities
