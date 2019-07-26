@@ -1,4 +1,5 @@
-lxc_user: lxc
+# the group for all users running unprivileged LXC containers
+lxc_group: lxc-unprivileged
 
 lxc_create_args_extra: ''
 

@@ -6,19 +6,20 @@
     lxc:                    present
     bridge-utils:           present
 
-    # provides ``new(u|g)idmap`` commands
-    uidmap:                 present
-
-    # allows non-root users to manage cgroups
+    # provides cgroups to non-root users
     libpam-cgfs:            present
-
-    # can move (all) processes (of a user) into a cgroup
-    # (replaces ``cgmanager``, I guess)
-    libpam-cgroup:          present
 
     # provides ``setfacl`` command
     acl:                    present
 
+    # for unprivileged users to create (u|g)id mappings in their namespaces
+    uidmap:                 absent # works as well?
+
+    # note: we do not need:
+    # * ``lxcfs``: was required for Linux < 4.6 which had no support for
+    #   cgroup namespaces
+    # * ``libpam-cgroup``: which is a deprecated component of
+    #   ``libcgroup/group-bin``
 
 - name: set sysctl configuration
   register: sysctl_config_result
@@ -34,19 +35,28 @@
   when: sysctl_config_result.changed
 
 
-
+# https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html
 - name: configure ``libpam-cgfs`` to allow ``cpu`` and ``cpuset``
         controllers
   lineinfile:
-    dest: /etc/pam.d/common-session
-    regexp: '^session\soptional\spam_cgfs\.so\s.*'
-    line: 'session	optional	pam_cgfs.so -c freezer,memory,name=systemd,cpu,cpuset'
+    dest: "/etc/pam.d/{{ item }}"
+    regexp: '^session\s+optional\s+pam_cgfs\.so\s.*'
+    line: >
+      session	optional	pam_cgfs.so -c
+      freezer,memory,cpu,cpuset,cpuacct,unified,name=systemd
+  with_items:
+    - common-session
+    - common-session-noninteractive
 
-
+- name: create user group
+  group:
+    name: "{{ lxc_group }}"
+    state: present
 
 - name: create user which will run unprivileged containers
   user:
     name: "{{ lxc_user }}"
+    group: "{{ lxc_group }}"
     comment: runs unprivileged containers
 
 - name: "get home directory of user '{{ lxc_user }}'"
@@ -118,15 +128,22 @@
       #lxc.mount.entry = tmpfs run tmpfs defaults,size=1%
       #lxc.mount.entry = tmpfs tmp tmpfs defaults,size=1%
 
+      # fix for https://github.com/lxc/lxc/issues/2421
+      #~ lxc.mount.entry = /proc/sys/fs/binfmt_misc proc/sys/fs/binfmt_misc none bind,optional 0 0
+      #~ lxc.mount.entry = /sys/firmware/efi/efivars sys/firmware/efi/efivars none bind,optional 0 0
+
       lxc.net.0.type = veth
       lxc.net.0.name = eth0
       lxc.net.0.flags = up
       lxc.net.0.ipv6.gateway = auto
 
-      # per default, containers get this many CPU shares
-      #   i.e., if container should have twice the priority compared
-      #   to the others, give it twice as many shares
-      lxc.cgroup.cpu.shares = 1024
+      # resource limits
+      # (https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html)
+      #
+      #lxc.cgroup.cpu.max = 90 100
+      #lxc.cgroup.cpu.weight = 1000
+      #lxc.cgroup.io.weight = 1000
+      #lxc.cgroup.memory.max = 1073741824
 
   become: yes
   become_user: "{{ lxc_user }}"
