@@ -134,6 +134,7 @@
     name: "{{ container_name }}"
     template: "{{ container_conf.template }}"
     template_options: "{{ container_conf.template_options }}"
+    state: stopped
   become: yes
   become_user: "{{ container_user }}"
 
@@ -165,8 +166,34 @@
 
       lxc.uts.name = {{ container_name }}
       lxc.rootfs.path = btrfs:{{ container_user_home}}/{{ container_name }}/rootfs
+      lxc.net.0.name = lxc-{{ container_name }}
       lxc.net.0.link = {{ container_bridge }}
-      lxc.net.0.ipv4.address = {{ container_conf.cidr4 }}
+      lxc.net.0.ipv4.address = {{ container_conf.subnet4 | ipaddr('1') }}
+      lxc.net.0.ipv4.gateway = auto
 
+  become: yes
+  become_user: "{{ container_user }}"
+
+
+
+# We use ``cat`` here since the {{ container_user }} is not allowed to
+# the rootfs of the container and a copy operation would mess with the
+# owner and permissions of the destination file.
+- name: "{{ container_name }} : copy host's resolv.conf to container"
+  register: update_resolvconf_result
+  shell: |
+    src="/etc/resolv.conf"
+    dst="{{ container_user_home }}/{{ container_name }}/rootfs/etc/resolv.conf"
+    diff "$src" "$dst" || cat "$src" > "$dst"
+  changed_when: update_resolvconf_result.stdout
+
+
+
+- name: "{{ container_name }} : start container"
+  register: lxc_create_result
+  lxc_container:
+    name: "{{ container_name }}"
+    state: started
+  when: lxc_create_result.changed
   become: yes
   become_user: "{{ container_user }}"
