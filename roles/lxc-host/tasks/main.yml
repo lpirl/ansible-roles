@@ -108,23 +108,16 @@
       # we hence cannot use apparmor
       lxc.apparmor.profile = unconfined
 
-      # TODO: added by lxc-create anyway, no?
-      # lxc.arch = x86_64
-
       lxc.start.auto = 1
       lxc.start.delay = 10
 
       # TODO: systemd does this by itself, no?
-      #lxc.mount.entry = tmpfs run tmpfs defaults,size=1%
-      #lxc.mount.entry = tmpfs tmp tmpfs defaults,size=1%
-
-      # fix for https://github.com/lxc/lxc/issues/2421
-      #~ lxc.mount.entry = /proc/sys/fs/binfmt_misc proc/sys/fs/binfmt_misc none bind,optional 0 0
-      #~ lxc.mount.entry = /sys/firmware/efi/efivars sys/firmware/efi/efivars none bind,optional 0 0
+      lxc.mount.entry = tmpfs tmp tmpfs defaults,size=1G
 
       lxc.net.0.type = veth
       lxc.net.0.name = eth0
       lxc.net.0.flags = up
+      lxc.net.0.mtu = 9000
       #TODO: lxc.net.0.ipv6.gateway = auto
 
       # resource limits
