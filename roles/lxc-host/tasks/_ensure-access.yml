@@ -3,7 +3,8 @@
 # but how to find out? We'd need to run ``test`` in the user name space
 # but I could not get it to work with ``lxc-usernsexec``.
 
-- name: "grant uid {{ uid }} rx rights to direcotry '{{ dir }}'"
+- name: "{{ container_name }} : grant uid {{ uid }} rx rights to
+         direcotry '{{ dir }}'"
   acl:
     path: "{{ dir }}"
     entity: "{{ uid }}"
