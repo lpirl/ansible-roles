@@ -2,9 +2,11 @@
   assert:
     that:
       - "container_name | default('') | string != ''"
-      - "container_conf.subnet | string | regex_search('[-:/0-9a-f]+')
+      - "container_conf.cidr4 | string | regex_search('[./0-9]+')
          ==
-         container_conf.subnet | string"
+         container_conf.cidr4 | string"
+
+
 
 - name: "{{ container_name }} : add network bridge configuration file"
   blockinfile:
@@ -16,65 +18,156 @@
 
       allow-hotplug {{ container_bridge }}
       auto {{ container_bridge }}
-      iface {{ container_bridge }} inet6 static
-        address {{ container_conf.subnet | ipaddr('1') }}
+      iface {{ container_bridge }} inet static
+        address {{ container_conf.cidr4 }}
         bridge_fd 0
         bridge_stp off
         bridge_maxwait 0
         bridge_ports none
   notify: restart networking
 
-- name: "{{ container_name }} : allow user '{{ lxc_user }}' to use bridge
-         '{{ container_bridge }}'"
+
+
+- name: "{{ container_name }} : create user which will run unprivileged
+         containers"
+  user:
+    name: "{{ container_user }}"
+    group: "{{ lxc_group }}"
+    comment: runs unprivileged containers
+
+
+
+- name: "{{ container_name }} : allow user '{{ container_user }}' to use
+         bridge '{{ container_bridge }}'"
   lineinfile:
     path: /etc/lxc/lxc-usernet
     create: yes
     regexp: '^{{
-        lxc_user | regex_escape()
+        container_user | regex_escape()
       }}\s+.*\s+{{
         container_bridge | regex_escape()
       }}.*'
-    line: "{{ lxc_user }} veth {{ container_bridge }} 1"
+    line: "{{ container_user }} veth {{ container_bridge }} 1"
 
-- name: get list of existing containers
-  register: lxc_ls_result
-  command: lxc-ls
+
+
+- name: "{{ container_name }} : get home directory of user"
+  register: container_user_home_result
+  shell: "readlink -fn ~{{ container_user }}"
   changed_when: false
+
+
+
+- name: "{{ container_name }} : set home directory of user as fact"
+  set_fact:
+    container_user_home: "{{ container_user_home_result.stdout }}"
+
+
+
+- name: "{{ container_name }} : create user's lxc configuration directory"
+  file:
+    path: "{{ container_user_home }}/.config/lxc/"
+    state: directory
   become: yes
-  become_user: "{{ lxc_user }}"
+  become_user: "{{ container_user }}"
 
-- name: create the container
-  block:
 
-    - name: "{{ container_name }} : create container"
-      command: >
-        lxc-create
-          --name '{{ container_name }}'
-          {{ container_conf.create_args }}
 
-    # see ``default.conf`` for comments on why we do this
-    - name: "{{ container_name }} : drop the initially created
-             container configuration"
-      file:
-        path: "{{ lxc_user_home }}/{{ container_name}}/config"
-        state: absent
+# We do not use ``lineinfile`` to set configuration parameters from a
+# dictionary for the LXC configurations, because some keys are allowed
+# multiple times (e.g., ``lxc.mount.entry``) and thus, detecting the
+# right key to replace would be complex and error-prone.
 
-  # last line in ``lxc_ls_result.stdout_lines`` has trailing white spaces
-  when: container_name not in lxc_ls_result.stdout_lines | map('trim')
-  become: yes
-  become_user: "{{ lxc_user }}"
 
-- name: "{{ container_name }} : set additional container configuration"
+
+- name: "{{ container_name }} : set lxc configuration"
   blockinfile:
-    dest: "{{ lxc_user_home }}/{{ container_name }}/config"
+    dest: "{{ container_user_home }}/.config/lxc/lxc.conf"
+    create: yes
+    marker: "# {mark} ANSIBLE MANAGED main lxc configuration"
+    insertbefore: BOF
+    block: |
+      lxc.lxcpath = {{ container_user_home }}
+  become: yes
+  become_user: "{{ container_user }}"
+
+
+
+- name: "{{ container_name }} : write default lxc container configuration"
+  blockinfile:
+    dest: "{{ container_user_home }}/.config/lxc/default.conf"
+    create: yes
+    marker: "# {mark} ANSIBLE MANAGED BLOCK: main default configuration"
+    insertbefore: BOF
+    block: |
+      # Be aware that we provide this file only for ``lxc-create`` to
+      # have the configuration it needs to do its job (e.g., to know the
+      # (u|g)id mappings). After container creation, the container's
+      # configuration file will be deleted and re-written by us from
+      # scratch (i.e., via Ansible).
+
+      # We do this because ``lxc-start`` (or the template ``lxc-download``,
+      # I am not sure) is quite unpredictable in a way that it
+      # re-arranges the options specified in ``default.conf`` wildly.
+      # Hence, we drop the configuration file assembled by ``lxc-start``
+      # and set all options we need manually (using Ansible).
+      lxc.include = /etc/lxc/unprivileged/common.conf
+      lxc.include = {{ container_user_home}}/.config/lxc/idmaps.conf
+
+  become: yes
+  become_user: "{{ container_user }}"
+
+
+
+- name: "{{ container_name }} : sub(g|u)ids configuration"
+  include_tasks: _configure-subids.yml
+  with_items:
+    - subuid
+    - subgid
+
+
+
+- name: "{{ container_name }} : create container"
+  register: lxc_create_result
+  command: >
+    lxc-create
+      --name '{{ container_name }}'
+      {{ container_conf.create_args }}
+  args:
+    creates: "{{ container_user_home }}/{{ container_name }}"
+  become: yes
+  become_user: "{{ container_user }}"
+
+
+
+# see ``/etc/lxc/unprivileged/default.conf`` for comments on why we
+# do this
+- name: "{{ container_name }} : drop the initially created
+         container configuration"
+  file:
+    path: "{{ container_user_home }}/{{ container_name }}/config"
+    state: absent
+  when: lxc_create_result.changed
+
+  become: yes
+  become_user: "{{ container_user }}"
+
+
+
+- name: "{{ container_name }} : set container configuration"
+  blockinfile:
+    dest: "{{ container_user_home }}/{{ container_name }}/config"
     create: yes
     marker: "# {mark} ANSIBLE MANAGED container configuration"
     insertafter: EOF
     block: |
-      lxc.include = {{ lxc_user_home }}/.config/lxc/common.conf
+      lxc.include = /etc/lxc/unprivileged/common.conf
+      lxc.include = {{ container_user_home}}/.config/lxc/idmaps.conf
+
       lxc.uts.name = {{ container_name }}
-      lxc.rootfs.path = btrfs:/home/lxc/{{ container_name }}/rootfs
+      lxc.rootfs.path = btrfs:{{ container_user_home}}/{{ container_name }}/rootfs
       lxc.net.0.link = {{ container_bridge }}
-      lxc.net.0.ipv6.address = {{ container_conf.subnet | ipaddr('2') }}
+      lxc.net.0.ipv4.address = {{ container_conf.cidr4 }}
+
   become: yes
-  become_user: "{{ lxc_user }}"
+  become_user: "{{ container_user }}"

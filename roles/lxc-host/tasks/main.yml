@@ -12,14 +12,17 @@
     # provides ``setfacl`` command
     acl:                    present
 
-    # for unprivileged users to create (u|g)id mappings in their namespaces
-    uidmap:                 absent # works as well?
+    # required by ``lxc-create`` to create (u|g)id mappings for
+    # unprivileged users
+    uidmap:                 present
 
     # note: we do not need:
     # * ``lxcfs``: was required for Linux < 4.6 which had no support for
     #   cgroup namespaces
     # * ``libpam-cgroup``: which is a deprecated component of
     #   ``libcgroup/group-bin``
+
+
 
 - name: set sysctl configuration
   register: sysctl_config_result
@@ -28,16 +31,22 @@
     create: yes
     block: |
       kernel.unprivileged_userns_clone=1
-      net.ipv6.conf.all.forwarding=1
 
 - name: reload sysctl
   command: sysctl --system
   when: sysctl_config_result.changed
 
 
+
+- name: create group for users which will run unprivileged containers
+  group:
+    name: "{{ lxc_group }}"
+    state: present
+
+
+
 # https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html
-- name: configure ``libpam-cgfs`` to allow ``cpu`` and ``cpuset``
-        controllers
+- name: configure ``libpam-cgfs`` which controllers to provide
   lineinfile:
     dest: "/etc/pam.d/{{ item }}"
     regexp: '^session\s+optional\s+pam_cgfs\.so\s.*'
@@ -48,59 +57,35 @@
     - common-session
     - common-session-noninteractive
 
-- name: create user group
-  group:
-    name: "{{ lxc_group }}"
-    state: present
 
-- name: create user which will run unprivileged containers
-  user:
-    name: "{{ lxc_user }}"
-    group: "{{ lxc_group }}"
-    comment: runs unprivileged containers
 
-- name: "get home directory of user '{{ lxc_user }}'"
-  register: lxc_user_home_result
-  shell: "readlink -fn ~{{ lxc_user }}"
-  changed_when: false
-
-- name: "set home directory of user '{{ lxc_user }}' as fact"
-  set_fact:
-    lxc_user_home: "{{ lxc_user_home_result.stdout }}"
-
-- name: add sub(g|u)ids
-  include_tasks: _configure-subids.yml
-  with_items:
-    - subuid
-    - subgid
-
-- name: create user's lxc configuration directory
+- name: setup global lxc configuration directory for unprivileged
+        containers
   file:
-    path: "{{ lxc_user_home }}/.config/lxc/"
+    path: "{{ item }}"
+    group: "{{ lxc_group }}"
+    mode: 0750
     state: directory
-  become: yes
-  become_user: "{{ lxc_user }}"
+  with_items:
+    - /etc/lxc
+    - /etc/lxc/unprivileged
 
+
+
+# Note on how we write LXC configuration files:
 # We do not use ``lineinfile`` the configuration parameters in a
 # dictionary for the LXC configurations, because some keys are allowed
 # multiple times (e.g., ``lxc.mount.entry``) and thus, detecting the
 # right key to replace would be complex and error-prone.
 
-- name: set lxc configuration
-  blockinfile:
-    dest: "{{ lxc_user_home }}/.config/lxc/lxc.conf"
-    create: yes
-    marker: "# {mark} ANSIBLE MANAGED main lxc configuration"
-    insertbefore: BOF
-    block: |
-      lxc.lxcpath = {{ lxc_user_home }}
-  become: yes
-  become_user: "{{ lxc_user }}"
 
-- name: set common lxc container configuration
+
+- name: write common lxc container configuration
   blockinfile:
-    dest: "{{ lxc_user_home }}/.config/lxc/common.conf"
+    dest: "/etc/lxc/unprivileged/common.conf"
     create: yes
+    group: "{{ lxc_group }}"
+    mode: 0640
     marker: "# {mark} ANSIBLE MANAGED main common configuration"
     insertbefore: BOF
     block: |
@@ -108,23 +93,25 @@
       #
       # include with::
       #
-      #   lxc.include = {{ lxc_user_home }}/.config/lxc/common.conf
+      #   lxc.include = /etc/lxc/unprivileged/common.conf
       #
-      # at top of individual configuration files
+      # at top of individual container configuration files.
+
       lxc.include = /usr/share/lxc/config/common.conf
       lxc.include = /usr/share/lxc/config/userns.conf
       lxc.include = /etc/lxc/default.conf
 
-      # unprivileged users (i.e., ``lxc_user`` in our case) are not
-      # allowed to create apparmor namespaces, we hence cannot use
-      # apparmor
+      # unprivileged users are not allowed to create apparmor namespaces,
+      # we hence cannot use apparmor
       lxc.apparmor.profile = unconfined
 
-      lxc.arch = x86_64
-      lxc.start.auto = 1
-      lxc.start.delay = 20
+      # TODO: added by lxc-create anyway, no?
+      # lxc.arch = x86_64
 
-      # systemd does this by itself, no?
+      lxc.start.auto = 1
+      lxc.start.delay = 10
+
+      # TODO: systemd does this by itself, no?
       #lxc.mount.entry = tmpfs run tmpfs defaults,size=1%
       #lxc.mount.entry = tmpfs tmp tmpfs defaults,size=1%
 
@@ -135,7 +122,7 @@
       lxc.net.0.type = veth
       lxc.net.0.name = eth0
       lxc.net.0.flags = up
-      lxc.net.0.ipv6.gateway = auto
+      #TODO: lxc.net.0.ipv6.gateway = auto
 
       # resource limits
       # (https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html)
@@ -145,32 +132,7 @@
       #lxc.cgroup.io.weight = 1000
       #lxc.cgroup.memory.max = 1073741824
 
-  become: yes
-  become_user: "{{ lxc_user }}"
 
-- name: set default lxc container configuration
-  blockinfile:
-    dest: "{{ lxc_user_home }}/.config/lxc/default.conf"
-    create: yes
-    marker: "# {mark} ANSIBLE MANAGED BLOCK: main default configuration"
-    insertbefore: BOF
-    block: |
-      # Be aware that we provide this file only for ``lxc-create`` to
-      # have the configuration it needs to do its job. After container
-      # creation, this file will be overwritten (by Ansible).
-
-      # Background:
-      # We don't use this file to provide all the default configuration
-      # options since ``lxc-start`` (or the template ``lxc-download``,
-      # I am not sure) is quite unpredictable in a way that it
-      # re-arranges the options specified in ``default.conf``.
-      # Hence, we drop the configuration file assembled by ``lxc-start``
-      # and set all options manually (i.e., using Ansible).
-
-      lxc.include = {{ lxc_user_home }}/.config/lxc/common.conf
-
-  become: yes
-  become_user: "{{ lxc_user }}"
 
 - name: configure containers
   include_tasks: _configure-container.yml
@@ -183,6 +145,7 @@
     }}"
 
     # some more variables for convenience:
+    container_user: "lxc-{{ container_name }}"
     container_bridge: "lxc-br-{{ container_name }}"
 
   with_dict: "{{ lxc_containers }}"
@@ -190,11 +153,14 @@
     loop_var: lxc_container_item
     label: "{{ lxc_container_item.key }}"
 
+
+
 - name: unconfigure containers
   include_tasks: _unconfigure-container.yml
   vars:
 
     # variables for convenience:
+    container_user: "lxc-{{ container_name }}"
     container_bridge: "lxc-br-{{ container_name }}"
 
   with_items: "{{ lxc_containers_to_delete_permanently }}"

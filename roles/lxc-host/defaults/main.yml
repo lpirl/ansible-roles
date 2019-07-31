@@ -8,6 +8,7 @@ lxc_container_defaults:
   create_args: >
     {{ lxc_create_args_extra | default('') }}
     --template download -- --dist debian --release buster --arch amd64
+    --keyserver pool.sks-keyservers.net
 
 # you can use this variable to override individual keys in
 # ``lxc_container_defaults``
@@ -24,13 +25,14 @@ lxc_containers:
   # /!\ TODO: my config, move away from role defaults
 
   rproxy:
-    subnet: "fd00::/16"
+    cidr4: 10.10.1.1/24
 
   #~ drop:
+    #~ cidr4: 10.10.2.1/24
     #~ subnet: "fd01::/16"
 
   test:
-    subnet: "fdff::/16"
+    cidr4: 10.10.3.1/24
 
 # /!\ will be deleted permanently, including configuration, network, etc.
 lxc_containers_to_delete_permanently:
