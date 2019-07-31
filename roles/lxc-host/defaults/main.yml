@@ -1,13 +1,11 @@
 # the group for all users running unprivileged LXC containers
 lxc_group: lxc-unprivileged
 
-lxc_create_args_extra: ''
-
 # Default values for nested dictionaries of ``lxc_containers``.
 lxc_container_defaults:
-  create_args: >
-    {{ lxc_create_args_extra | default('') }}
-    --template download -- --dist debian --release buster --arch amd64
+  template: download
+  template_options: >-
+    --dist debian --release buster --arch amd64
     --keyserver pool.sks-keyservers.net
 
 # you can use this variable to override individual keys in

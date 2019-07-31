@@ -16,6 +16,9 @@
     # unprivileged users
     uidmap:                 present
 
+    # for the Ansible module ``lxc_container``
+    python-lxc:             present
+
     # note: we do not need:
     # * ``lxcfs``: was required for Linux < 4.6 which had no support for
     #   cgroup namespaces

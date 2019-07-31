@@ -129,12 +129,10 @@
 
 - name: "{{ container_name }} : create container"
   register: lxc_create_result
-  command: >
-    lxc-create
-      --name '{{ container_name }}'
-      {{ container_conf.create_args }}
-  args:
-    creates: "{{ container_user_home }}/{{ container_name }}"
+  lxc_container:
+    name: "{{ container_name }}"
+    template: "{{ container_conf.template }}"
+    template_options: "{{ container_conf.template_options }}"
   become: yes
   become_user: "{{ container_user }}"
 
