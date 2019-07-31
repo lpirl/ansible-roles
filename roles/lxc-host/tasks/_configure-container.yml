@@ -2,9 +2,9 @@
   assert:
     that:
       - "container_name | default('') | string != ''"
-      - "container_conf.cidr4 | string | regex_search('[./0-9]+')
+      - "container_conf.subnet4 | string | regex_search('[./0-9]+')
          ==
-         container_conf.cidr4 | string"
+         container_conf.subnet4 | string"
 
 
 
@@ -19,7 +19,8 @@
       allow-hotplug {{ container_bridge }}
       auto {{ container_bridge }}
       iface {{ container_bridge }} inet static
-        address {{ container_conf.cidr4 }}
+        address {{ container_conf.subnet4 | ipaddr('254') }}
+        mtu 9000
         bridge_fd 0
         bridge_stp off
         bridge_maxwait 0

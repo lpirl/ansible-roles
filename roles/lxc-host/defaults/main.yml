@@ -23,14 +23,14 @@ lxc_containers:
   # /!\ TODO: my config, move away from role defaults
 
   rproxy:
-    cidr4: 10.10.1.1/24
+    subnet4: 10.10.1.0/24
 
   #~ drop:
     #~ cidr4: 10.10.2.1/24
     #~ subnet: "fd01::/16"
 
   test:
-    cidr4: 10.10.3.1/24
+    subnet4: 10.10.3.0/24
 
 # /!\ will be deleted permanently, including configuration, network, etc.
 lxc_containers_to_delete_permanently:
