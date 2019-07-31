@@ -16,7 +16,7 @@
     # unprivileged users
     uidmap:                 present
 
-    # for the Ansible module ``lxc_container``
+    # required by Ansible module ``lxc_container``
     python-lxc:             present
 
     # note: we do not need:
@@ -35,6 +35,8 @@
     block: |
       kernel.unprivileged_userns_clone=1
 
+# we do not use a combination of notify/flush_handlers here since this
+# can cause troubles if there are pending handlers from other Playbooks
 - name: reload sysctl
   command: sysctl --system
   when: sysctl_config_result.changed

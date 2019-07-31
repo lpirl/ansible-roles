@@ -1,4 +1,4 @@
-- name: "{{ container_name }} : top container"
+- name: "{{ container_name }} : stop container"
   lxc_container:
     name: "{{ container_name }}"
     state: stopped
@@ -23,7 +23,7 @@
 
 
 
-- name: "{{ container_name }} : unconfigure access bridge
+- name: "{{ container_name }} : unconfigure access to bridge for user
          '{{ container_bridge }}'"
   lineinfile:
     path: /etc/lxc/lxc-usernet
