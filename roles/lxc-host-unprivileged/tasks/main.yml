@@ -1,3 +1,10 @@
+- name: get system load average (to compute container start delay)
+  register: cut_loadavg_result
+  command: cut -d" " -f3 /proc/loadavg
+  changed_when: false
+
+
+
 - name: un/install packages
   package:
     name: "{{ item.key }}"
@@ -111,7 +118,9 @@
       lxc.apparmor.profile = unconfined
 
       lxc.start.auto = 1
-      lxc.start.delay = 10
+      # computed from load average with a more or less arbitrary formula:
+      lxc.start.delay = {{ (cut_loadavg_result.stdout_lines.0
+                            | float * 10 + 1) | round(0, 'ceil') | int }}
 
       # TODO: systemd does this by itself, no?
       lxc.mount.entry = tmpfs tmp tmpfs defaults,size=1G
