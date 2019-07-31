@@ -1,5 +1,12 @@
-# This fails, I guess, when the user still runs a container. But that's
-# okay. Let's require the container to be stopped before removal.
+- name: "{{ container_name }} : top container"
+  lxc_container:
+    name: "{{ container_name }}"
+    state: stopped
+  become: yes
+  become_user: "{{ container_user }}"
+
+
+
 - name: "{{ container_name }} : remove user (and it's home)"
   user:
     name: "{{ container_user }}"
