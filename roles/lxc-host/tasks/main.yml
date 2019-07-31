@@ -123,7 +123,9 @@
       # resource limits
       # (https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html)
       #
+      # cap to 09 out of 100 slices (90%):
       #lxc.cgroup.cpu.max = 90 100
+
       #lxc.cgroup.cpu.weight = 1000
       #lxc.cgroup.io.weight = 1000
       #lxc.cgroup.memory.max = 1073741824
