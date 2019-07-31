@@ -1,17 +1,33 @@
 # kernel support for Apparmor via role ``managed_node``
 
+- name: stat Apparmor in sysfs
+  register: stat_apparmor_result
+  stat:
+    path: /sys/kernel/security/apparmor
+  failed_when: false
+  changed_when: false
+
 - name: query supported Linux security modules (to check for Apparmor)
   register: cat_lsm_result
   command: egrep '(^|,)apparmor(,|$)' /sys/kernel/security/lsm
   failed_when: false
   changed_when: false
+  when: not stat_apparmor_result.stat.exists
 
 - name: un/install packages for Apparmor
   package:
     name: "{{ item }}"
     state: "{{
-      'present' if cat_lsm_result.rc == 0 else 'absent'
+      'present'
+        if stat_apparmor_result.stat.exists or cat_lsm_result.rc == 0
+        else 'absent'
     }}"
   with_items:
     - apparmor
     - apparmor-profiles
+
+- name: enable Apparmor service
+  service:
+    name: apparmor
+    enabled: true
+  when: stat_apparmor_result.stat.exists or cat_lsm_result.rc == 0
