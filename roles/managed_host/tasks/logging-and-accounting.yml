@@ -1,5 +1,6 @@
 - name: install packages for basic logging functionality
-  package: name="{{ item }}"
+  package:
+    name: "{{ item }}"
   with_items:
     - rsyslog
     - logrotate
@@ -64,29 +65,32 @@
     compressoptions: -c '/opt/admintools/scripts/anonymize-log | gzip'
 
 
-- name: install packages for accounting
-  package: name="{{ item }}" state=present
+- name: "{{ 'remove' if not use_process_accounting else 'install' }}
+         packages for accounting"
+  package:
+    name: "{{ item }}"
+    state: "{{ 'present' if use_process_accounting else 'absent' }}"
   with_items:
     - acct
+    - auditd
     - sysstat
-  when: use_process_accounting
 
-- name: uninstall packages for accounting
-  package: name="{{ item }}" state=absent
+# no need to disable the services here because the services will be
+# uninstalled in the previous step if not ``use_process_accounting``
+- name: enable services for accounting
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
   with_items:
     - acct
-    - sysstat
-  when: not use_process_accounting
-
-- name: enable accounting services
-  service: name="{{ item }}" enabled=yes state=started
-  with_items:
-    - acct
+    - auditd
     - sysstat
   when: use_process_accounting
 
 - name: enable sysstat in it's configuration file
-  lineinfile: dest=/etc/default/sysstat
-              line='ENABLED="true"'
-              regexp='^ENABLED\s*=.*'
-  when: use_process_accounting
+  lineinfile:
+    dest: /etc/default/sysstat
+    line: 'ENABLED="true"'
+    regexp: '^ENABLED\s*=.*'
+    state: "{{ 'present' if use_process_accounting else 'absent' }}"
