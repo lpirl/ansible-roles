@@ -1,17 +1,15 @@
 - name: install packages for basic logging functionality
   package:
-    name: "{{ item }}"
-  with_items:
-    - rsyslog
-    - logrotate
+    name:
+      - rsyslog
+      - logrotate
 
 - name: "{{ 'install' if use_logcheck else 'uninstall' }} logcheck"
   apt:
-    package: "{{ item }}"
+    package:
+      - logcheck
+      - logcheck-database
     state: "{{ 'present' if use_logcheck else 'absent'}}"
-  with_items:
-    - logcheck
-    - logcheck-database
 
 - name: do not use FQDN in subject of logcheck emails
   lineinfile: line="FQDN=0"
@@ -72,7 +70,6 @@
     state: "{{ 'present' if use_process_accounting else 'absent' }}"
   with_items:
     - acct
-    - auditd
     - sysstat
 
 # no need to disable the services here because the services will be
@@ -84,9 +81,28 @@
     enabled: yes
   with_items:
     - acct
-    - auditd
     - sysstat
   when: use_process_accounting
+
+
+
+- name: "{{ 'enable' if use_process_accounting and
+                        ansible_virtualization_type != 'lxc'
+                    else 'disable' }} syscall auditing"
+  package:
+    name: auditd
+    state: "{{ 'present' if  use_process_accounting and
+                            ansible_virtualization_type != 'lxc'
+                        else 'absent' }}"
+
+- name: enable auditd
+  service:
+    name: auditd
+    state: started
+    enabled: yes
+  when: use_process_accounting and ansible_virtualization_type != 'lxc'
+
+
 
 - name: enable sysstat in it's configuration file
   lineinfile:
