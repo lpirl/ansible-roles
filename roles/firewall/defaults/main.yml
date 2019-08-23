@@ -93,7 +93,7 @@ ip46tables_rules:
   "allow SSH connections":
     chain: ansible-input
     protocol: tcp
-    destination_port: "{{ firewall_ssh_port }}"
+    destination_port: "{{ firewall_ssh_port | string }}"
     ctstate: NEW
     syn: match
     jump: ACCEPT
@@ -237,9 +237,9 @@ fail2ban_jails_auto_enable:
 
   # deactivate separate RBL/SASL jails, since their filters are included
   # in the Postfix jail in mode "aggressive" anyway
-  postfix-rbl: false
-  postfix-sasl: false
+  postfix-rbl: 'false'
+  postfix-sasl: 'false'
 
   sshd: pgrep sshd
   # ``sshd-ddos`` included in mode "aggressive" for jail ``sshd``:
-  sshd-ddos: false
+  sshd-ddos: 'false'

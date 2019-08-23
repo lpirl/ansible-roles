@@ -4,20 +4,19 @@
 - name: "{{ 'install' if postfix_dkim_keys else 'uninstall' }}
          packages required for DKIM"
   apt:
-    name: "{{ item }}"
+    name:
+      - opendkim
+      - opendkim-tools
     install_recommends: yes
     state: "{{ 'present' if postfix_dkim_keys else 'absent' }}"
-  with_items:
-    - opendkim
-    - opendkim-tools
 
 - name: enable opendkim service
   service: name=opendkim enabled=yes
-  when: postfix_dkim_keys
+  when: postfix_dkim_keys | bool
 
 - name: add user postfix to group opendkim
   user: name=postfix groups=opendkim append=yes
-  when: postfix_dkim_keys
+  when: postfix_dkim_keys | bool
 
 - name: make opendkim directory in postfix chroot
   file:
@@ -46,7 +45,7 @@
     SignHeaders: MIME-Version,In-Reply-To,References,From,Date,Message-ID,Subject,To,Cc
     KeyTable: "{{ postfix_dkim_keytable }}"
     SigningTable: "refile:{{ postfix_dkim_signingtable }}"
-  when: postfix_dkim_keys
+  when: postfix_dkim_keys | bool
   notify: restart opendkim
 
 - name: write signing table
@@ -110,7 +109,7 @@
   with_dict:
     SOCKET: "/var/spool/postfix/opendkim/opendkim.sock"
   notify: restart opendkim
-  when: postfix_dkim_keys
+  when: postfix_dkim_keys | bool
 
 - name: regenerate opendkim service file
   command: /lib/opendkim/opendkim.service.generate
@@ -142,5 +141,5 @@
   with_dict:
     smtpd_milters: "{{ postfix_extra_smtpd_milters | join(' ') }}"
     non_smtpd_milters: "{{ postfix_extra_non_smtpd_milters | join(' ') }}"
-  when: not postfix_dkim_keys
+  when: not postfix_dkim_keys | bool
   notify: restart postfix

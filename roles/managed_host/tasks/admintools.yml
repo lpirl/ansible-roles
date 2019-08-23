@@ -1,12 +1,21 @@
 - name: check out admintools git
   register: admintools_checkout
-  git: repo=https://github.com/lpirl/admintools.git
-       dest=/opt/admintools
-       force=yes
+  git:
+    repo: https://github.com/lpirl/admintools.git
+    dest: /opt/admintools
+    version: master
+    force: yes
 
 - name: ensure admintools is owned by root
-  file: path=/opt/admintools owner=root group=root recurse=yes
+  file:
+    path: /opt/admintools
+    owner: root
+    group: root
+    recurse: yes
 
 - name: ensure permissions for admintools
-  file: path=/opt/admintools mode=go=u,go-w,a-s recurse=yes
+  file:
+    path: /opt/admintools
+    mode: go=u,go-w,a-s
+    recurse: yes
   changed_when: admintools_checkout is changed

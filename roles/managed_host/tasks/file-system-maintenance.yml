@@ -32,9 +32,9 @@
 
     # arbitrary but fixed:
     month: "*"
-    day: 18
-    hour: 3
-    minute: 0
+    day: "18"
+    hour: "3"
+    minute: "0"
 
     # We use Bash's random number generator instead of Ansible's, so
     # the test is not reported as "changed" every time the Playbook is
