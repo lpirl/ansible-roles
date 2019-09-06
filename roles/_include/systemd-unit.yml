@@ -1,0 +1,77 @@
+# either adds sysetmd unit (create, enables, starts) or removes (stops,
+# disables, deletes) it
+#
+# example:
+#
+#   - name: configure my.service
+#     include_tasks: ../../_include/systemd-unit.yml
+#     vars:
+#       name: my.service
+#       state: present
+#       start: no
+#       content: "{{ lookup('file', 'my.service') }}"
+
+- name: check variables needed to either add or remove systemd units
+  assert:
+    that:
+
+    # https://www.freedesktop.org/software/systemd/man/systemd.unit.html
+    - name is match('[^/]+\\.(service|socket|device|mount|automount|swap|target|path|timer|slice|scope)')
+
+    - state | default('present') in ['absent', 'present']
+
+    # e.g., populated with ``lookup('file', 'foo.txt')``
+    - content | default(false, true)
+
+    - start | default(true) in [true, false]
+
+- name: "add configuration for '{{ name }}'"
+  block:
+
+    - name: "add unit file '{{ name }}'"
+      register: add_unit_file_results
+      blockinfile:
+        dest: "/etc/systemd/system/{{ name }}"
+        create: yes
+        mode: 644
+        block: "{{ content }}"
+
+    - name: reload systemd
+      systemd:
+        daemon_reload: yes
+      when: add_unit_file_results.changed
+
+    - name: "enable unit '{{ name }}'"
+      systemd:
+        name: "{{ name }}"
+        enabled: yes
+
+    - name: "start unit '{{ name }}'"
+      systemd:
+        name: "{{ name }}"
+        state: started
+      when: start | default(true)
+
+  when: state | default('present') == 'present'
+
+- name: "remove configuration for '{{ name }}'"
+  block:
+
+    - name: "disable and stop unit '{{ name }}'"
+      systemd:
+        name: "{{ name }}"
+        state: stopped
+        enabled: no
+
+    - name: "remove unit file '{{ name }}'"
+      register: remove_unit_file_results
+      file:
+        dest: "/etc/systemd/system/{{ name }}"
+        state: absent
+
+    - name: reload systemd
+      systemd:
+        daemon_reload: yes
+      when: remove_unit_file_results.changed
+
+  when: state | default('present') == 'absent'
