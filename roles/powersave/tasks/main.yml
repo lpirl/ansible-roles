@@ -1,27 +1,21 @@
-- name: check if TLP is installed
-  register: tlp_installed_check
-  shell: type tlp-stat
-  failed_when: false
-  changed_when: false
+- import_tasks: set-facts.yml
 
-- name: uninstall laptop-mode-tools (TLP present)
-  package: name=laptop-mode-tools state=absent
-  when: tlp_installed_check.rc == 0
 
-- name: install laptop-mode-tools (TLP absent)
-  package: name=laptop-mode-tools state=present
-  when: tlp_installed_check.rc != 0
 
-- name: enable & start laptop-mode
-  service: name=laptop-mode enabled=yes state=started
-  when: tlp_installed_check.rc != 0
+- import_tasks: laptop-mode.yml
 
-- name: configure laptop-mode-tools
-  lineinfile: dest=/etc/laptop-mode/laptop-mode.conf
-              regexp="^#*\s*{{ item.key }}\s*"
-              line="{{ item.key }}={{ item.value }}"
-              state=present
-  with_dict: "{{ laptop_mode_global_options |
-                 combine(laptop_mode_extra_options | default({})) }}"
-  when: tlp_installed_check.rc != 0
-  notify: restart laptop-mode
+
+
+- name: add udev rule to stop cron/anacron/etc. on battery
+  blockinfile:
+    dest: /etc/udev/rules.d/50-disable-cron-etc-services-on-battery.rules
+    create: yes
+    block: "{{ lookup('file',
+                      '50-disable-cron-etc-services-on-battery.rules') }}"
+  notify: restart udevd
+
+- name: remove udev rule to stop cron/anacron/etc. on battery
+  file:
+    path: /etc/udev/rules.d/50-disable-cron-etc-services-on-battery.rules
+    state: absent
+  when: not has_battery
