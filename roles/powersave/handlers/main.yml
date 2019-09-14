@@ -7,3 +7,7 @@
   service:
     name: systemd-udevd
     state: restarted
+
+- name: reload systemd
+  systemd:
+    daemon_reload: yes

@@ -1,0 +1,13 @@
+- name: add udev rule to stop cron/anacron/etc. on battery
+  blockinfile:
+    dest: /etc/udev/rules.d/50-disable-cron-etc-services-on-battery.rules
+    create: yes
+    block: "{{ lookup('file',
+                      '50-disable-cron-etc-services-on-battery.rules') }}"
+  notify: restart udevd
+
+- name: remove udev rule to stop cron/anacron/etc. on battery
+  file:
+    path: /etc/udev/rules.d/50-disable-cron-etc-services-on-battery.rules
+    state: absent
+  when: not has_battery
