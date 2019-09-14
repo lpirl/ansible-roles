@@ -4,10 +4,10 @@
     state: absent
 
 - name: remove old systemd service priorities override files
-        (now called ``ansible.conf``)
+        (now called ``ansible-priorities.conf``)
   shell: >
     grep -lr Nice /etc/systemd/system
-    | grep override
+    | egrep 'override|ansible.conf'
     | xargs --no-run-if-empty rm
 
 - name: remove old systemd fstrim override file
