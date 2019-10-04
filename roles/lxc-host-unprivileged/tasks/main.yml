@@ -138,8 +138,7 @@
       lxc.start.delay = {{ (cut_loadavg_result.stdout_lines.0
                             | float * 10 + 1) | round(0, 'ceil') | int }}
 
-      # TODO: systemd does this by itself, no?
-      lxc.mount.entry = tmpfs tmp tmpfs defaults,size=1G
+      lxc.mount.entry = tmpfs tmp tmpfs defaults,size=100M
 
       lxc.net.0.type = veth
       lxc.net.0.name = eth0
