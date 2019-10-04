@@ -1,2 +1,13 @@
 - name: restart laptop-mode
-  service: name=laptop-mode state=restarted
+  service:
+    name: laptop-mode
+    state: restarted
+
+- name: restart udevd
+  service:
+    name: systemd-udevd
+    state: restarted
+
+- name: reload systemd
+  systemd:
+    daemon_reload: yes

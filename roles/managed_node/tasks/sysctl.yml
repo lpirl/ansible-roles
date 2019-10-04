@@ -1,28 +1,36 @@
 - name: add configuration files for sysctl (kernel parameters)
   file:
-    src: "/opt/admintools/etc/sysctl.d/{{ item.key }}"
+    src: "{{ ('/opt/admintools/etc/sysctl.d/' + item.key)
+            if item.key != 'absent' else none }}"
     dest: "/etc/sysctl.d/{{ item.key }}"
-    state: "{{ item.value }}"
-  with_dict:
-    90-hardening.conf: link
-    80-net-tuning.conf: link
-    70-memory-management.conf: link
-    50-reboot-on-panic.conf: link
-
-    # deprecated Feb 2019
-    70-numa-tuning.conf: absent
-
+    state: link
+  when: item.value == "link"
+  with_dict: "{{ sysctld_files_from_admintools_to_link
+                 | combine(sysctld_files_from_admintools_to_link_extra) }}"
   notify: sysctl reload
 
+- name: disable configuration files for sysctl (kernel parameters)
+  file:
+    dest: "/etc/sysctl.d/{{ item.key }}"
+    state: absent
+  when: item.value == "absent"
+  with_dict: "{{ sysctld_files_from_admintools_to_link
+                 | combine(sysctld_files_from_admintools_to_link_extra) }}"
+  notify: sysctl reload
+
+
+
 - name: add hotfix for CVE-2016-5696 for vulnerable Kernels
-  file: src=/opt/admintools/etc/sysctl.d/CVE-2016-5696.conf
-        dest=/etc/sysctl.d/CVE-2016-5696.conf
-        state=link
+  file:
+    src: /opt/admintools/etc/sysctl.d/CVE-2016-5696.conf
+    dest: /etc/sysctl.d/CVE-2016-5696.conf
+    state: link
   when: ansible_kernel is version_compare('4.7', '<')
   notify: sysctl reload
 
 - name: disable hotfix for CVE-2016-5696 for patched Kernels
-  file: dest=/etc/sysctl.d/CVE-2016-5696.conf
-        state=absent
+  file:
+    dest: /etc/sysctl.d/CVE-2016-5696.conf
+    state: absent
   when: ansible_kernel is version_compare('4.7', '>=')
   notify: sysctl reload

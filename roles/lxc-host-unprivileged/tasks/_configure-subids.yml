@@ -1,0 +1,66 @@
+- name: "{{ container_name }} : get range of {{ item }}s to add"
+  register: get_range_result
+  shell: "grep '{{ container_user }}' '/etc/{{ item }}'
+          | cut -d: -f 2-3"
+  changed_when: false
+
+
+
+- name: "{{ container_name }} : sanity check detected range of
+         {{ item }}s"
+  assert:
+    that:
+      - "get_range_result.stdout_lines | length == 1"
+      - "get_range_result.stdout_lines.0 | regex_search('[0-9]+:[0-9]+')
+         ==
+         get_range_result.stdout_lines.0"
+    fail_msg: "could not detect {{ item }}s to add to
+               {{ container_user }} (expected exactly one range,
+                got '{{ get_range_result.stdout_lines }}')"
+
+
+
+- name: "{{ container_name }} : create {{ item }}s configuration"
+  lineinfile:
+    dest: "{{ container_user_home}}/.config/lxc/idmaps.conf"
+    create: yes
+    regexp: '\s*lxc\.idmap\s*=\s*{{ item.3 }}.*'
+    line: >-
+      lxc.idmap = {{ item.3 }} 0 {{
+        get_range_result.stdout_lines.0 | regex_replace(':', ' ')
+      }}
+  become: yes
+  become_user: "{{ container_user }}"
+
+
+
+########################################################################
+# BEGIN How to do this elegantly?
+#
+
+- name: "{{ container_name }} : get all intermediate directories to
+         '{{ container_user_home }}'"
+  set_fact:
+    container_user_home_intermediate_dirs: "{{
+      ['/'] if container_user_home_bits == '' else
+        container_user_home_intermediate_dirs
+        + [container_user_home_intermediate_dirs[-1]
+        + container_user_home_bits
+        + '/']
+    }}"
+  with_items: "{{ container_user_home.split('/') }}"
+  loop_control:
+    loop_var: container_user_home_bits
+
+- name: "{{ container_name }} : ensure access to lxc directories"
+  include_tasks: _ensure-access.yml
+  vars:
+    dir: "{{ container_user_home_intermediate_dir }}"
+    uid: "{{ get_range_result.stdout_lines.0.split(':').0 }}"
+  with_items: "{{ container_user_home_intermediate_dirs }}"
+  loop_control:
+    loop_var: container_user_home_intermediate_dir
+
+#
+# END How to do this elegantly?
+########################################################################

@@ -266,10 +266,10 @@ ssh_server_options:
   PrintLastLog: "yes"
 
   # close sessions after this many unanswered alive messages
-  ClientAliveCountMax: 10
+  ClientAliveCountMax: 2
 
   # seconds after which unanswered alive message time out
-  ClientAliveInterval: 60
+  ClientAliveInterval: 10
 
   # check modes of files strictly
   StrictModes: "yes"

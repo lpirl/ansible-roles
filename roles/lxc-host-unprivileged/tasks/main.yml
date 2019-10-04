@@ -1,0 +1,177 @@
+- name: get system load average (to compute container start delay)
+  register: cut_loadavg_result
+  command: cut -d" " -f3 /proc/loadavg
+  changed_when: false
+
+
+
+- name: un/install packages
+  package:
+    name: "{{ item.key }}"
+    state: "{{ item.value }}"
+  with_dict:
+    lxc:                    present
+    bridge-utils:           present
+
+    # provides cgroups to non-root users
+    libpam-cgfs:            present
+
+    # provides ``setfacl`` command
+    acl:                    present
+
+    # required by ``lxc-create`` to create (u|g)id mappings for
+    # unprivileged users
+    uidmap:                 present
+
+    # required by Ansible module ``lxc_container``
+    python-lxc:             present
+
+    # note: we do not need:
+    # * ``lxcfs``: was required for Linux < 4.6 which had no support for
+    #   cgroup namespaces
+    # * ``libpam-cgroup``: which is a deprecated component of
+    #   ``libcgroup/group-bin``
+
+
+
+- name: set sysctl configuration
+  register: sysctl_config_result
+  blockinfile:
+    dest: /etc/sysctl.d/80-lxc-host-unprivileged.conf
+    create: yes
+    block: |
+      kernel.unprivileged_userns_clone=1
+
+# we do not use a combination of notify/flush_handlers here since this
+# can cause troubles if there are pending handlers from other Playbooks
+- name: reload sysctl
+  command: sysctl --system
+  when: sysctl_config_result.changed
+
+
+
+- name: create group for users which will run unprivileged containers
+  group:
+    name: "{{ lxc_group }}"
+    state: present
+
+
+
+# https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html
+- name: configure ``libpam-cgfs`` which controllers to provide
+  lineinfile:
+    dest: "/etc/pam.d/{{ item }}"
+    regexp: '^session\s+optional\s+pam_cgfs\.so\s.*'
+    line: >
+      session	optional	pam_cgfs.so -c
+      freezer,memory,cpu,cpuset,cpuacct,unified,name=systemd
+  with_items:
+    - common-session
+    - common-session-noninteractive
+
+
+
+- name: setup global lxc configuration directory for unprivileged
+        containers
+  file:
+    path: "{{ item }}"
+    group: "{{ lxc_group }}"
+    mode: 0750
+    state: directory
+  with_items:
+    - /etc/lxc
+    - /etc/lxc/unprivileged
+
+
+
+# Note on how we write LXC configuration files:
+# We do not use ``lineinfile`` the configuration parameters in a
+# dictionary for the LXC configurations, because some keys are allowed
+# multiple times (e.g., ``lxc.mount.entry``) and thus, detecting the
+# right key to replace would be complex and error-prone.
+
+
+
+- name: write common lxc container configuration
+  blockinfile:
+    dest: "/etc/lxc/unprivileged/common.conf"
+    create: yes
+    group: "{{ lxc_group }}"
+    mode: 0640
+    marker: "# {mark} ANSIBLE MANAGED main common configuration"
+    insertbefore: BOF
+    block: |
+      # common configuration for all containers
+      #
+      # include with::
+      #
+      #   lxc.include = /etc/lxc/unprivileged/common.conf
+      #
+      # at top of individual container configuration files.
+
+      lxc.include = /usr/share/lxc/config/common.conf
+      lxc.include = /usr/share/lxc/config/userns.conf
+      lxc.include = /etc/lxc/default.conf
+
+      # unprivileged users are not allowed to create apparmor namespaces,
+      # we hence cannot use apparmor
+      lxc.apparmor.profile = unconfined
+
+      lxc.start.auto = 1
+      # computed from load average with a more or less arbitrary formula:
+      lxc.start.delay = {{ (cut_loadavg_result.stdout_lines.0
+                            | float * 10 + 1) | round(0, 'ceil') | int }}
+
+      # TODO: systemd does this by itself, no?
+      lxc.mount.entry = tmpfs tmp tmpfs defaults,size=1G
+
+      lxc.net.0.type = veth
+      lxc.net.0.name = eth0
+      lxc.net.0.flags = up
+      lxc.net.0.mtu = 9000
+      #TODO: lxc.net.0.ipv6.gateway = auto
+
+      # resource limits
+      # (https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html)
+      #
+      # cap to 09 out of 100 slices (90%):
+      #lxc.cgroup.cpu.max = 90 100
+
+      #lxc.cgroup.cpu.weight = 1000
+      #lxc.cgroup.io.weight = 1000
+      #lxc.cgroup.memory.max = 1073741824
+
+
+
+- name: configure containers
+  include_tasks: _configure-container.yml
+  vars:
+    container_name: "{{ lxc_container_item.key }}"
+    container_conf: "{{
+      lxc_container_defaults
+      | combine(lxc_container_defaults_extra | default({}))
+      | combine(lxc_container_item.value)
+    }}"
+
+    # some more variables for convenience:
+    container_user: "lxc-{{ container_name }}"
+    container_bridge: "lxc-br-{{ container_name }}"
+
+  with_dict: "{{ lxc_containers }}"
+  loop_control:
+    loop_var: lxc_container_item
+    label: "{{ lxc_container_item.key }}"
+
+
+
+- name: unconfigure containers
+  include_tasks: _unconfigure-container.yml
+  vars:
+
+    # variables for convenience:
+    container_user: "lxc-{{ container_name }}"
+    container_bridge: "lxc-br-{{ container_name }}"
+
+  with_items: "{{ lxc_containers_to_delete_permanently }}"
+  loop_control:
+    loop_var: container_name

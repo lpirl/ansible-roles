@@ -1,0 +1,13 @@
+[Unit]
+Description=regularly scrub btrfs file systems
+
+[Timer]
+
+# balance (Jan) and scrub (Apr, Jul, Oct) in turns
+# (a balance will touch all data, so we do not need to scrub as well)
+OnCalendar=*-04,07,10-07 03:00:00
+
+Persistent=true
+
+[Install]
+WantedBy=timers.target

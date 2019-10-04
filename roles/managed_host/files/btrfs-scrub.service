@@ -1,0 +1,22 @@
+[Unit]
+Description=scrub all btrfs file systems
+ConditionCapability=CAP_SYS_ADMIN
+ConditionCapability=CAP_SYS_RAWIO
+
+[Service]
+Type=exec
+KillMode=none
+ExecStart=/bin/sh -c '\
+  grep btrfs /proc/mounts \
+  | cut -d" " -f2 \
+  | xargs -L1 \
+    btrfs scrub start -B \
+'
+ExecStop=/bin/sh -c '\
+  grep btrfs /proc/mounts \
+  | cut -d" " -f2 \
+  | xargs -L1 \
+    btrfs scrub cancel \
+'
+IOSchedulingClass=idle
+Nice=19

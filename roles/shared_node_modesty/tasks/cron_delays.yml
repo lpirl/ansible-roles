@@ -1,28 +1,14 @@
-- name: create shell scripts to delay cron tasks
-  lineinfile:
-    dest: /etc/cron.{{ item }}/000-delay
-    line: '#!/bin/sh'
-    insertbefore: BOF
-    create: yes
-    mode: 500
-
-  with_items:
-     - hourly
-     - daily
-     - weekly
-     - monthly
-
 - name: add delay to cron tasks
-  lineinfile:
+  copy:
     dest: /etc/cron.{{ item.key }}/000-delay
-    regexp: '^sleep '
-    line: >
+    mode: 500
+    content: |
+      #!/bin/sh
       sleep $(
         python -c 'import random as r; print(
-          r.randint({{ item.min }}, {{ item.max }})
+          r.randint({{ item.value.min }}, {{ item.value.max }})
         )'
       )m
-
   with_dict:
     hourly:
       min: 15

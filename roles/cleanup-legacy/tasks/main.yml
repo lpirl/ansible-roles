@@ -1,0 +1,16 @@
+- name: remove old fstrim cron entry (now via systemd timer)
+  cron:
+    name: fstrim
+    state: absent
+
+- name: remove old systemd service priorities override files
+        (now called ``ansible-priorities.conf``)
+  shell: >
+    grep -lr Nice /etc/systemd/system
+    | egrep 'override|ansible.conf'
+    | xargs --no-run-if-empty rm
+
+- name: remove old systemd fstrim override file
+  file:
+    dest: /etc/systemd/system/fstrim.service.d/override.conf
+    state: absent

@@ -1,0 +1,5 @@
+SUBSYSTEM=="power_supply", ATTR{online}=="0", RUN+="/bin/systemctl stop cron.service"
+SUBSYSTEM=="power_supply", ATTR{online}=="1", RUN+="/bin/systemctl start cron.service"
+
+SUBSYSTEM=="power_supply", ATTR{online}=="0", RUN+="/bin/systemctl stop anacron.service"
+SUBSYSTEM=="power_supply", ATTR{online}=="1", RUN+="/bin/systemctl start anacron.service"

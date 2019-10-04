@@ -1,0 +1,8 @@
+- name: check if remote machine knows about at least one battery
+  register: stat_bat_result
+  stat:
+    path: /sys/class/power_supply/BAT0
+
+- name: set fact if remote machine knows about at least one battery
+  set_fact:
+    has_battery: stat_bat_result.stat.exists

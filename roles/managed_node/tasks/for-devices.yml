@@ -1,12 +1,19 @@
-- name: check if this the remote machine runs Armbian
-  stat: path=/etc/armbian.txt
-  register: stat_armbian_txt_stat_result
+- name: install microcode packages
+  package:
+    name: "{{ item.key }}"
+    state: "{{ 'present' if item.value else 'absent' }}"
+  with_dict:
+    amd64-microcode: "{{ 'AuthenticAMD' in ansible_processor }}"
+    intel-microcode: "{{ 'GenuineIntel' in ansible_processor }}"
+
+
 
 - name: install firmware packages
   package:
     name: firmware-linux
     state: present
-  when: not stat_armbian_txt_stat_result.stat.exists
+  when: not armbian
+
 
 
 - name: install ``irqbalance`` on multi-core machines
@@ -20,6 +27,7 @@
     state: started
     enabled: yes
   when: ansible_processor_vcpus > 1
+
 
 
 - name: get Western Digital drives present

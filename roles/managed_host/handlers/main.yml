@@ -15,7 +15,7 @@
 
 - name: restart opendkim
   service: name=opendkim state=restarted
-  when: postfix_dkim_keys
+  when: postfix_dkim_keys | bool
 
 - name: reload systemd daemon
   command: systemctl daemon-reload

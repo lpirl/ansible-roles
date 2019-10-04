@@ -33,7 +33,6 @@
     loop_var: section
   vars:
     config_file: "{{ fail2ban_config_file }}"
-  notify: reload fail2ban
 
 - name: enable and start fail2ban
   service:
@@ -49,7 +48,6 @@
                  combine(fail2ban_jails_extra_auto_enable | default({})) }}"
   loop_control:
     loop_var: fail2ban_jail_auto_enable
-  notify: reload fail2ban
 
 - name: processing static Fail2ban jail configuration
   include_tasks: _fail2ban-write-config-section.yml
@@ -59,7 +57,6 @@
     loop_var: section
   vars:
     config_file: "{{ fail2ban_jails_config_file }}"
-  notify: reload fail2ban
 
 
 
@@ -78,4 +75,3 @@
   vars:
     config_file: "{{ fail2ban_jails_config_file }}"
   when: get_ssh_port_results is success
-  notify: reload fail2ban

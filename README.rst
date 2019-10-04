@@ -1,9 +1,13 @@
-This repository contains Ansible roles for Debian(-based) systems.
+some Ansible roles
+==================
+
+This repository contains Ansible roles, mainly for Debian(-based)
+systems.
 
 The roles cover most of my administrative tasks and configurations
-which have to be fulfilled/applied more than once or twice.
+(which have to be fulfilled/applied more than once).
 
-The roles are intended to be somewhat generic and reusable,
+The roles are intended to be somewhat reusable,
 but please do not apply them blindly.
 Make sure you read and understand a role before running it.
 Otherwise, you'll possibly loose something you love.
@@ -14,13 +18,11 @@ Feel free to read/try/use/extend them
 and to contact me if you have any questions.
 
 The most intensively developed, used and maintained role is
-``managed_host``. You (should) find README files in the roles'
-directories.
+``managed_host``.
+You (should) find README files in the roles' directories.
+There are also
+`a few random notes on (intended) conventions <conventions.rst>`__.
 
-For the most part, the roles work by **modifying default configuration
-files** of Debian installations **instead of replacing them** with
-files or files created from templates. This "design" was required
-because the roles were developed for already configured systems with
-existing different configurations. Hence, configuration files could not
-be replaced, but had to be edited by the roles; ideally without
-wracking the other existing configuration symbols.
+Configuration files which are not used by these roles but maybe
+interesting for others as well are kept in
+`this repository <https://gitlab.com/lpirl/dotfiles>`__.

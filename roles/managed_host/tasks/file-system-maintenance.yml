@@ -19,27 +19,64 @@
           create=yes
   when: disk_space_alert_percentage >= 0
 
-- name: install file system utilities
+
+
+- name: install file system utilities (to get fstrim)
   package:
     name: "{{ item }}"
     state: present
   with_items:
     - util-linux
 
-- name: set up regular fstrim
-  cron:
-    name: fstrim
+- name: check for systemd fstrim units
+  register: grep_fstrim_units_result
+  shell: systemctl list-units --all | grep fstrim
+  failed_when: grep_fstrim_units_result.rc not in [0, 1]
+  changed_when: false
 
-    # arbitrary but fixed:
-    month: "*"
-    day: 18
-    hour: 3
-    minute: 0
+- name: enable (distro-provided units for) regular fstrim
+  systemd:
+    name: fstrim.timer
+    enabled: yes
+  when: grep_fstrim_units_result.rc == 0
 
-    # We use Bash's random number generator instead of Ansible's, so
-    # the test is not reported as "changed" every time the Playbook is
-    # run.
-    job: bash -c 'sleep $[ ( $RANDOM \% 60 ) ]m;
-                  ionice -c3
-                    nice -n15
-                      /sbin/fstrim -a' &
+- name: enable (our units for) regular fstrim
+  include_tasks: ../../_include/systemd-unit.yml
+  vars:
+    name: "{{ item.key }}"
+    start: "{{ item.value }}"
+    content: "{{ lookup('file', item.key) }}"
+    state: "{{ 'present' if grep_fstrim_units_result.rc == 1
+              else 'absent' }}"
+  with_dict: # unit: start
+    fstrim.service: no
+    fstrim.timer: yes
+  when: grep_fstrim_units_result.rc == 1
+
+
+
+- name: check for btrfs file systems
+  register: grep_btrfs_from_mounts_results
+  command: grep btrfs -c /proc/mounts
+  failed_when: grep_btrfs_from_mounts_results.rc not in [0, 1]
+  changed_when: false
+
+- name: un/install btrfs file system utilities
+  package:
+    name: btrfs-progs
+    state: "{{ 'present' if grep_btrfs_from_mounts_results.rc == 0
+              else 'absent' }}"
+
+- name: configure systemd units for btrfs maintenance
+  include_tasks: ../../_include/systemd-unit.yml
+  vars:
+    name: "{{ item.key }}"
+    start: "{{ item.value }}"
+    content: "{{ lookup('file', item.key) }}"
+    state: "{{ 'present' if grep_btrfs_from_mounts_results.rc == 0
+              else 'absent' }}"
+  with_dict: # unit: start
+    btrfs-balance.service: no
+    btrfs-balance.timer: yes
+    btrfs-scrub.service: no
+    btrfs-scrub.timer: yes
