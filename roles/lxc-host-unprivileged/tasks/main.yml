@@ -26,7 +26,7 @@
     # required by Ansible module ``lxc_container``
     python-lxc:             present
 
-    # note: we do not need:
+    # note: we do *not* need:
     # * ``lxcfs``: was required for Linux < 4.6 which had no support for
     #   cgroup namespaces
     # * ``libpam-cgroup``: which is a deprecated component of
@@ -65,6 +65,22 @@
     line: >
       session	optional	pam_cgfs.so -c
       freezer,memory,cpu,cpuset,cpuacct,unified,name=systemd
+  with_items:
+    - common-session
+    - common-session-noninteractive
+
+
+
+- name: make umask for group which will run the containers less strict
+        (workaround for https://github.com/lxc/lxc/issues/3100)
+  blockinfile:
+    dest: "/etc/pam.d/{{ item }}"
+    marker: "# {mark} ANSIBLE MANAGED less strict umask for unprivileged containers"
+    insertbefore: EOF
+    block: |
+      # workaround for https://github.com/lxc/lxc/issues/3100
+      session [default=1 success=ignore] pam_succeed_if.so quiet user ingroup {{ lxc_group }}
+      session optional pam_umask.so umask=022
   with_items:
     - common-session
     - common-session-noninteractive

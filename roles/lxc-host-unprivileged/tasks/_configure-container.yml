@@ -113,7 +113,7 @@
       # Hence, we drop the configuration file assembled by ``lxc-start``
       # and set all options we need manually (using Ansible).
       lxc.include = /etc/lxc/unprivileged/common.conf
-      lxc.include = {{ container_user_home}}/.config/lxc/idmaps.conf
+      lxc.include = {{ container_user_home }}/.config/lxc/idmaps.conf
 
   become: yes
   become_user: "{{ container_user }}"
