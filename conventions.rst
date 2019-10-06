@@ -22,6 +22,10 @@ how to modify configurations
     * since it creates nice "managed by Ansible" markers by itself
     * instead of using the ``copy`` module
     * load contents with, e.g., ``{{ lookup('file', '/foo.txt') }}``
+    * also, |mods| are still possible
+
+      * by editing the file outside the block
+
     * # let's see if this is feasible
 
 * if we *cannot* add our changes to a separate file
@@ -31,6 +35,10 @@ how to modify configurations
 
     * since it can deal with pre-existing configurations
       (i.e., lines in the file)
+
+      * and |mods| are still possible
+
+    * hence, keep the (Ansible) configuration options in (a) map(s)
 
 task scheduling
 ===============
@@ -53,3 +61,5 @@ task scheduling
 
   * maybe systemd override files which add ``ExecStartPre`` to wait
     for AC
+
+.. |mods| replace:: manual modifications on the remote machine
