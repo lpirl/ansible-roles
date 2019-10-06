@@ -300,9 +300,11 @@ ssh_client_and_server_deprecated_options:
 
 extra_service_priorities: {}
 service_priorities:
+  fail2ban: -10
   ssh: -5
   openntpd: 2
   smartd: 2
   lxc: 4
+  lxd: 4
   atd: 6
   cron: 8
