@@ -43,6 +43,7 @@
   when: release not in no_security_repo_releases
         and '-' not in suite
         and '/' not in suite
+  notify: update apt cache
 
 - name: add security repository to file in /etc/apt/sources.list.d
         (new format)

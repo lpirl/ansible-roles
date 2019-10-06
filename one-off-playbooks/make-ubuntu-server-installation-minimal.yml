@@ -1,0 +1,178 @@
+# You should run this only once and then re-install the packages you
+# need.
+#
+# Hence, you probably only want to use this if you know which packages
+# you need to install to get a somewhat usable operating system from a
+# minimal installation.
+#
+# This Playbook does not actually claim to make the installation really
+# minimal but a bit less bloated.
+
+- name: make an Ubuntu server installation (quite) minimal
+  hosts: you_need_to_set_this_manually
+  become: yes
+  tasks:
+
+    - name: remove some unneeded packages that come with Ubuntu
+      package:
+        state: absent
+        name:
+          - accountsservice
+          - at
+          - apport
+          - apport-symptoms
+          - bc
+          - bcache-tools
+          - bolt
+          - byobu
+          - cloud-guest-utils
+          - cloud-init
+          - cloud-initramfs-copymods
+          - cloud-initramfs-dyn-netconf
+          - console-setup
+          - console-setup-linux
+          - cron
+          - cryptsetup
+          - cryptsetup-bin
+          - cryptsetup-initramfs
+          - cryptsetup-run
+          - dmeventd
+          - dmsetup
+          - ed
+          - finalrd
+          - fonts-ubuntu-console
+          - fuse
+          - htop
+          - isc-dhcp-client
+          - isc-dhcp-common
+          - irqbalance
+          - iw
+          - kpartx
+          - landscape-common
+          - less
+          - logrotate
+          - ltrace
+          - man-db
+          - manpages
+          - mokutil
+          - mtr-tiny
+          - multipath-tools
+          - ncdu
+          - netplan.io
+          - networkd-dispatcher
+          - ntfs-3g
+          - open-iscsi
+          - open-vm-tools
+          - os-prober
+          - overlayroot
+          - packagekit
+          - packagekit-tools
+          - pastebinit
+          - plymouth
+          - plymouth-theme-ubuntu-text
+          - pollinate
+          - popularity-contest
+          - powermgmt-base
+          - psmisc
+          - publicsuffix
+          - python3-apport
+          - python3-apt
+          - python3-asn1crypto
+          - python3-attr
+          - python3-automat
+          - python3-blinker
+          - python3-certifi
+          - python3-cffi-backend
+          - python3-chardet
+          - python3-click
+          - python3-colorama
+          - python3-commandnotfound
+          - python3-configobj
+          - python3-constantly
+          - python3-cryptography
+          - python3-dbus
+          - python3-debconf
+          - python3-debian
+          - python3-distro
+          - python3-distro-info
+          - python3-distupgrade
+          - python3-entrypoints
+          - python3-gdbm
+          - python3-gi
+          - python3-httplib2
+          - python3-hyperlink
+          - python3-idna
+          - python3-incremental
+          - python3-json-pointer
+          - python3-jsonpatch
+          - python3-jsonschema
+          - python3-jwt
+          - python3-keyring
+          - python3-launchpadlib
+          - python3-lazr.restfulclient
+          - python3-lazr.uri
+          - python3-nacl
+          - python3-netifaces
+          - python3-newt
+          - python3-oauthlib
+          - python3-openssl
+          - python3-pkg-resources
+          - python3-problem-report
+          - python3-pyasn1
+          - python3-pyasn1-modules
+          - python3-pymacaroons
+          - python3-requests
+          - python3-requests-unixsocket
+          - python3-secretstorage
+          - python3-serial
+          - python3-service-identity
+          - python3-simplejson
+          - python3-six
+          - python3-software-properties
+          - python3-systemd
+          - python3-twisted
+          - python3-twisted-bin
+          - python3-update-manager
+          - python3-urllib3
+          - python3-wadllib
+          - python3-yaml
+          - python3-zope.interface
+          - rsyslog
+          - snapd
+          - software-properties-common
+          - sosreport
+          - ssh-import-id
+          - strace
+          - tcpdump
+          - telnet
+          - thermald
+          - tmux
+          - tzdata
+          - ubuntu-advantage-tools
+          - ubuntu-minimal
+          - ubuntu-release-upgrader-core
+          - ufw
+          - unattended-upgrades
+          - update-manager-core
+          - update-notifier-common
+          - usb.ids
+          - usbutils
+          - uuid-runtime
+          - whiptail
+          - xauth
+          - xdg-user-dirs
+          - xfsprogs
+          - xz-utils
+          - zerofree
+
+    - name: make sure a kernel is installed
+      package:
+        name: linux-image-generic
+        state: present
+
+    - name: make sure the kernel is marked as manually installed
+      command: apt-mark manual linux-image-generic
+
+    - name: remove unneeded dependencies
+      apt:
+        autoremove: yes

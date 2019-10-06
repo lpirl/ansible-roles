@@ -1,11 +1,16 @@
+- name: get list of existing systemd units
+  register: systemctl_list_units_result
+  shell: systemctl list-units --all --no-legend | cut -d" " -f1
+
 - name: write systemd override file
   blockinfile:
     dest: "/etc/systemd/system/{{ item.key }}.service.d/nice.conf"
     create: yes
-    mode: 644
+    mode: 0644
     block: |
       [Service]
       Nice={{ item.value }}
+  when: "'{{ item.key }}.service' in systemctl_list_units_result.stdout_lines"
   with_dict: "{{ service_priorities |
                  combine(extra_service_priorities | default({})) }}"
   notify: reload systemd daemon

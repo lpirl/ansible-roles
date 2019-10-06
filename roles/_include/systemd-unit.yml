@@ -33,7 +33,7 @@
       blockinfile:
         dest: "/etc/systemd/system/{{ name }}"
         create: yes
-        mode: 644
+        mode: 0644
         block: "{{ content }}"
 
     - name: reload systemd
