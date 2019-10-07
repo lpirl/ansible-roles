@@ -1,6 +1,7 @@
 - name: get list of existing systemd units
   register: systemctl_list_units_result
   shell: systemctl list-units --all --no-legend | cut -d" " -f1
+  changed_when: false
 
 - name: write systemd override file
   blockinfile:
