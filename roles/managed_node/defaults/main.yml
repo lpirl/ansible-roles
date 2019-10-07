@@ -39,6 +39,7 @@ hardware_analysis_and_monitoring_packages:
   ethtool:        present
   hdparm:         present
   smartmontools:  present
+  thermald:       present
 
 # use this variable to override defaults:
 sysctld_files_from_admintools_to_link_extra: {}
