@@ -55,16 +55,16 @@
 
 
 
-- name: check for btrfs file systems
-  register: grep_btrfs_from_mounts_results
-  command: grep btrfs -c /proc/mounts
-  failed_when: grep_btrfs_from_mounts_results.rc not in [0, 1]
+- name: get btrfs file system mount points
+  register: get_btrfs_mount_points_results
+  shell: grep " btrfs " /proc/mounts | cut -d " " -f 2
+  failed_when: false
   changed_when: false
 
 - name: un/install btrfs file system utilities
   package:
     name: btrfs-progs
-    state: "{{ 'present' if grep_btrfs_from_mounts_results.rc == 0
+    state: "{{ 'present' if get_btrfs_mount_points_results.stdout != ''
               else 'absent' }}"
 
 - name: configure systemd units for btrfs maintenance
@@ -73,10 +73,26 @@
     name: "{{ item.key }}"
     start: "{{ item.value }}"
     content: "{{ lookup('file', item.key) }}"
-    state: "{{ 'present' if grep_btrfs_from_mounts_results.rc == 0
+    state: "{{ 'present' if get_btrfs_mount_points_results.stdout != ''
               else 'absent' }}"
   with_dict: # unit: start
     btrfs-balance.service: no
     btrfs-balance.timer: yes
     btrfs-scrub.service: no
     btrfs-scrub.timer: yes
+
+- name: get cache directories in btrfs root file system
+  register: find_cache_directories_result
+  shell: >
+    (echo /; btrfs subvolume list / | awk -F" path " '{print "/"$2}')
+    | xargs -IX find 'X' -xdev -type d -iname cache
+  changed_when: false
+  when: "'/' in get_btrfs_mount_points_results.stdout_lines"
+
+- name: disable copy-on-write for cache directories in btrfs root file
+        system
+  file:
+    path: "{{ item }}"
+    attributes: +C
+  with_items: "{{ find_cache_directories_result.stdout_lines }}"
+  when: "find_cache_directories_result is defined"
