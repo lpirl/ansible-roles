@@ -85,7 +85,7 @@
   register: find_cache_directories_result
   shell: >
     (echo /; btrfs subvolume list / | awk -F" path " '{print "/"$2}')
-    | xargs -IX find 'X' -xdev -type d -iname cache
+    | xargs -IX find 'X' -xdev -type d -iname '*cache'
   changed_when: false
   when: "'/' in get_btrfs_mount_points_results.stdout_lines"
 
