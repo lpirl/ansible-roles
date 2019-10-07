@@ -16,6 +16,37 @@
 
 
 
+- name: un/install firmware updater
+  package:
+    name: fwupd
+
+- name: override systemd units of fwupd
+  blockinfile:
+    dest: "/etc/systemd/system/{{ item.key }}.d/ansible.conf"
+    create: yes
+    mode: 0644
+    marker: "# {mark} ANSIBLE MANAGED BLOCK ({{ item.value | basename}})"
+    block: "{{ lookup('file', item.value) }}"
+  with_dict:
+    fwupd-refresh.timer: fwupd-refresh.timer.d/refresh-less-often.conf
+    fwupd-refresh.service: fwupd-refresh.service.d/email-notifications.conf
+  notify: reload systemd daemon
+
+
+
+- name: check if the machine was booted using UEFI
+  register: stat_sys_firmware_efi_result
+  stat:
+    path: /sys/firmware/efi
+
+- name: un/install signed Secure Boot chain-loading bootloader
+  package:
+    name: shim-signed
+    state: "{{ 'present' if stat_sys_firmware_efi_result.stat.exists
+                else 'absent' }}"
+
+
+
 - name: install ``irqbalance`` on multi-core machines
   package:
     name: irqbalance
