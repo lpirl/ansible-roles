@@ -1,5 +1,11 @@
 - name: install network related tools
+  register: install_network_related_tools_result
   package: name="{{ item }}"
   with_items:
+    - iproute2
     - iputils-ping
     - wget
+
+- name: refresh facts (because some depend on the just installed tools)
+  setup: {}
+  when: install_network_related_tools_result.changed

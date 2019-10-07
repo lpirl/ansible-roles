@@ -21,7 +21,7 @@
 
 - import_tasks: apt-tools.yml
 
-- import_tasks: editor.yml
+- import_tasks: file-viewers-and-editors.yml
 
 - import_tasks: shell.yml
 
