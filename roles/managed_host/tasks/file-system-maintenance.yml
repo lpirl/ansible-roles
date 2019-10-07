@@ -81,18 +81,24 @@
     btrfs-scrub.service: no
     btrfs-scrub.timer: yes
 
-- name: get cache directories in btrfs root file system
-  register: find_cache_directories_result
-  shell: >
-    (echo /; btrfs subvolume list / | awk -F" path " '{print "/"$2}')
-    | xargs -IX find 'X' -xdev -type d -iname '*cache'
+- name: find cache directories of users
+  register: find_user_cache_dirs_result
+  command: find /home -xdev -maxdepth 2 -type d -name .cache
   changed_when: false
-  when: "'/' in get_btrfs_mount_points_results.stdout_lines"
 
-- name: disable copy-on-write for cache directories in btrfs root file
-        system
+- name: disable copy-on-write for well-known cache directories
+  register: disable_cow_results
   file:
     path: "{{ item }}"
     attributes: +C
-  with_items: "{{ find_cache_directories_result.stdout_lines }}"
-  when: "find_cache_directories_result is defined"
+
+  # this task is not crucial and if, e.g., /tmp is mounted as tmpfs, the
+  # ioctl is inappropriate etc., so we ignore errors
+  ignore_errors: true
+
+  with_flattened:
+    - - "/tmp"
+      - "/var/tmp"
+      - "/var/cache"
+      - "/root/.cache"
+    - "{{ find_user_cache_dirs_result.stdout_lines }}"
