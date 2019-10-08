@@ -15,8 +15,10 @@ ExecStart=/bin/sh -c '\
 ExecStop=/bin/sh -c '\
   grep btrfs /proc/mounts \
   | cut -d" " -f2 \
-  | xargs -L1 \
-    btrfs balance cancel \
+  | xargs -L1 -IX sh -c " \
+    btrfs balance cancel \"X\"; \
+    [ $? -eq 0 ] || [ $? -eq 2 ] \
+  " \
 '
 IOSchedulingClass=idle
 Nice=19
