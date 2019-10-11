@@ -6,19 +6,27 @@ ConditionCapability=CAP_SYS_RAWIO
 [Service]
 Type=exec
 KillMode=none
-ExecStart=/bin/sh -c '\
+Nice=19
+IOSchedulingClass=idle
+
+# If you find a simpler solution, please tell me (even this is not
+# perfect and can fail in some corner cases).
+# The idea here is: list btrfs mounts, make unique by device and then
+# start the operation on the mount point.
+
+ExecStart=/bin/sh -c " \
   grep btrfs /proc/mounts \
-  | cut -d" " -f2 \
-  | xargs -L1 \
-    btrfs scrub start -B \
-'
-ExecStop=/bin/sh -c '\
+  | sort -u -t\  -k1,1 \
+  | mawk '{print $2}' \
+  | xargs -L1 -P0 btrfs scrub start -Bd \
+"
+
+ExecStop=/bin/sh -c " \
   grep btrfs /proc/mounts \
-  | cut -d" " -f2 \
-  | xargs -L1 -IX sh -c " \
+  | sort -u -t\  -k1,1 \
+  | mawk '{print $2}' \
+  | xargs -L1 -P0 -IX sh -c ' \
     btrfs scrub cancel \"X\"; \
     [ $? -eq 0 ] || [ $? -eq 2 ] \
-  " \
-'
-IOSchedulingClass=idle
-Nice=19
+  ' \
+"
