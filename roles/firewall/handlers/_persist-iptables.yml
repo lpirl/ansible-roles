@@ -1,8 +1,14 @@
+- name: check for currently persisted iptables
+  register: stat_rules_file_result
+  stat:
+    path: "{{ rules_file }}"
+
 - name: backup currently persisted iptables
   copy:
     remote_src: true
     src: "{{ rules_file }}"
     dest: "{{ rules_backup_file }}"
+  when: stat_rules_file_result.stat.exists
 
 - name: persist iptables
   shell: "{{ dump_command|quote }} > {{ rules_file|quote }}"
