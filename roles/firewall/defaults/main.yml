@@ -113,6 +113,13 @@ ip46tables_rules:
     chain: INPUT
     policy: DROP
 
+# Use this variable to extend ``ip46tables_rules``.
+# Example to disable a rule::
+#
+#   ip46tables_rules_extra:
+#     "the rule to disable": null
+ip46tables_rules_extra: {}
+
 # Extends ``ip46tables_rules`` to provide default IPv4 rules.
 ip4tables_rules:
 

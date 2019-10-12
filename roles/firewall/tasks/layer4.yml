@@ -25,6 +25,7 @@
       }}"
       rules: "{{
         ip46tables_rules
+        | combine(ip46tables_rules_extra | default({}))
         | combine(ip4tables_rules | default({}))
         | combine(ip4tables_rules_extra | default({}))
       }}"
@@ -37,6 +38,7 @@
       }}"
       rules: "{{
         ip46tables_rules
+        | combine(ip46tables_rules_extra | default({}))
         | combine(ip6tables_rules | default({}))
         | combine(ip6tables_rules_extra | default({}))
       }}"
