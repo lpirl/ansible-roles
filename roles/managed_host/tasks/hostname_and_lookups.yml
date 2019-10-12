@@ -39,7 +39,7 @@
     create: yes
     mode: 0644
     block: "nameserver {{ nameservers|join('\nnameserver ') }}"
-  when: nameservers | bool
+  when: nameservers | length > 0
 
 - name: install DNS utilities
   package: name="{{ item }}"
