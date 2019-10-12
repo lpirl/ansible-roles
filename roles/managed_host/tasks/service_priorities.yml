@@ -3,7 +3,7 @@
   shell: systemctl list-units --all --no-legend | cut -d" " -f1
   changed_when: false
 
-- name: write systemd override file
+- name: write systemd override file to set service priority
   blockinfile:
     dest: "/etc/systemd/system/{{ item.key }}.service.d/nice.conf"
     create: yes
