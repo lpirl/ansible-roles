@@ -19,6 +19,7 @@
 - name: un/install firmware updater
   package:
     name: fwupd
+    state: "{{ 'present' if use_fwupd else 'absent' }}"
 
 - name: override systemd units of fwupd
   blockinfile:
@@ -27,6 +28,7 @@
     mode: 0644
     marker: "# {mark} ANSIBLE MANAGED BLOCK ({{ item.value | basename}})"
     block: "{{ lookup('file', item.value) }}"
+    state: "{{ 'present' if use_fwupd else 'absent' }}"
   with_dict:
     fwupd-refresh.timer: fwupd-refresh.timer.d/refresh-less-often.conf
     fwupd-refresh.service: fwupd-refresh.service.d/email-notifications.conf
@@ -38,11 +40,13 @@
   register: stat_sys_firmware_efi_result
   stat:
     path: /sys/firmware/efi
+  when: support_for_secure_boot
 
 - name: un/install signed Secure Boot chain-loading bootloader
   package:
     name: shim-signed
-    state: "{{ 'present' if stat_sys_firmware_efi_result.stat.exists
+    state: "{{ 'present' if support_for_secure_boot
+                         and stat_sys_firmware_efi_result.stat.exists
                 else 'absent' }}"
 
 

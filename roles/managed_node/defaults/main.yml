@@ -10,6 +10,9 @@ rsync_backup_wait_for_args_extra: ""
 arpwatch_enabled: yes
 use_process_accounting: yes
 
+use_fwupd: yes
+support_for_secure_boot: yes
+
 needs_usb_storage: no
 needs_firewire_storage: no
 
