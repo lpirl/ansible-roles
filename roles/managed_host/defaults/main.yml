@@ -306,5 +306,6 @@ service_priorities:
   smartd: 2
   lxc: 4
   lxd: 4
+  snap.lxd.daemon: 4
   atd: 6
   cron: 8
