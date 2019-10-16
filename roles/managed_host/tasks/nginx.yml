@@ -18,11 +18,14 @@
   when: nginx_installed_check.rc == 0
 
 - name: add configuration files for nginx
-  file: src="/opt/admintools/etc/nginx/{{ item }}"
-        dest="/etc/nginx/{{ item }}"
-        state=link force=yes
+  blockinfile:
+    path: "/etc/{{ item }}"
+    state: present
+    block: "{{ lookup('file', item) }}"
+    force: yes
+    create: yes
   with_items:
-    - conf.d/50-generic-hardening.conf
-    - snippets/ssl.conf
+    - nginx/conf.d/50-generic-hardening.conf
+    - nginx/snippets/ssl.conf
   when: nginx_installed_check.rc == 0
   notify: restart nginx
