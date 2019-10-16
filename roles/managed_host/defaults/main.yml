@@ -298,6 +298,7 @@ ssh_client_and_server_deprecated_options:
   - UsePrivilegeSeparation
   - UseRoaming
 
+# set to ``false`` to disable/remove a configuration for a service
 extra_service_priorities: {}
 service_priorities:
   fail2ban: -10

@@ -11,7 +11,28 @@
     block: |
       [Service]
       Nice={{ item.value }}
-  when: "'{{ item.key }}.service' in systemctl_list_units_result.stdout_lines"
+    state: "{{ 'absent' if item.value == false else 'present' }}"
+
+  # need to check item.value here as well, otherwise Ansible will always
+  # create (then empty) …service.d/ directories
+  when: "'{{ item.key }}.service' in systemctl_list_units_result.stdout_lines
+         and item.value != false"
+
   with_dict: "{{ service_priorities |
                  combine(extra_service_priorities | default({})) }}"
+  notify: reload systemd daemon
+
+- name: remove empty systemd override files to set service priority
+  register: remove_empty_override_files_result
+  command: >
+    find /etc/systemd/system -name nice.conf -empty -print -delete
+  changed_when: remove_empty_override_files_result.stdout != ""
+  notify: reload systemd daemon
+
+- name: remove empty systemd override directories
+  register: remove_empty_override_dirs_result
+  command: >
+    find /etc/systemd/system -name '*.service.d' -type d -empty -print
+    -delete
+  changed_when: remove_empty_override_dirs_result.stdout != ""
   notify: reload systemd daemon
