@@ -21,12 +21,24 @@
 
 
 
+- name: check if system has non-rotational disk
+  set_fact:
+    has_non_rotational_disk: "{{
+      has_non_rotational_disk | default(false)
+      or item.value.rotational | int == 0
+    }}"
+  with_dict: "{{ ansible_devices }}"
+  loop_control:
+    label: "{{ item.key }}: {{  'rotational'
+                                if item.value.rotational | int == 1
+                                else 'non-rotational' }}"
+
 - name: install file system utilities (to get fstrim)
   package:
     name: "{{ item }}"
-    state: present
   with_items:
     - util-linux
+  when: has_non_rotational_disk
 
 - name: check for systemd fstrim units
   register: grep_fstrim_units_result
@@ -37,7 +49,7 @@
 - name: enable (distro-provided units for) regular fstrim
   systemd:
     name: fstrim.timer
-    enabled: yes
+    enabled: "{{ has_non_rotational_disk }}"
   when: grep_fstrim_units_result.rc == 0
 
 - name: enable (our units for) regular fstrim
@@ -46,12 +58,10 @@
     name: "{{ item.key }}"
     start: "{{ item.value }}"
     content: "{{ lookup('file', item.key) }}"
-    state: "{{ 'present' if grep_fstrim_units_result.rc == 1
-              else 'absent' }}"
+    state: "{{ 'present' if has_non_rotational_disk else 'absent' }}"
   with_dict: # unit: start
     fstrim.service: no
     fstrim.timer: yes
-  when: grep_fstrim_units_result.rc == 1
 
 
 
