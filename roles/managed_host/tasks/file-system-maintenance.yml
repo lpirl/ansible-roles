@@ -36,9 +36,9 @@
 - name: install file system utilities (to get fstrim)
   package:
     name: "{{ item }}"
-  when: has_non_rotational_disk
   with_items:
     - util-linux
+  when: has_non_rotational_disk
 
 # yes, I think we need to ``grep_fstrim_units_result`` although we have
 # ``has_non_rotational_disk`` because some versions of ``fstrim`` did
@@ -52,8 +52,8 @@
 - name: enable (distro-provided units for) regular fstrim
   systemd:
     name: fstrim.timer
-    enabled: yes
-  when: has_non_rotational_disk and grep_fstrim_units_result.rc == 0
+    enabled: has_non_rotational_disk
+  when: grep_fstrim_units_result.rc == 0
 
 - name: enable (our units for) regular fstrim
   include_tasks: ../../_include/systemd-unit.yml
