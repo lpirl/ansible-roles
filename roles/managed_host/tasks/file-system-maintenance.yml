@@ -52,7 +52,7 @@
 - name: enable (distro-provided units for) regular fstrim
   systemd:
     name: fstrim.timer
-    enabled: has_non_rotational_disk
+    enabled: "{{ has_non_rotational_disk }}"
   when: grep_fstrim_units_result.rc == 0
 
 - name: enable (our units for) regular fstrim
