@@ -57,11 +57,21 @@
 - name: "remove configuration for '{{ name }}'"
   block:
 
+    - name: "check if '{{ name }}' exists"
+      register: grep_for_unit_result
+      shell: >
+        systemctl list-units --all
+        | grep -v not-found
+        | grep '{{ name }}'
+      failed_when: grep_fstrim_units_result.rc not in [0, 1]
+      changed_when: false
+
     - name: "disable and stop unit '{{ name }}'"
       systemd:
         name: "{{ name }}"
         state: stopped
         enabled: no
+      when: grep_for_unit_result.rc == 0
 
     - name: "remove unit file '{{ name }}'"
       register: remove_unit_file_results
