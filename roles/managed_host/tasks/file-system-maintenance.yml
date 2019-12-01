@@ -42,7 +42,7 @@
 
 - name: check for systemd fstrim units
   register: grep_fstrim_units_result
-  shell: systemctl list-units --all | grep fstrim
+  shell: systemctl list-units --all | grep -v not-found | grep fstrim
   failed_when: grep_fstrim_units_result.rc not in [0, 1]
   changed_when: false
 
