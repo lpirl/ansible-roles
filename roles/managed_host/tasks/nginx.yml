@@ -4,28 +4,21 @@
   changed_when: no
   failed_when: no
 
-- name: create required directories
-  file: path="{{ item }}" state=directory
-  with_items:
-    - /etc/nginx/ssl
-    - /etc/nginx/snippets
-  when: nginx_installed_check.rc == 0
-
 - name: create Diffie-Hellman parameters (takes some minutes)
   command: openssl dhparam -out /etc/nginx/ssl/dhparam.pem 2048
   args:
     creates: /etc/nginx/ssl/dhparam.pem
   when: nginx_installed_check.rc == 0
 
-- name: add configuration files for nginx
+- name: add nginx configuration files
   blockinfile:
-    path: "/etc/{{ item }}"
+    path: "/etc/nginx/{{ item | dirname | basename }}/{{ item | basename }}"
     state: present
     block: "{{ lookup('file', item) }}"
     force: yes
     create: yes
-  with_items:
-    - nginx/conf.d/50-generic-hardening.conf
-    - nginx/snippets/ssl.conf
+  with_fileglob:
+    - nginx/conf.d/*.conf
+    - nginx/snippets/*.conf
   when: nginx_installed_check.rc == 0
   notify: restart nginx
