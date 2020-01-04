@@ -207,3 +207,14 @@
   when: lxc_create_result.changed
   become: yes
   become_user: "{{ container_user }}"
+
+
+
+- name: "{{ container_name }} : schedule automatic start via crontab"
+  cron:
+    name: "start container '{{ container_name }}' on boot"
+    special_time: reboot
+    job: lxc-start rproxy
+    state: "{{ 'present' if container_conf.autostart else 'absent' }}"
+  become: yes
+  become_user: "{{ container_user }}"
