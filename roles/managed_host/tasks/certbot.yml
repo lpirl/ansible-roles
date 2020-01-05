@@ -5,11 +5,12 @@
   changed_when: False
 
 - name: remove package-provided cron job to renew certificates (won't work)
-  file: dest="{{ item }}" state=absent
+  file:
+    dest: "{{ item }}"
+    state: absent
   with_items:
     - /etc/cron.d/certbot
     - /etc/cron.d/certbot.dpkg-dist
-  when: certbot_version.rc == 0
 
 - name: list systemd timers
   register: systemd_timers
