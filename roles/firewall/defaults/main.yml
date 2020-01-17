@@ -225,6 +225,13 @@ fail2ban_jails_config:
   postfix:
     mode: aggressive
 
+# if you have fai2ban behind a reverse proxy, you might want to set:
+#fail2ban_jails_extra_config:
+#  nginx-botsearch:
+#    action: iptables-http-x-forwarded-for
+#  nginx-nginx-http-auth:
+#    action: iptables-http-x-forwarded-for
+
 # Maps from jail names to a shell commands. If command exits with
 # code 0, the listed jails will be enabled, or disabled otherwise.
 # You can use ``fail2ban_jails_extra_auto_enable`` to override values.
