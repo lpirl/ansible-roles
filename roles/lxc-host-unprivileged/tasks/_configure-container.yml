@@ -19,7 +19,7 @@
       allow-hotplug {{ container_bridge }}
       auto {{ container_bridge }}
       iface {{ container_bridge }} inet static
-        address {{ container_conf.subnet4 | ipaddr('254') }}
+        address {{ container_gateway }}/{{ container_subnet_prefix }}
         mtu 9000
         bridge_fd 0
         bridge_stp off
@@ -168,8 +168,18 @@
       lxc.rootfs.path = btrfs:{{ container_user_home}}/{{ container_name }}/rootfs
       lxc.net.0.name = lxc-{{ container_name }}
       lxc.net.0.link = {{ container_bridge }}
-      lxc.net.0.ipv4.address = {{ container_conf.subnet4 | ipaddr('1') }}
-      lxc.net.0.ipv4.gateway = auto
+      lxc.net.0.ipv4.address = {{ container_ip }}/{{ container_subnet_prefix }}
+      lxc.net.0.ipv4.gateway = {{ container_gateway }}
+
+      # ``lxc.start.auto = 1`` etc. does not work (out of the box) since
+      # there are no helpers (systemd service etc.) to automatically
+      # start unprivileged containers (we use the users' crontab
+      # instead).
+      # However, the following line ensures a pre-condition for starting
+      # containers (i.e., gateway must be reachable).
+      lxc.hook.pre-start = /opt/admintools/scripts/wait-for -p {{
+        container_gateway
+      }}
 
   become: yes
   become_user: "{{ container_user }}"
@@ -195,5 +205,16 @@
     name: "{{ container_name }}"
     state: started
   when: lxc_create_result.changed
+  become: yes
+  become_user: "{{ container_user }}"
+
+
+
+- name: "{{ container_name }} : schedule automatic start via crontab"
+  cron:
+    name: "start container '{{ container_name }}' on boot"
+    special_time: reboot
+    job: lxc-start rproxy
+    state: "{{ 'present' if container_conf.autostart else 'absent' }}"
   become: yes
   become_user: "{{ container_user }}"

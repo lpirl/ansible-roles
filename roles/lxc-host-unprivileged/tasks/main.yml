@@ -133,12 +133,9 @@
       # we hence cannot use apparmor
       lxc.apparmor.profile = unconfined
 
-      lxc.start.auto = 1
-      # computed from load average with a more or less arbitrary formula:
-      lxc.start.delay = {{ (cut_loadavg_result.stdout_lines.0
-                            | float * 10 + 1) | round(0, 'ceil') | int }}
-
-      lxc.mount.entry = tmpfs tmp tmpfs defaults,size=100M
+      # pass arguments as environemnt variables
+      # (instead of CLI arguments, which migh tbe inappropriate)
+      lxc.hook.version = 1
 
       lxc.net.0.type = veth
       lxc.net.0.name = eth0
@@ -170,7 +167,16 @@
 
     # some more variables for convenience:
     container_user: "lxc-{{ container_name }}"
+    container_subnet_prefix: "{{
+      container_conf.subnet4 | ipaddr('prefix')
+    }}"
+    container_ip: "{{
+      container_conf.subnet4 | ipaddr('1') | ipaddr('address')
+    }}"
     container_bridge: "lxc-br-{{ container_name }}"
+    container_gateway: "{{
+      container_conf.subnet4 | ipaddr('254') | ipaddr('address')
+    }}"
 
   with_dict: "{{ lxc_containers }}"
   loop_control:

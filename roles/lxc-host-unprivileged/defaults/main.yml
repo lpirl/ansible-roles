@@ -10,6 +10,9 @@ lxc_container_defaults:
     --dist debian --release buster --arch amd64
     --keyserver pool.sks-keyservers.net
 
+  # start container on boot via user crontab:
+  autostart: yes
+
 # you can use this variable to override individual keys in
 # ``lxc_container_defaults``
 lxc_container_defaults_extra: {}
