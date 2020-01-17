@@ -14,7 +14,7 @@ gitlab_runner_concurrent: 1
 
 # Divide available memory by the concurrency level but reserve 1G.
 gitlab_runner_docker_memory_limit: "{{
-  (ansible_memtotal_mb - 1024) / gitlab_runner_concurrent | int
+  ((ansible_memory_mb.real.total - 1024) / gitlab_runner_concurrent) | int
 }}m"
 
 # CPU overload is not too bad, so we grant every container to use 95 %
