@@ -1,0 +1,100 @@
+- name: install prerequisites
+  package:
+    name:
+      - ca-certificates
+      - apt-transport-https
+
+- name: add apt key
+  register: add_key_result
+  apt_key:
+    url: https://packages.gitlab.com/runner/gitlab-runner/gpgkey
+
+- name: add apt repository
+  register: add_repository_result
+  apt_repository:
+    repo: >
+      deb https://packages.gitlab.com/runner/gitlab-runner/{{
+        ansible_distribution | lower
+      }}/ {{
+        ansible_distribution_release
+      }} main
+    filename: gitlab-runner.list
+
+- name: pin GitLab runner to be GitLab as origin
+  blockinfile:
+    dest: /etc/apt/preferences.d/pin-gitlab-runner
+    create: yes
+    mode: "0640"
+    block: |
+      Explanation: prefer GitLab-provided packages
+      Package: gitlab-runner
+      Pin: origin packages.gitlab.com
+      Pin-Priority: 1001
+
+- name: install GitLab runner
+  register: install_gitlab_runner
+  apt:
+    name: gitlab-runner
+    update_cache: "{{
+      add_key_result.changed or add_repository_result.changed
+    }}"
+
+- name: start GitLab runner
+  service:
+    name: gitlab-runner
+    state: "{{
+      'restarted' if install_gitlab_runner.changed else 'started'
+    }}"
+    enabled: yes
+
+- name: check required variables for registering the runner
+  assert:
+    quiet: yes
+    that:
+      - "{{ item }} is defined"
+    fail_msg: "please set the ``{{ item }}`` variable to use this role"
+  with_items:
+    - gitlab_runner_api_url
+    - gitlab_runner_api_token
+    - gitlab_runner_registration_token
+    - gitlab_runner_description
+
+- name: check for runner name in configuration file
+  register: get_runners_result
+  shell: gitlab-runner list 2>&1 | tail -n +3 | cut -d" " -f1
+  changed_when: false
+
+- name: register the runner
+  command: >
+    gitlab-runner register
+    --non-interactive
+    --url "{{ gitlab_runner_api_url }}"
+    --registration-token "{{ gitlab_runner_registration_token }}"
+    --executor "docker"
+    --docker-image debian:stable-slim
+    --description "{{ gitlab_runner_description }}"
+    --tag-list "{{ gitlab_runner_tag_list | join (',') }}"
+    --run-untagged="{{ gitlab_runner_run_untagged }}"
+    --locked="{{ gitlab_runner_locked }}"
+    --access-level="{{ gitlab_runner_access_level }}"
+  when: gitlab_runner_description not in get_runners_result.stdout_lines
+
+- name: configure global runner options
+  lineinfile:
+    dest: /etc/gitlab-runner/config.toml
+    regexp: '\s*{{ item.key | regex_escape }}\s*='
+    line: '{{ item.key }} = {{ item.value }}'
+    insertbefore: bof
+  with_dict:
+    "concurrent": "{{ gitlab_runner_concurrent }}"
+
+- name: configure Docker executor options
+  lineinfile:
+    path: /etc/gitlab-runner/config.toml
+    insertafter: '^\s*\[runners.docker\]'
+    regexp: '^\s*{{ item.key | regex_escape }}\s*=.*'
+    line: "{{ item.key }} = {{ item.value }}"
+  with_dict:
+    'privileged': "false"
+    'memory': '"{{ gitlab_runner_docker_memory_limit }}"'
+    'cpus': '"{{ gitlab_runner_docker_cpus }}"'
