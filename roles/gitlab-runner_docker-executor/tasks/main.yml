@@ -55,9 +55,7 @@
     fail_msg: "please set the ``{{ item }}`` variable to use this role"
   with_items:
     - gitlab_runner_api_url
-    - gitlab_runner_api_token
     - gitlab_runner_registration_token
-    - gitlab_runner_description
 
 - name: check for runner name in configuration file
   register: get_runners_result
