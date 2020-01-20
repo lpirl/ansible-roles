@@ -10,14 +10,14 @@
     state: present
     install_recommends: yes
 
-- name: load kernel module for ip_tables
+- name: load kernel module for iptables
   register: modprobe_iptables_result
   modprobe:
     name: ip_tables
     state: present
   notify: reload fail2ban
 
-- name: ensure kernel module for ip_tables is loaded at boot
+- name: ensure kernel module for iptables is loaded at boot
   lineinfile:
     path: /etc/modules
     line: ip_tables
@@ -33,6 +33,15 @@
     loop_var: section
   vars:
     config_file: "{{ fail2ban_config_file }}"
+
+- name: add extra fail2ban configuration files
+  blockinfile:
+    dest: "/etc/fail2ban/{{ item.path }}"
+    create: yes
+    block: "{{ lookup('file', item.src) }}"
+  when: item.state == 'file'
+  with_filetree: etc/fail2ban/
+  notify: reload fail2ban
 
 - name: enable and start fail2ban
   service:
