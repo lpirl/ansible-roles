@@ -96,3 +96,14 @@
     'privileged': "false"
     'memory': '"{{ gitlab_runner_docker_memory_limit }}"'
     'cpus': '"{{ gitlab_runner_docker_cpus }}"'
+
+# to clean up, but also to work around
+# https://gitlab.com/gitlab-org/gitlab-runner/issues/3802
+- name: remove empty sections from config file
+  register: remove_empty_sections_result
+  replace:
+    path: /etc/gitlab-runner/config.toml
+    regexp: '^.*\]\s*\n((\s*\[.*)|\Z)$'
+    replace: '\1'
+  delay: 0
+  until: not remove_empty_sections_result.changed
