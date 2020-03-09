@@ -16,6 +16,7 @@
   changed_when: false
   shell: >
     systemctl list-timers --all --no-legend
+    | grep -v '^n/a '
     | awk '{print $(NF-1)}'
     | sed 's/\.timer//'
   notify: reload systemd
