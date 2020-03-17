@@ -32,7 +32,9 @@
   when: use_logcheck
 
 - name: remove broken symlinks from logcheck's configuration
-  shell: find /etc/logcheck -xtype l -delete
+  register: remove_broken_symlinks_results
+  shell: find /etc/logcheck -xtype l -delete -print
+  changed_when: remove_broken_symlinks_results.stdout_lines != ""
   when: use_logcheck
 
 
