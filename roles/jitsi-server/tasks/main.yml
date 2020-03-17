@@ -1,0 +1,36 @@
+- name: install prerequisites
+  package:
+    name:
+      - ca-certificates
+      - apt-transport-https
+
+- name: add apt key
+  register: add_key_result
+  apt_key:
+    url: "https://download.jitsi.org/jitsi-key.gpg.key"
+
+- name: add apt repository
+  register: add_repository_result
+  apt_repository:
+    repo: deb https://download.jitsi.org stable/
+    filename: jitsi.list
+
+- name: install jitsi packages
+  register: install_docker_result
+  package:
+    name:
+      - jitsi-meet
+    update_cache: "{{
+      add_key_result.changed or add_repository_result.changed
+    }}"
+
+- name: enable and start service
+  service:
+    name: "{{ item }}"
+    enabled: yes
+    state: "{{
+      'restarted' if  install_docker_result.changed else 'started'
+    }}"
+  with_items:
+    - jicofo.service
+    - jitsi-videobridge.service
