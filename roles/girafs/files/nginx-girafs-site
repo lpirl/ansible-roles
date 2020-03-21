@@ -1,0 +1,21 @@
+server {
+  listen 80 default_server;
+  listen [::]:80 default_server;
+
+  root /dev/null;
+
+  # we manage slashes ourselves
+  # (nginx, e.g., does not canonicalize multiple root slashes)
+  merge_slashes off;
+  # remove multiple slashes:
+  rewrite ^(.*)//+(.*)$ $1/$2 permanent;
+
+  proxy_cache off;
+  proxy_temp_path /tmp;
+  proxy_redirect off;
+
+  location / {
+    proxy_pass http://127.0.0.1:8080/;
+  }
+
+}

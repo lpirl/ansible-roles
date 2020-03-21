@@ -1,0 +1,27 @@
+# girafs runs on Python 3, let's use it all the way; avoids troubles
+# with pip module
+ansible_python_interpreter: python3
+
+girafs_user: girafs
+girafs_pip_url: git+https://gitlab.com/lpirl/girafs.git
+
+girafs_config: ""
+# Configuration for girafs (INI file in a string), example:
+#
+#   girafs_config: |
+#     [default]
+#     clone_url = git@gitlab.example.com:osm/%(section_name)s.git
+#     clone_to_dir = %(home)s/repositories/%(section_name)s
+#
+#     push_notifier = InotifyPushNotifier
+#
+#     pull_notifier = GitLabPullNotifier
+#     gitlab_url = https://gitlab.example.com
+#     gitlab_manage_web_hooks = yes
+#     gitlab_access_token = iUJKLz91oTyg4M5xhJ7o
+#     gitlab_web_hook_base_url = https://fileserver.example.com/girafs/
+#
+#     [girafs-playground]
+#     clone_url = git@gitlab.example.com:lukas.pirl/girafs-playground.git
+#
+#     [website]
