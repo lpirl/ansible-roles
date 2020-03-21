@@ -1,0 +1,148 @@
+- name: install required APT packages
+  package:
+    name:
+      - nginx-light
+      - python3-pip
+      - python3-setuptools
+      - python3-wheel
+    state: present
+
+
+- name: enable and start nginx
+  service:
+    name: nginx
+    state: started
+    enabled: yes
+  notify: reload nginx
+
+
+- name: make nginx site configurations available
+  blockinfile:
+    dest: "/etc/nginx/sites-available/girafs"
+    create: yes
+    block: "{{ lookup('file', 'nginx-girafs-site') }}"
+  notify: reload nginx
+
+
+- name: enable nginx site configurations
+  file:
+    dest: "/etc/nginx/sites-enabled/girafs"
+    src: "/etc/nginx/sites-available/girafs"
+    state: link
+  notify: reload nginx
+
+
+- name: create user which will run girafs
+  register: create_user_result
+  user:
+    name: "{{ girafs_user }}"
+
+- name: "apply configuration as user '{{ girafs_user }}'"
+  block:
+
+
+    - name: install girafs
+      pip:
+        name: "{{ girafs_pip_url }}"
+        executable: pip3
+        state: latest
+
+
+    - name: add pip-installed binaries to PATH
+      lineinfile:
+        dest: "{{ item.dest }}"
+        line: "{{ item.line }}"
+        state: present
+        create: yes
+      when: item.shell in ansible_user_shell
+      with_items:
+        - shell: bash
+          dest: ~/.bash_profile
+          line: PATH="~/.local/bin:$PATH"
+        - shell: zsh
+          dest: ~/.zprofile
+          line: path=(~/.local/bin $path)
+
+
+    - name: write girafs config
+      register: write_girafs_config_result
+      blockinfile:
+        path: "~/girafs.ini"
+        create: yes
+        block: "{{ girafs_config }}"
+
+
+    - name: create user's ssh configuration directory
+      file:
+        path: ~/.ssh
+        state: directory
+        mode: 0700
+
+
+    - name: generate SSH key pair
+      register: generate_keypair_result
+      openssh_keypair:
+        path: ~/.ssh/id_rsa
+        size: 8192
+        mode: 0600
+
+
+    - name: print newly generated SSH public key
+      debug:
+        msg: >
+          New SSH key pair generated. Make sure the following public
+          key is set up to have access to the repositories:
+          '{{ generate_keypair_result.public_key }}'
+      when: generate_keypair_result.changed
+
+
+  become: yes
+  become_user: "{{ girafs_user }}"
+
+
+# We don't use ``lookup('file',  …`` here, since we have variables
+# in the file. We don't use templates because we want to use the
+# blockinfile module (since it generates nice "managed by Ansible"
+# markers, making it obvious that manual changes will be overwritten).
+- name: add systemd service for girafs
+  register: add_girafs_service_result
+  blockinfile:
+    dest: "{{ create_user_result.home }}/girafs.service"
+    create: yes
+    mode: 0644
+    owner: root
+    group: root
+    block: |
+      [Unit]
+      Description=girafs (git two-way sync)
+
+      [Service]
+      Type=simple
+      ExecStart=python3 -OO \
+        {{ create_user_result.home }}/.local/bin/girafs \
+        {{ create_user_result.home }}/girafs.ini
+      Restart=on-failure
+      User={{ girafs_user }}
+
+      [Install]
+      WantedBy=multi-user.target
+
+
+# Dec 2019: apparently, the Ansible service module cannot enable
+# services by a path to a service file (instead of by a service name)
+- name: install girafs systemd service
+  command:
+    cmd: "systemctl enable {{ create_user_result.home }}/girafs.service"
+    creates: /etc/systemd/system/girafs.service
+
+
+- name: enable and (re)start girafs service
+  service:
+    name: girafs.service
+    daemon_reload: "{{ add_girafs_service_result.changed }}"
+    state: "{{
+      'restarted' if add_girafs_service_result.changed or
+                     write_girafs_config_result.changed
+      else 'started'
+    }}"
+    enabled: yes
