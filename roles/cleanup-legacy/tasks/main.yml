@@ -14,3 +14,7 @@
   file:
     dest: /etc/systemd/system/fstrim.service.d/override.conf
     state: absent
+
+# 20-03-26
+- name: remove firmware updater systemd units overrides
+  command: find /etc/systemd -wholename '*fwupd*/ansible.conf' -delete
