@@ -1,3 +1,11 @@
+- name: do not open securetty on login
+        (https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=931899)
+  lineinfile:
+    dest: /etc/pam.d/common-auth
+    regexp: '^(auth\s.*\spam_unix\.so.*)\snullok_secure\s*,?(.*)$'
+    line: '\1\2'
+    backrefs: yes
+
 - name: install packages facilitating password hardening
   package:
     name: "{{ item }}"
