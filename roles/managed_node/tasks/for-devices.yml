@@ -22,6 +22,7 @@
     state: "{{ 'present' if use_fwupd else 'absent' }}"
 
 - name: disable firmware updater units (no unattended updates)
+  register: disable_fwupd_units_result
   service:
     name: "{{ item }}"
     state: stopped
@@ -30,6 +31,8 @@
     - fwupd.service
     - fwupd-refresh.timer
     - fwupd-refresh.service
+  failed_when: disable_fwupd_units_result.state is not defined and
+               "Could not find" not in disable_fwupd_units_result.msg
   when: use_fwupd
 
 - name: get firmware updates
