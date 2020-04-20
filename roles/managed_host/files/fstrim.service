@@ -2,7 +2,7 @@
 # which is included in Debian's util-linux >= 2.34.
 
 [Unit]
-Description=discard unused blocks on files ystems
+Description=discard unused blocks on file systems
 
 [Service]
 Type=oneshot
