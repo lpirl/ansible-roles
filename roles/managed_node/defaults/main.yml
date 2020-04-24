@@ -10,7 +10,12 @@ rsync_backup_wait_for_args_extra: ""
 arpwatch_enabled: yes
 use_process_accounting: yes
 
-use_fwupd: yes
+# fwupd is broken in Stretch, unfortunately
+use_fwupd: "{{
+  ansible_distribution != 'Debain'
+  or ansible_distribution_version is version(10, '>=')
+}}"
+
 support_for_secure_boot: yes
 
 needs_usb_storage: no
