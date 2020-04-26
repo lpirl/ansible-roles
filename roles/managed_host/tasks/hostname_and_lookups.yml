@@ -42,7 +42,6 @@
   when: nameservers | length > 0
 
 - name: install DNS utilities
-  package: name="{{ item }}"
-  with_items:
-    - namebench
-    - dnsutils
+  package:
+    name:
+      - dnsutils
