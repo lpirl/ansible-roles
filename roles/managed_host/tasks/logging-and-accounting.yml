@@ -88,21 +88,18 @@
 
 
 
-- name: "{{ 'enable' if use_process_accounting and
-                        ansible_virtualization_type != 'lxc'
-                    else 'disable' }} syscall auditing"
+- name: "{{ 'enable' if use_process_accounting else 'disable' }}
+         syscall auditing"
   package:
     name: auditd
-    state: "{{ 'present' if  use_process_accounting and
-                            ansible_virtualization_type != 'lxc'
-                        else 'absent' }}"
+    state: "{{ 'present' if  use_process_accounting else 'absent' }}"
 
 - name: enable auditd
   service:
     name: auditd
     state: started
     enabled: yes
-  when: use_process_accounting and ansible_virtualization_type != 'lxc'
+  when: use_process_accounting
 
 
 

@@ -8,7 +8,7 @@ use_logcheck: yes
 use_haveged: yes
 do_email_send_test: yes
 create_reports: yes
-use_process_accounting: yes
+use_process_accounting: "{{ ansible_virtualization_type != 'lxc' }}"
 hide_processes_between_users: yes
 
 postfix_global_options:
