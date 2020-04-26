@@ -10,11 +10,6 @@
     install_recommends: yes
     state: "{{ 'present' if postfix_dkim_keys | length else 'absent' }}"
 
-- name: enable opendkim service
-  service:
-    name: opendkim
-    enabled: yes
-  when: postfix_dkim_keys | length
 
 - name: add user postfix to group opendkim
   user:
@@ -22,6 +17,7 @@
     groups: opendkim
     append: yes
   when: postfix_dkim_keys | length
+
 
 - name: create opendkim directory in postfix chroot
   file:
@@ -31,6 +27,7 @@
     owner: opendkim
     group: opendkim
   when: postfix_dkim_keys | length
+
 
 - name: set options for opendkim
   lineinfile:
@@ -54,6 +51,7 @@
   when: postfix_dkim_keys | length
   notify: restart opendkim
 
+
 - name: write signing table
   lineinfile:
     dest: "{{ postfix_dkim_signingtable }}"
@@ -66,6 +64,8 @@
   with_dict: "{{ postfix_dkim_keys }}"
   loop_control:
     label: "{{ item.key }}"
+  notify: restart opendkim
+
 
 - name: write key table
   lineinfile:
@@ -79,6 +79,8 @@
   with_dict: "{{ postfix_dkim_keys }}"
   loop_control:
     label: "{{ item.key }}"
+  notify: restart opendkim
+
 
 - name: write key files
   blockinfile:
@@ -89,20 +91,12 @@
     insertafter: BOF
     owner: opendkim
     group: root
-  with_dict: "{{ postfix_dkim_keys }}"
-  loop_control:
-    label: "{{ item.key }}"
-
-- name: ensure permissions of key files
-  file:
-    dest: "/etc/dkimkeys/{{ item.key }}_{{ item.value.selector }}.private"
-    state: file
-    owner: opendkim
-    group: root
     mode: 0400
   with_dict: "{{ postfix_dkim_keys }}"
   loop_control:
     label: "{{ item.key }}"
+  notify: restart opendkim
+
 
 - name: set daemon defaults for opendkim
   register: set_opendkim_daemon_options
@@ -117,12 +111,22 @@
   notify: restart opendkim
   when: postfix_dkim_keys | length
 
+
 - name: regenerate opendkim service file
   command: /lib/opendkim/opendkim.service.generate
   when: "postfix_dkim_keys | length and
          set_opendkim_daemon_options is changed and
          ansible_distribution == 'Debian'"
   notify: reload systemd daemon
+
+
+- name: enable and start opendkim service
+  service:
+    name: opendkim
+    enabled: yes
+    state: started
+  when: postfix_dkim_keys | length
+
 
 - name: set options for postfix and opendkim
   lineinfile:
@@ -142,6 +146,7 @@
                              postfix_extra_non_smtpd_milters) | join(' ') }}"
   when: postfix_dkim_keys | length
   notify: restart postfix
+
 
 - name: unset options for postfix and opendkim
   lineinfile:
