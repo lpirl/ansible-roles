@@ -1,9 +1,23 @@
----
 - name: enable IP forwarding
-  lineinfile: dest=/etc/sysctl.d/95-forwarding.conf
-              line="{{ item }} = 1"
-              regexp="^(#\s*)?{{ item|regex_escape }}\s.*"
-              create=yes
+  lineinfile:
+    dest: /etc/sysctl.d/95-forwarding.conf
+    line: "{{ item }} = 1"
+    regexp: '^(#\s*)?{{ item|regex_escape }}\s.*'
+    create: yes
   with_items:
     - net.ipv4.ip_forward
     - net.ipv4.conf.all.forwarding
+
+- name: enable netfilter/iptable rules on bridges (hot)
+  modprobe:
+    name: br_netfilter
+    state: present
+
+- name: enable netfilter/iptable rules on bridges (at boot)
+  blockinfile:
+    dest: /etc/modules-load.d/netfilter-bridges.conf
+    block: >
+      # this module enables netfilter/iptable rules on bridges
+      # (which makes them behave more consistently)
+      br_netfilter
+    create: yes
