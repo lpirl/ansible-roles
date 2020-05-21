@@ -19,7 +19,7 @@
 
     - name: add nginx configuration files
       blockinfile:
-        path: >
+        path: >-
           /etc/nginx/{{
             item | dirname | basename
           }}/{{
