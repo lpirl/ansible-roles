@@ -7,6 +7,7 @@
 - name: disable apt (systemd) timers
   systemd:
     name: "{{ item }}"
+    state: stopped
     enabled: false
   with_items:
     - apt-daily.timer
