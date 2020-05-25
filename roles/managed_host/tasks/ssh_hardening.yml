@@ -15,18 +15,8 @@
     - /etc/ssh/ssh_config
 
 
+# ---------- BEGIN: server and client configuration ----------
 
-# ---------- BEGIN: version checks ----------
-
-- name: check if SSH version is at least 6.7
-  shell: 'T="OpenSSH_6.7";
-    [ "`echo "$T\n$(ssh -V 2>&1 | cut -d, -f1)" | sort | head -n1`" = "$T" ]'
-  changed_when: false
-
-# ----------   END: version checks ----------
-
-
-# ---------- BEGIN: version-independent configuration ----------
 
 - name: normalize configuration file to use spaces instead of tabs between
         configuration keys consisting of more than one word
@@ -38,16 +28,20 @@
     - /etc/ssh/sshd_config
     - /etc/ssh/ssh_config
 
+
 - name: remove problematically formatted default SSH option
-  lineinfile: dest=/etc/ssh/sshd_config
-              regexp="^Subsystem\t"
-              state=absent
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: "^Subsystem\t"
+    state: absent
+
 
 - name: set SSH options for server
-  lineinfile: dest="/etc/ssh/sshd_config"
-              line="{{ item.key }} {{ item.value }}"
-              regexp="^(#\s?)?{{ item.key|regex_escape }}\s.*"
-              insertbefore="^Match\s.*"
+  lineinfile:
+    dest: "/etc/ssh/sshd_config"
+    line: "{{ item.key }} {{ item.value }}"
+    regexp: '^[#\s]*{{ item.key|regex_escape }}\s.*'
+    insertbefore: '^Match\s.*'
   with_dict: "{{
     {} |
     combine(ssh_client_and_server_options) |
@@ -57,11 +51,13 @@
   }}"
   notify: restart sshd
 
+
 - name: set SSH options for client
-  lineinfile: dest="/etc/ssh/ssh_config"
-              line="{{ item.key }} {{ item.value }}"
-              regexp="^(#\s?)?{{ item.key|regex_escape }}\s.*"
-              insertbefore="^Match\s.*"
+  lineinfile:
+    dest: "/etc/ssh/ssh_config"
+    line: "{{ item.key }} {{ item.value }}"
+    regexp: '^[#\s]*{{ item.key|regex_escape }}\s.*'
+    insertbefore: '^Match\s.*'
   with_dict: "{{
     {} |
     combine(ssh_client_and_server_options) |
@@ -70,34 +66,36 @@
     combine(ssh_client_extra_options | default({}))
   }}"
 
+
 - name: unset deprecated options
-  lineinfile: dest="/etc/ssh/{{ item[0] }}_config"
-              regexp="^(#\s?)?{{ item[1]|regex_escape }}\s.*"
-              state=absent
+  lineinfile:
+    dest: "/etc/ssh/{{ item[0] }}_config"
+    regexp: '[#\s]*{{ item[1]|regex_escape }}\s.*'
+    state: absent
   with_nested:
     - [ssh, sshd]
     - "{{ ssh_client_and_server_deprecated_options }}"
 
-
-
-# ---------- END:   version-independent configuration ----------
+# ---------- END:   server and client configuration ----------
 
 
 # ---------- BEGIN: host keys ----------
 
 - name: set SSH extra host keys for server
-  lineinfile: dest="/etc/ssh/sshd_config"
-              line="HostKey {{ item }}"
-              insertbefore="^Match\s.*"
+  lineinfile:
+    dest: "/etc/ssh/sshd_config"
+    line: 'HostKey {{ item }}'
+    insertbefore: '^Match\s.*'
   with_items: "{{ ssh_server_extra_host_keys|default([]) }}"
 
 
-
 - name: disable bad host key DSA
-  lineinfile: state=absent
-              regexp="^\s*HostKey\s.*_dsa_.*"
-              dest="/etc/ssh/sshd_config"
+  lineinfile:
+    state: absent
+    regexp: '^\s*HostKey\s.*_dsa_.*'
+    dest: '/etc/ssh/sshd_config'
   notify: restart sshd
+
 
 - name: rename deprecated DSA host key
   register: disable_dsa_host_key_result
@@ -148,16 +146,17 @@
   when: ssh_server_needs_ecdsa_host_key
 
 
-
 - name: create Ed25519 host key
   shell: ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -N ""
   args:
     creates: /etc/ssh/ssh_host_ed25519_key
   notify: restart sshd
 
+
 - name: enable good host key Ed25519
-  lineinfile: line="HostKey /etc/ssh/ssh_host_ed25519_key"
-              dest="/etc/ssh/sshd_config"
+  lineinfile:
+    dest: "/etc/ssh/sshd_config"
+    line: "HostKey /etc/ssh/ssh_host_ed25519_key"
   notify: restart sshd
 
 
@@ -169,6 +168,7 @@
   changed_when: false
   failed_when: false
 
+
 - name: disable insecure RSA host key (too short)
   register: disable_rsa_host_key_result
   shell: "find /etc/ssh -iname '*_rsa_*' -not -name '*INSECURE*'
@@ -178,24 +178,32 @@
   when: check_rsa_host_key_length.rc == 0
   notify: restart sshd
 
+
 - name: (re-)create RSA host key
   shell: ssh-keygen -t rsa -b 8192 -f /etc/ssh/ssh_host_rsa_key -N ""
   args:
     creates: /etc/ssh/ssh_host_rsa_key
   notify: restart sshd
 
+
 - name: enable good host key RSA
-  lineinfile: line="HostKey /etc/ssh/ssh_host_rsa_key"
-              dest="/etc/ssh/sshd_config"
+  lineinfile:
+    dest: "/etc/ssh/sshd_config"
+    line: "HostKey /etc/ssh/ssh_host_rsa_key"
   notify: restart sshd
 
 # ---------- END: host keys ----------
 
 
 # ---------- BEGIN: files and permissions ----------
+
 - name: enforce permissions for .ssh directory of {{ ansible_user_id }}
-  file: dest="{{ansible_user_dir}}/.ssh" mode=u+rX,go-rwx
-        state=directory recurse=yes
+  file:
+    dest: "{{ansible_user_dir}}/.ssh"
+    mode: u+rX,go-rwx
+    state: directory
+    recurse: yes
+
 
 - name: get home directory of
         {{ ansible_env.SUDO_USER|default("[n.a.]") }}
@@ -204,10 +212,14 @@
   when: ansible_env.SUDO_USER is defined
   changed_when: false
 
+
 - name: enforce permissions for .ssh directory of
         {{ ansible_env.SUDO_USER|default("[n.a.]") }}
-  file: dest="{{sudo_user_home.stdout}}/.ssh" mode=u+rX,go-rwx
-        state=directory recurse=yes
+  file:
+    dest: "{{sudo_user_home.stdout}}/.ssh"
+    mode: u+rX,go-rwx
+    state: directory
+    recurse: yes
   when: ansible_env.SUDO_USER is defined
 
 # ---------- END:   files and permissions ----------
