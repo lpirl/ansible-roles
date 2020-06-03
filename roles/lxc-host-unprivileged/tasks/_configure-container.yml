@@ -155,6 +155,7 @@
 
 
 - name: "{{ container_name }} : set container configuration"
+  register: lxc_configure_result
   blockinfile:
     dest: "{{ container_user_home }}/{{ container_name }}/config"
     create: yes
@@ -199,12 +200,16 @@
 
 
 
-- name: "{{ container_name }} : start container"
-  register: lxc_create_result
+- name: force notified handlers to run (so we can start the container)
+  meta: flush_handlers
+
+
+
+- name: "{{ container_name }} : re/start reconfigured/created container"
   lxc_container:
     name: "{{ container_name }}"
-    state: started
-  when: lxc_create_result.changed
+    state: restarted
+  when: lxc_create_result.changed or lxc_configure_result.changed
   become: yes
   become_user: "{{ container_user }}"
 
@@ -214,7 +219,7 @@
   cron:
     name: "start container '{{ container_name }}' on boot"
     special_time: reboot
-    job: lxc-start rproxy
+    job: "lxc-start {{ container_name }}"
     state: "{{ 'present' if container_conf.autostart else 'absent' }}"
   become: yes
   become_user: "{{ container_user }}"

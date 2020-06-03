@@ -2,6 +2,7 @@
   lxc_container:
     name: "{{ container_name }}"
     state: stopped
+  failed_when: false
   become: yes
   become_user: "{{ container_user }}"
 

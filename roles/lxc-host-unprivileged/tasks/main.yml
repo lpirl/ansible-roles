@@ -173,7 +173,8 @@
     container_ip: "{{
       container_conf.subnet4 | ipaddr('1') | ipaddr('address')
     }}"
-    container_bridge: "lxc-br-{{ container_name }}"
+    container_bridge: "{{ ('lxc-br-' ~ container_name)
+                          | truncate(15, True, '', 0)}}"
     container_gateway: "{{
       container_conf.subnet4 | ipaddr('254') | ipaddr('address')
     }}"
