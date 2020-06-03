@@ -76,6 +76,33 @@
     - [ssh, sshd]
     - "{{ ssh_client_and_server_deprecated_options }}"
 
+
+- name: determine and configure message authentications codes
+  import_tasks: _ssh_hardening-set-algorithm.yml
+  vars:
+    ssh_query_option: mac
+    ssh_config_option: MACs
+    preferred_values: "{{ ssh_client_and_server_macs
+                          + ssh_client_and_server_extra_macs }}"
+
+
+- name: determine and configure key exchange methods
+  import_tasks: _ssh_hardening-set-algorithm.yml
+  vars:
+    ssh_query_option: kex
+    ssh_config_option: KexAlgorithms
+    preferred_values: "{{ ssh_client_and_server_kex
+                          + ssh_client_and_server_extra_kex }}"
+
+
+- name: determine and configure ciphers
+  import_tasks: _ssh_hardening-set-algorithm.yml
+  vars:
+    ssh_query_option: cipher
+    ssh_config_option: Ciphers
+    preferred_values: "{{ ssh_client_and_server_ciphers
+                          + ssh_client_and_server_extra_ciphers }}"
+
 # ---------- END:   server and client configuration ----------
 
 

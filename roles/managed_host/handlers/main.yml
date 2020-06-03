@@ -4,7 +4,7 @@
 # this can be done properly using a block.
 # Also remember: handler are run in the order **listed** (¬ notified)
 - name: restart sshd
-  command: sshd -T
+  command: sshd -T -C user=root -C host=localhost -C addr=localhost
   notify: _restart sshd
 
 - name: _restart sshd
