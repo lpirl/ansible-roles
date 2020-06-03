@@ -1,8 +1,0 @@
-- name: install nano
-  apt: package=nano
-
-- name: set nano as default editor
-  lineinfile: dest=/etc/profile.d/default-editor
-              regexp='export EDITOR='
-              line='export EDITOR=nano'
-              create=yes

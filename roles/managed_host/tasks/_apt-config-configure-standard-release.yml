@@ -2,7 +2,7 @@
   blockinfile:
     dest: /etc/apt/preferences.d/000-release-pinning
     create: yes
-    state: "{{ state }}"
+    state: "{{ 'present' if present else 'absent' }}"
     marker: "# {mark} ANSIBLE MANAGED BLOCK for {{ suite }}"
     block: |
       Package: *
@@ -13,10 +13,10 @@
   lineinfile:
     path: "{{ file }}"
     regexp: '\s{{ suite }}\s'
-    line: 'deb {{ base_url }}/debian {{
+    line: 'deb http://deb.debian.org/debian {{
              suite
            }} main contrib non-free'
-    state: "{{ state }}"
+    state: "{{ 'present' if present else 'absent' }}"
     create: yes
   notify: update apt cache
 
@@ -25,19 +25,39 @@
     path: "/etc/apt/sources.list"
     regexp: '\s{{ suite }}\s'
     state: absent
-  when: state == "present"
+  when: present
   notify: update apt cache
 
 - name: add security repository to file in /etc/apt/sources.list.d
+        (old format)
   lineinfile:
     path: "{{ file }}"
     regexp: 'security.*\s{{ suite }}[-/]updates\s'
-    line: 'deb {{ base_url }}/debian-security {{
+    line: 'deb http://security.debian.org/debian-security {{
              suite
            }}/updates main contrib non-free'
-    state: "{{ state }}"
+    state: "{{ 'present' if present
+                  and release in security_old_format_releases
+                else 'absent' }}"
     create: yes
-  when: release not in ['sid', 'unstable']
+  when: release not in no_security_repo_releases
+        and '-' not in suite
+        and '/' not in suite
+  notify: update apt cache
+
+- name: add security repository to file in /etc/apt/sources.list.d
+        (new format)
+  lineinfile:
+    path: "{{ file }}"
+    regexp: 'security.*\s{{ suite }}-security[-/]updates\s'
+    line: 'deb http://security.debian.org/debian-security {{
+             suite
+           }}-security/updates main contrib non-free'
+    state: "{{ 'present' if present
+                  and release not in security_old_format_releases
+                else 'absent' }}"
+    create: yes
+  when: release not in no_security_repo_releases
         and '-' not in suite
         and '/' not in suite
   notify: update apt cache
@@ -47,5 +67,5 @@
     path: "/etc/apt/sources.list"
     regexp: 'security.*\s{{ suite }}[-/]updates\s'
     state: absent
-  when: state == "present"
+  when: present
   notify: update apt cache

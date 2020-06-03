@@ -1,0 +1,44 @@
+- name: check if TLP is installed
+  register: tlp_installed_check
+  shell: type tlp-stat
+  failed_when: false
+  changed_when: false
+
+- name: un/install laptop-mode-tools (TLP present/absent)
+  package:
+    name: laptop-mode-tools
+    state: "{{ 'present' if tlp_installed_check.rc != 0 else 'absent' }}"
+
+- name: enable & start laptop-mode
+  service:
+    name: laptop-mode
+    enabled: yes
+    state: started
+  when: tlp_installed_check.rc != 0
+
+- name: configure laptop-mode-tools
+  lineinfile:
+    dest: /etc/laptop-mode/laptop-mode.conf
+    regexp: '^[#\s]*{{ item.key }}\s*='
+    line: "{{ item.key }}={{ item.value }}"
+    state: present
+  with_dict: "{{ laptop_mode_global_options |
+                 combine(laptop_mode_extra_options | default({})) }}"
+  when: tlp_installed_check.rc != 0
+  notify: restart laptop-mode
+
+- name: get available batteries
+  register: get_available_batteries_result
+  shell: >
+    find /sys/devices -ipath '*/power_supply/*/type' -print0
+    | xargs -0 grep -l Battery
+    | xargs -rL1 dirname
+  changed_when: false
+
+- name: disable frequent battery polling when there is no battery
+  service:
+    name: laptop-mode.timer
+    state: stopped
+    enabled: false
+  when: tlp_installed_check.rc != 0 and
+        get_available_batteries_result.stdout != ""

@@ -1,7 +1,18 @@
+- name: do not open securetty on login
+        (https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=931899)
+  lineinfile:
+    dest: /etc/pam.d/common-auth
+    regexp: '^(auth\s.*\spam_unix\.so.*)\snullok_secure\s*,?(.*)$'
+    line: '\1\2'
+    backrefs: yes
+
 - name: install packages facilitating password hardening
-  package: name="{{ item }}" state=present
+  package:
+    name: "{{ item }}"
+    state: present
   with_items:
     - libpam-passwdqc
+
 
 - name: set password max/min/warn age for accounts created in future
   lineinfile:
@@ -13,6 +24,7 @@
     - { key: "PASS_MIN_DAYS", value: "{{ pass_min_days }}"}
     - { key: "PASS_WARN_AGE", value: "{{ pass_warn_age }}"}
 
+
 - name: set password max/min/warn age for existing accounts w/ a password set
   shell: "awk -F: '{print $2\":\"$1}' /etc/shadow
           | egrep '^[^\\!\\*:]'
@@ -21,24 +33,32 @@
                              -M '{{ pass_max_days }}'
                              -W '{{ pass_warn_age }}'"
 
+
 - name: provide legal banner pre logins
-  file: path="{{ item }}"
-        src=/opt/admintools/pre-login-banner.txt
-        state=link force=yes
+  file:
+    path: "{{ item }}"
+    src: /opt/admintools/pre-login-banner.txt
+    state: link
+    force: yes
   with_items:
     - /etc/issue
     - /etc/issue.net
 
-- name: hide PIDs between users
-  mount: src=proc name=/proc fstype=proc opts=defaults,hidepid=2
-         dump=0 passno=0 state=present
+
+- name: "{{ 'hide' if ansible_kernel is version_compare('3.3', '>=')
+                   and hide_processes_between_users else 'unhide' }}
+        PIDs between users"
+  mount:
+    src: proc
+    name: /proc
+    fstype: proc
+    opts: defaults,hidepid=2
+    dump: 0
+    passno: 0
+    state: "{{
+      'present' if ansible_kernel is version_compare('3.3', '>=')
+                   and hide_processes_between_users else 'absent' }}"
   when: ansible_kernel is version_compare('3.3', '>=') and
         hide_processes_between_users
-
-- name: unhide PIDs between users
-  mount: src=proc name=/proc fstype=proc opts=defaults,hidepid=2
-         dump=0 passno=0 state=absent
-  when: ansible_kernel is version_compare('3.3', '<') or
-        not hide_processes_between_users
-  # hotfix: tries to delete /proc ...
-  ignore_errors: yes
+  ignore_errors: "{{ ansible_kernel is version_compare('3.3', '<') or
+                     not hide_processes_between_users }}"

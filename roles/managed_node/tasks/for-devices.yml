@@ -1,12 +1,69 @@
-- name: check if this the remote machine runs Armbian
-  stat: path=/etc/armbian.txt
-  register: stat_armbian_txt_stat_result
+- name: install microcode packages
+  package:
+    name: "{{ item.key }}"
+    state: "{{ 'present' if item.value else 'absent' }}"
+  with_dict:
+    amd64-microcode: "{{ 'AuthenticAMD' in ansible_processor }}"
+    intel-microcode: "{{ 'GenuineIntel' in ansible_processor }}"
+
+
 
 - name: install firmware packages
   package:
     name: firmware-linux
     state: present
-  when: not stat_armbian_txt_stat_result.stat.exists
+  when: not armbian
+
+
+
+- name: un/install firmware updater
+  package:
+    name: fwupd
+    state: "{{ 'present' if use_fwupd else 'absent' }}"
+
+- name: disable firmware updater units (no unattended updates)
+  register: disable_fwupd_units_result
+  service:
+    name: "{{ item }}"
+    state: stopped
+    enabled: no
+  with_items:
+    - fwupd.service
+    - fwupd-refresh.timer
+    - fwupd-refresh.service
+  failed_when: disable_fwupd_units_result.state is not defined and
+               "Could not find" not in disable_fwupd_units_result.msg
+  when: use_fwupd
+
+- name: get firmware updates
+  register: fwupd_refresh_result
+  command: fwupdmgr refresh
+  failed_when: fwupd_refresh_result.rc not in [0, 2]
+  changed_when: fwupd_refresh_result.rc == 0
+  when: use_fwupd
+
+- name: apply firmware updates
+  register: fwupd_update_result
+  command: fwupdmgr update
+  failed_when: fwupd_update_result.rc not in [0, 2]
+  changed_when: "'Updating' in fwupd_update_result.stdout"
+  when: use_fwupd and fwupd_refresh_result.changed
+
+
+
+- name: check if the machine was booted using UEFI
+  register: stat_sys_firmware_efi_result
+  stat:
+    path: /sys/firmware/efi
+  when: support_for_secure_boot
+
+- name: un/install signed Secure Boot chain-loading bootloader
+  package:
+    name: shim-signed
+    state: "{{ 'present' if support_for_secure_boot
+                         and stat_sys_firmware_efi_result.stat.exists
+                else 'absent' }}"
+
 
 
 - name: install ``irqbalance`` on multi-core machines
@@ -20,6 +77,7 @@
     state: started
     enabled: yes
   when: ansible_processor_vcpus > 1
+
 
 
 - name: get Western Digital drives present

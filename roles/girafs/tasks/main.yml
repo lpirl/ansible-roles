@@ -42,6 +42,7 @@
 
 
     - name: install girafs
+      register: install_girafs_results
       pip:
         name: "{{ girafs_pip_url }}"
         executable: pip3
@@ -141,8 +142,9 @@
     name: girafs.service
     daemon_reload: "{{ add_girafs_service_result.changed }}"
     state: "{{
-      'restarted' if add_girafs_service_result.changed or
-                     write_girafs_config_result.changed
+      'restarted' if install_girafs_results.changed or
+                     write_girafs_config_result.changed or
+                     add_girafs_service_result.changed
       else 'started'
     }}"
     enabled: yes

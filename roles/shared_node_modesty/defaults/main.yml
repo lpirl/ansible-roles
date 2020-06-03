@@ -1,1 +1,0 @@
-random_integer_cmd: python -c 'import random as r; print(r.randint(1, 10))'

@@ -1,3 +1,4 @@
+- import_tasks: set-facts.yml
 - import_tasks: utils.yml
 - import_tasks: hardening.yml
 - import_tasks: sysctl.yml

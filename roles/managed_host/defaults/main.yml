@@ -8,7 +8,7 @@ use_logcheck: yes
 use_haveged: yes
 do_email_send_test: yes
 create_reports: yes
-use_process_accounting: yes
+use_process_accounting: "{{ ansible_virtualization_type != 'lxc' }}"
 hide_processes_between_users: yes
 
 postfix_global_options:
@@ -163,6 +163,7 @@ apt_release_priorities: {}
 # ssh
 #
 
+# regular expressions are supported
 ssh_client_and_server_extra_macs: []
 ssh_client_and_server_macs:
   - hmac-sha2-512-etm@openssh.com
@@ -173,11 +174,14 @@ ssh_client_and_server_macs:
   #- hmac-sha2-512
   #- hmac-sha2-256
 
+# regular expressions are supported
 ssh_client_and_server_extra_kex: []
 ssh_client_and_server_kex:
+  - sntrup4591761x25519-sha512@tinyssh.org
   - curve25519-sha256@libssh.org
   - diffie-hellman-group-exchange-sha256
 
+# regular expressions are supported
 ssh_client_and_server_extra_ciphers: []
 ssh_client_and_server_ciphers:
   - chacha20-poly1305@openssh.com
@@ -198,17 +202,6 @@ ssh_client_and_server_options:
   # reduce risk of TCP spoofing attacks
   TCPKeepAlive: "no"
 
-  Ciphers: "{{ (
-    ssh_client_and_server_ciphers + ssh_client_and_server_extra_ciphers
-  ) | join(',')}}"
-
-  KexAlgorithms: "{{ (
-    ssh_client_and_server_kex + ssh_client_and_server_extra_kex
-  ) | join(',')}}"
-
-  MACs: "{{ (
-    ssh_client_and_server_macs + ssh_client_and_server_extra_macs
-  ) | join(',')}}"
 
 ssh_server_extra_options: {}
 ssh_server_options:
@@ -266,10 +259,10 @@ ssh_server_options:
   PrintLastLog: "yes"
 
   # close sessions after this many unanswered alive messages
-  ClientAliveCountMax: 10
+  ClientAliveCountMax: 2
 
   # seconds after which unanswered alive message time out
-  ClientAliveInterval: 60
+  ClientAliveInterval: 10
 
   # check modes of files strictly
   StrictModes: "yes"
@@ -298,11 +291,15 @@ ssh_client_and_server_deprecated_options:
   - UsePrivilegeSeparation
   - UseRoaming
 
+# set to ``false`` to disable/remove a configuration for a service
 extra_service_priorities: {}
 service_priorities:
+  fail2ban: -10
   ssh: -5
   openntpd: 2
   smartd: 2
   lxc: 4
+  lxd: 4
+  snap.lxd.daemon: 4
   atd: 6
   cron: 8

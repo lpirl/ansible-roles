@@ -1,0 +1,225 @@
+- name: "{{ container_name }} : sanity check variables"
+  assert:
+    that:
+      - "container_name | default('') | string != ''"
+      - "container_conf.subnet4 | string | regex_search('[./0-9]+')
+         ==
+         container_conf.subnet4 | string"
+
+
+
+- name: "{{ container_name }} : add network bridge configuration file"
+  blockinfile:
+    dest: "/etc/network/interfaces.d/{{ container_bridge }}"
+    create: yes
+    block: |
+      # file managed by Ansible
+      # (role "lxc-host-unprivileged" of lpirl/ansible-roles)
+
+      allow-hotplug {{ container_bridge }}
+      auto {{ container_bridge }}
+      iface {{ container_bridge }} inet static
+        address {{ container_gateway }}/{{ container_subnet_prefix }}
+        mtu 9000
+        bridge_fd 0
+        bridge_stp off
+        bridge_maxwait 0
+        bridge_ports none
+  notify: restart networking
+
+
+
+- name: "{{ container_name }} : create user which will run unprivileged
+         containers"
+  user:
+    name: "{{ container_user }}"
+    group: "{{ lxc_group }}"
+    comment: runs unprivileged containers
+
+
+
+- name: "{{ container_name }} : allow user '{{ container_user }}' to use
+         bridge '{{ container_bridge }}'"
+  lineinfile:
+    path: /etc/lxc/lxc-usernet
+    create: yes
+    regexp: '^{{
+        container_user | regex_escape()
+      }}\s+.*\s+{{
+        container_bridge | regex_escape()
+      }}.*'
+    line: "{{ container_user }} veth {{ container_bridge }} 1"
+
+
+
+- name: "{{ container_name }} : get home directory of user"
+  register: container_user_home_result
+  shell: "readlink -fn ~{{ container_user }}"
+  changed_when: false
+
+
+
+- name: "{{ container_name }} : set home directory of user as fact"
+  set_fact:
+    container_user_home: "{{ container_user_home_result.stdout }}"
+
+
+
+- name: "{{ container_name }} : create user's lxc configuration directory"
+  file:
+    path: "{{ container_user_home }}/.config/lxc/"
+    state: directory
+  become: yes
+  become_user: "{{ container_user }}"
+
+
+
+# We do not use ``lineinfile`` to set configuration parameters from a
+# dictionary for the LXC configurations, because some keys are allowed
+# multiple times (e.g., ``lxc.mount.entry``) and thus, detecting the
+# right key to replace would be complex and error-prone.
+
+
+
+- name: "{{ container_name }} : set lxc configuration"
+  blockinfile:
+    dest: "{{ container_user_home }}/.config/lxc/lxc.conf"
+    create: yes
+    marker: "# {mark} ANSIBLE MANAGED main lxc configuration"
+    insertbefore: BOF
+    block: |
+      lxc.lxcpath = {{ container_user_home }}
+  become: yes
+  become_user: "{{ container_user }}"
+
+
+
+- name: "{{ container_name }} : write default lxc container configuration"
+  blockinfile:
+    dest: "{{ container_user_home }}/.config/lxc/default.conf"
+    create: yes
+    marker: "# {mark} ANSIBLE MANAGED BLOCK: main default configuration"
+    insertbefore: BOF
+    block: |
+      # Be aware that we provide this file only for ``lxc-create`` to
+      # have the configuration it needs to do its job (e.g., to know the
+      # (u|g)id mappings). After container creation, the container's
+      # configuration file will be deleted and re-written by us from
+      # scratch (i.e., via Ansible).
+
+      # We do this because ``lxc-start`` (or the template ``lxc-download``,
+      # I am not sure) is quite unpredictable in a way that it
+      # re-arranges the options specified in ``default.conf`` wildly.
+      # Hence, we drop the configuration file assembled by ``lxc-start``
+      # and set all options we need manually (using Ansible).
+      lxc.include = /etc/lxc/unprivileged/common.conf
+      lxc.include = {{ container_user_home }}/.config/lxc/idmaps.conf
+
+  become: yes
+  become_user: "{{ container_user }}"
+
+
+
+- name: "{{ container_name }} : sub(g|u)ids configuration"
+  include_tasks: _configure-subids.yml
+  with_items:
+    - subuid
+    - subgid
+
+
+
+- name: "{{ container_name }} : create container"
+  register: lxc_create_result
+  lxc_container:
+    name: "{{ container_name }}"
+    template: "{{ container_conf.template }}"
+    template_options: "{{ container_conf.template_options }}"
+    state: stopped
+  become: yes
+  become_user: "{{ container_user }}"
+
+
+
+# see ``/etc/lxc/unprivileged/default.conf`` for comments on why we
+# do this
+- name: "{{ container_name }} : drop the initially created
+         container configuration"
+  file:
+    path: "{{ container_user_home }}/{{ container_name }}/config"
+    state: absent
+  when: lxc_create_result.changed
+
+  become: yes
+  become_user: "{{ container_user }}"
+
+
+
+- name: "{{ container_name }} : set container configuration"
+  register: lxc_configure_result
+  blockinfile:
+    dest: "{{ container_user_home }}/{{ container_name }}/config"
+    create: yes
+    marker: "# {mark} ANSIBLE MANAGED container configuration"
+    insertafter: EOF
+    block: |
+      lxc.include = /etc/lxc/unprivileged/common.conf
+      lxc.include = {{ container_user_home}}/.config/lxc/idmaps.conf
+
+      lxc.uts.name = {{ container_name }}
+      lxc.rootfs.path = btrfs:{{ container_user_home}}/{{ container_name }}/rootfs
+      lxc.net.0.name = lxc-{{ container_name }}
+      lxc.net.0.link = {{ container_bridge }}
+      lxc.net.0.ipv4.address = {{ container_ip }}/{{ container_subnet_prefix }}
+      lxc.net.0.ipv4.gateway = {{ container_gateway }}
+
+      # ``lxc.start.auto = 1`` etc. does not work (out of the box) since
+      # there are no helpers (systemd service etc.) to automatically
+      # start unprivileged containers (we use the users' crontab
+      # instead).
+      # However, the following line ensures a pre-condition for starting
+      # containers (i.e., gateway must be reachable).
+      lxc.hook.pre-start = /opt/admintools/scripts/wait-for -p {{
+        container_gateway
+      }}
+
+  become: yes
+  become_user: "{{ container_user }}"
+
+
+
+# We use ``cat`` here since the {{ container_user }} is not allowed to
+# the rootfs of the container and a copy operation would mess with the
+# owner and permissions of the destination file.
+- name: "{{ container_name }} : copy host's resolv.conf to container"
+  register: update_resolvconf_result
+  shell: |
+    src="/etc/resolv.conf"
+    dst="{{ container_user_home }}/{{ container_name }}/rootfs/etc/resolv.conf"
+    diff "$src" "$dst" || cat "$src" > "$dst"
+  changed_when: update_resolvconf_result.stdout
+
+
+
+- name: force notified handlers to run (so we can start the container)
+  meta: flush_handlers
+
+
+
+- name: "{{ container_name }} : re/start reconfigured/created container"
+  lxc_container:
+    name: "{{ container_name }}"
+    state: restarted
+  when: lxc_create_result.changed or lxc_configure_result.changed
+  become: yes
+  become_user: "{{ container_user }}"
+
+
+
+- name: "{{ container_name }} : schedule automatic start via crontab"
+  cron:
+    name: "start container '{{ container_name }}' on boot"
+    special_time: reboot
+    job: "lxc-start {{ container_name }}"
+    state: "{{ 'present' if container_conf.autostart else 'absent' }}"
+  become: yes
+  become_user: "{{ container_user }}"

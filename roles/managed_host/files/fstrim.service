@@ -1,0 +1,19 @@
+# Stolen (and modified) from ``/lib/systemd/system/fstrim.service``
+# which is included in Debian's util-linux >= 2.34.
+
+[Unit]
+Description=discard unused blocks on file systems
+
+[Service]
+Type=oneshot
+ExecStart=/sbin/fstrim --all
+ProtectSystem=strict
+ProtectHome=yes
+PrivateDevices=no
+PrivateNetwork=yes
+PrivateUsers=no
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+MemoryDenyWriteExecute=yes
+SystemCallFilter=@default @file-system @basic-io @system-service

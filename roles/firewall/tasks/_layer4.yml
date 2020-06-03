@@ -1,0 +1,20 @@
+- name: "{{ outer_item.ip_version}} :
+         setup/tear down custom chains"
+  include_tasks: _iptables-custom-chain.yml
+  with_dict: "{{ outer_item.custom_chains }}"
+  vars:
+    table: "{{ item.value.table }}"
+    chain_name: "{{ item.key }}"
+    add_to_chain: "{{ item.value.add_to_chain }}"
+  loop_control:
+    label: "{{ item.key }}"
+
+- name: "{{ outer_item.ip_version}} :
+         configure rules"
+  iptables: "{{ {'comment': item.key}
+                | combine(item.value)
+                | combine({'ip_version': outer_item.ip_version }) }}"
+  with_dict: "{{ outer_item.rules }}"
+  loop_control:
+    label: "{{ item.key }}"
+  notify: "persist {{ outer_item.ip_version }} tables"

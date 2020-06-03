@@ -1,0 +1,36 @@
+- name: "{{ container_name }} : stop container"
+  lxc_container:
+    name: "{{ container_name }}"
+    state: stopped
+  failed_when: false
+  become: yes
+  become_user: "{{ container_user }}"
+
+
+
+- name: "{{ container_name }} : remove user (and it's home)"
+  user:
+    name: "{{ container_user }}"
+    state: absent
+    remove: yes
+
+
+
+- name: "{{ container_name }} : remove network bridge configuration file"
+  file:
+    path: "/etc/network/interfaces.d/lxc-br-{{ container_name }}"
+    state: absent
+  notify: restart networking
+
+
+
+- name: "{{ container_name }} : unconfigure access to bridge for user
+         '{{ container_bridge }}'"
+  lineinfile:
+    path: /etc/lxc/lxc-usernet
+    state: absent
+    regexp: '^{{
+        container_name | regex_escape()
+      }}\s+.*\s+{{
+        container_bridge | regex_escape()
+      }}.*'

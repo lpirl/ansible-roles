@@ -1,0 +1,30 @@
+- name: "get available SSH {{ ssh_config_option }}"
+  register: ssh_query_result
+  command: "ssh -Q {{ ssh_query_option }}"
+  changed_when: false
+
+- name: "intersect desired and available SSH {{ ssh_config_option }}"
+  set_fact:
+    _ssh_algorithms: "{{
+      (
+        _ssh_algorithms | default([]) + (
+          ssh_query_result.stdout_lines
+          | select('match', '^' ~ item | regex_escape ~ '$')
+          | list
+        )
+      ) | unique
+    }}"
+  with_items: "{{ preferred_values }}"
+
+- name: "set SSH {{ ssh_config_option }}"
+  lineinfile:
+    dest: "{{ item }}"
+    line: '{{ ssh_config_option }} {{ _ssh_algorithms | join(",") }}'
+    regexp: '^[\s#]*{{ ssh_config_option | regex_escape }}\s.*'
+  with_items:
+    - /etc/ssh/ssh_config
+    - /etc/ssh/sshd_config
+
+- name: unset temporary variable
+  set_fact:
+    _ssh_algorithms: []

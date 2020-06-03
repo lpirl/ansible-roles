@@ -1,0 +1,40 @@
+# the group for all users running unprivileged LXC containers
+lxc_group: lxc-unprivileged
+
+
+
+# Default values for nested dictionaries of ``lxc_containers``.
+lxc_container_defaults:
+  template: download
+  template_options: >-
+    --dist debian --release buster --arch amd64
+    --keyserver pool.sks-keyservers.net
+
+  # start container on boot via user crontab:
+  autostart: yes
+
+# you can use this variable to override individual keys in
+# ``lxc_container_defaults``
+lxc_container_defaults_extra: {}
+
+
+
+# Dictionary (of dictionaries) defining the containers to set up.
+# The **keys** are the container names,
+# the **values** the containers' properties.
+# The following keys are required/supported for the nested dictionaries:
+#   name (required): name of the container
+#   subnet (required): IPv6 subnet for the container (e.g., "fd01::/16")
+lxc_containers: {}
+
+  # example:
+  #mycontainer:
+  #  # IPs are assigned automatically: the container will get the fist
+  #  # IP of the subnet and the gateway the last one.
+  #  subnet4: 10.10.55.0/24
+
+# list of containers to delete
+# /!\ will be deleted permanently, including configuration, network, etc.
+lxc_containers_to_delete_permanently: []
+  # example:
+  #- mycontainer

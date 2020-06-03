@@ -10,6 +10,6 @@
     path: "{{ fail2ban_jails_config_file }}"
     section: "{{ fail2ban_jail_auto_enable.key }}"
     option: enabled
-    value: true
+    value: "true"
     state: "{{ 'present' if check_command_result.rc == 0 else 'absent'}}"
   notify: reload fail2ban

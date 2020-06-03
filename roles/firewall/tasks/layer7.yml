@@ -10,14 +10,14 @@
     state: present
     install_recommends: yes
 
-- name: load kernel module for ip_tables
+- name: load kernel module for iptables
   register: modprobe_iptables_result
   modprobe:
     name: ip_tables
     state: present
   notify: reload fail2ban
 
-- name: ensure kernel module for ip_tables is loaded at boot
+- name: ensure kernel module for iptables is loaded at boot
   lineinfile:
     path: /etc/modules
     line: ip_tables
@@ -33,6 +33,14 @@
     loop_var: section
   vars:
     config_file: "{{ fail2ban_config_file }}"
+
+- name: add extra fail2ban configuration files
+  blockinfile:
+    dest: "/etc/fail2ban/{{ item.path }}"
+    create: yes
+    block: "{{ lookup('file', item.src) }}"
+  when: item.state == 'file'
+  with_filetree: etc/fail2ban/
   notify: reload fail2ban
 
 - name: enable and start fail2ban
@@ -49,7 +57,6 @@
                  combine(fail2ban_jails_extra_auto_enable | default({})) }}"
   loop_control:
     loop_var: fail2ban_jail_auto_enable
-  notify: reload fail2ban
 
 - name: processing static Fail2ban jail configuration
   include_tasks: _fail2ban-write-config-section.yml
@@ -59,13 +66,12 @@
     loop_var: section
   vars:
     config_file: "{{ fail2ban_jails_config_file }}"
-  notify: reload fail2ban
 
 
 
 - name: get SSH port
   register: get_ssh_port_results
-  shell: sshd -T | grep -i '^port ' | cut -d" " -f2
+  shell: sshd -T -C user=root | grep -i '^port ' | cut -d" " -f2
   changed_when: false
 
 - name: set SSH port for fail2ban
@@ -78,4 +84,3 @@
   vars:
     config_file: "{{ fail2ban_jails_config_file }}"
   when: get_ssh_port_results is success
-  notify: reload fail2ban

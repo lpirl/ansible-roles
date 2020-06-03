@@ -1,0 +1,26 @@
+- name: check for currently persisted iptables
+  register: stat_rules_file_result
+  stat:
+    path: "{{ rules_file }}"
+
+- name: backup currently persisted iptables
+  copy:
+    remote_src: true
+    src: "{{ rules_file }}"
+    dest: "{{ rules_backup_file }}"
+  when: stat_rules_file_result.stat.exists
+
+- name: persist iptables
+  shell: "{{ dump_command|quote }} > {{ rules_file|quote }}"
+
+- name: schedule deletion of iptables backup file a year from now
+  at:
+    command: "rm -f {{ rules_backup_file|quote }}"
+    count: 365
+    units: days
+
+  # ``at`` might not be installed and that's okay
+  ignore_errors: true
+
+- name: workaround https://github.com/ansible/ansible/issues/29405
+  include_tasks: handlers/_iptables-workaround-29405.yml

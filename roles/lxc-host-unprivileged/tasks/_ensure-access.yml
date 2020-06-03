@@ -1,0 +1,13 @@
+# We'd rather prevent setting an ACL where we don't need it
+# (e.g. ``/`` is accessible anyway, so we do not want to add an ACL),
+# but how to find out? We'd need to run ``test`` in the user name space
+# but I could not get it to work with ``lxc-usernsexec``.
+
+- name: "{{ container_name }} : grant uid {{ uid }} rx rights to
+         direcotry '{{ dir }}'"
+  acl:
+    path: "{{ dir }}"
+    entity: "{{ uid }}"
+    etype: user
+    permissions: rx
+    state: present

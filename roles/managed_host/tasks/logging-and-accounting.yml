@@ -1,16 +1,15 @@
 - name: install packages for basic logging functionality
-  package: name="{{ item }}"
-  with_items:
-    - rsyslog
-    - logrotate
+  package:
+    name:
+      - rsyslog
+      - logrotate
 
 - name: "{{ 'install' if use_logcheck else 'uninstall' }} logcheck"
   apt:
-    package: "{{ item }}"
+    package:
+      - logcheck
+      - logcheck-database
     state: "{{ 'present' if use_logcheck else 'absent'}}"
-  with_items:
-    - logcheck
-    - logcheck-database
 
 - name: do not use FQDN in subject of logcheck emails
   lineinfile: line="FQDN=0"
@@ -33,7 +32,9 @@
   when: use_logcheck
 
 - name: remove broken symlinks from logcheck's configuration
-  shell: find /etc/logcheck -xtype l -delete
+  register: remove_broken_symlinks_results
+  shell: find /etc/logcheck -xtype l -delete -print
+  changed_when: remove_broken_symlinks_results.stdout_lines != ""
   when: use_logcheck
 
 
@@ -64,29 +65,47 @@
     compressoptions: -c '/opt/admintools/scripts/anonymize-log | gzip'
 
 
-- name: install packages for accounting
-  package: name="{{ item }}" state=present
+- name: "{{ 'remove' if not use_process_accounting else 'install' }}
+         packages for accounting"
+  package:
+    name: "{{ item }}"
+    state: "{{ 'present' if use_process_accounting else 'absent' }}"
+  with_items:
+    - acct
+    - sysstat
+
+# no need to disable the services here because the services will be
+# uninstalled in the previous step if not ``use_process_accounting``
+- name: enable services for accounting
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
   with_items:
     - acct
     - sysstat
   when: use_process_accounting
 
-- name: uninstall packages for accounting
-  package: name="{{ item }}" state=absent
-  with_items:
-    - acct
-    - sysstat
-  when: not use_process_accounting
 
-- name: enable accounting services
-  service: name="{{ item }}" enabled=yes state=started
-  with_items:
-    - acct
-    - sysstat
+
+- name: "{{ 'enable' if use_process_accounting else 'disable' }}
+         syscall auditing"
+  package:
+    name: auditd
+    state: "{{ 'present' if  use_process_accounting else 'absent' }}"
+
+- name: enable auditd
+  service:
+    name: auditd
+    state: started
+    enabled: yes
   when: use_process_accounting
+
+
 
 - name: enable sysstat in it's configuration file
-  lineinfile: dest=/etc/default/sysstat
-              line='ENABLED="true"'
-              regexp='^ENABLED\s*=.*'
-  when: use_process_accounting
+  lineinfile:
+    dest: /etc/default/sysstat
+    line: 'ENABLED="true"'
+    regexp: '^ENABLED\s*=.*'
+    state: "{{ 'present' if use_process_accounting else 'absent' }}"

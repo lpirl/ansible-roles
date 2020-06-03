@@ -1,0 +1,47 @@
+- name: make systemd timers behave more nicely
+  register: reduce_systemd_timer_accuracy
+  blockinfile:
+    dest: "/etc/systemd/system.conf.d/powersave.conf"
+    create: yes
+    mode: 644
+    block: |
+      # https://www.freedesktop.org/software/systemd/man/systemd-system.conf.html
+      [Manager]
+      DefaultTimerAccuracySec=1h
+  notify: reload systemd
+
+
+- name: get list of systemd units names belonging to timers
+  register: systemctl_list_timers_results
+  changed_when: false
+  shell: >
+    systemctl list-timers --all --no-legend
+    | grep -v '^n/a '
+    | awk '{print $(NF-1)}'
+    | sed 's/\.timer//'
+  notify: reload systemd
+
+- name: "add configuration to make systemd services belonging to
+         timers wait for AC"
+  register: add_service_override_file_results
+  blockinfile:
+    dest: "/etc/systemd/system/{{ item }}.service.d/powersave-wait-for-ac.conf"
+    create: yes
+    mode: 644
+    block: |
+      [Service]
+      DefaultTimeoutStartSec=24h
+      ExecStartPre=/opt/admintools/scripts/wait-for --ac
+  with_items: "{{ systemctl_list_timers_results.stdout_lines }}"
+  when: has_battery
+  notify: reload systemd
+
+- name: "remove configuration to make systemd services belonging to
+         timers wait for AC"
+  register: remove_service_override_file_results
+  file:
+    dest: "/etc/systemd/system/{{ item }}.service.d/powersave-wait-for-ac.conf"
+    state: absent
+  with_items: "{{ systemctl_list_timers_results.stdout_lines }}"
+  when: not has_battery
+  notify: reload systemd

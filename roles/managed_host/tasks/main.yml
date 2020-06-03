@@ -10,6 +10,10 @@
 # keep configuring packages to install other packages the second thing to do
 - import_tasks: apt-config.yml
 
+- import_tasks: apt-releases.yml
+  # we currently only support this for Debian:
+  when: ansible_distribution == "Debian"
+
 # before installing new packages, upgrade:
 - import_tasks: apt-upgrade.yml
 
@@ -17,7 +21,7 @@
 
 - import_tasks: apt-tools.yml
 
-- import_tasks: editor.yml
+- import_tasks: viewers-and-editors.yml
 
 - import_tasks: shell.yml
 
@@ -46,7 +50,7 @@
 
 - import_tasks: certbot.yml
 
-- import_tasks: accounts-hardening.yml
+- import_tasks: login-and-accounts.yml
 
 - import_tasks: file-system-maintenance.yml
 

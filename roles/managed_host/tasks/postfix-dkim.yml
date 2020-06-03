@@ -1,31 +1,33 @@
 # todo: set fact: extend postfix_dkim_keys with variables frequently
 # needed (path to key file etc.)
 
-- name: "{{ 'install' if postfix_dkim_keys else 'uninstall' }}
+- name: "{{ 'install' if postfix_dkim_keys | length else 'uninstall' }}
          packages required for DKIM"
   apt:
-    name: "{{ item }}"
+    name:
+      - opendkim
+      - opendkim-tools
     install_recommends: yes
-    state: "{{ 'present' if postfix_dkim_keys else 'absent' }}"
-  with_items:
-    - opendkim
-    - opendkim-tools
+    state: "{{ 'present' if postfix_dkim_keys | length else 'absent' }}"
 
-- name: enable opendkim service
-  service: name=opendkim enabled=yes
-  when: postfix_dkim_keys
 
 - name: add user postfix to group opendkim
-  user: name=postfix groups=opendkim append=yes
-  when: postfix_dkim_keys
+  user:
+    name: postfix
+    groups: opendkim
+    append: yes
+  when: postfix_dkim_keys | length
 
-- name: make opendkim directory in postfix chroot
+
+- name: create opendkim directory in postfix chroot
   file:
     path: /var/spool/postfix/opendkim
-    state: "{{ 'directory' if postfix_dkim_keys else 'absent' }}"
+    state: "{{ 'directory' if postfix_dkim_keys | length else 'absent' }}"
     mode: 0750
     owner: opendkim
     group: opendkim
+  when: postfix_dkim_keys | length
+
 
 - name: set options for opendkim
   lineinfile:
@@ -46,8 +48,9 @@
     SignHeaders: MIME-Version,In-Reply-To,References,From,Date,Message-ID,Subject,To,Cc
     KeyTable: "{{ postfix_dkim_keytable }}"
     SigningTable: "refile:{{ postfix_dkim_signingtable }}"
-  when: postfix_dkim_keys
+  when: postfix_dkim_keys | length
   notify: restart opendkim
+
 
 - name: write signing table
   lineinfile:
@@ -61,6 +64,8 @@
   with_dict: "{{ postfix_dkim_keys }}"
   loop_control:
     label: "{{ item.key }}"
+  notify: restart opendkim
+
 
 - name: write key table
   lineinfile:
@@ -74,6 +79,8 @@
   with_dict: "{{ postfix_dkim_keys }}"
   loop_control:
     label: "{{ item.key }}"
+  notify: restart opendkim
+
 
 - name: write key files
   blockinfile:
@@ -84,20 +91,12 @@
     insertafter: BOF
     owner: opendkim
     group: root
-  with_dict: "{{ postfix_dkim_keys }}"
-  loop_control:
-    label: "{{ item.key }}"
-
-- name: ensure permissions of key files
-  file:
-    dest: "/etc/dkimkeys/{{ item.key }}_{{ item.value.selector }}.private"
-    state: file
-    owner: opendkim
-    group: root
     mode: 0400
   with_dict: "{{ postfix_dkim_keys }}"
   loop_control:
     label: "{{ item.key }}"
+  notify: restart opendkim
+
 
 - name: set daemon defaults for opendkim
   register: set_opendkim_daemon_options
@@ -110,20 +109,34 @@
   with_dict:
     SOCKET: "/var/spool/postfix/opendkim/opendkim.sock"
   notify: restart opendkim
-  when: postfix_dkim_keys
+  when: postfix_dkim_keys | length
+
 
 - name: regenerate opendkim service file
   command: /lib/opendkim/opendkim.service.generate
-  when: "postfix_dkim_keys and
+  when: "postfix_dkim_keys | length and
          set_opendkim_daemon_options is changed and
          ansible_distribution == 'Debian'"
   notify: reload systemd daemon
 
+
+- name: enable and start opendkim service
+  service:
+    name: opendkim
+    enabled: yes
+    state: started
+  when: postfix_dkim_keys | length
+
+
 - name: set options for postfix and opendkim
-  lineinfile: dest=/etc/postfix/main.cf
-              regexp="^{{ item.key }}\s*"
-              line="{{ item.key }} = {{ item.value }}"
-              state=present create=yes owner=root mode=0644
+  lineinfile:
+    dest: /etc/postfix/main.cf
+    regexp: '^{{ item.key }}\s*'
+    line: "{{ item.key }} = {{ item.value }}"
+    state: present
+    create: yes
+    owner: root
+    mode: 0644
   with_dict:
     milter_default_action: accept
     milter_protocol: 2
@@ -131,16 +144,21 @@
                          postfix_extra_smtpd_milters) | join(' ')}}"
     non_smtpd_milters: "{{ (['unix:opendkim/opendkim.sock'] +
                              postfix_extra_non_smtpd_milters) | join(' ') }}"
-  when: postfix_dkim_keys
+  when: postfix_dkim_keys | length
   notify: restart postfix
 
+
 - name: unset options for postfix and opendkim
-  lineinfile: dest=/etc/postfix/main.cf
-              regexp="^{{ item.key }}\s*"
-              line="{{ item.key }} = {{ item.value }}"
-              state=present create=yes owner=root mode=0644
+  lineinfile:
+    dest: /etc/postfix/main.cf
+    regexp: '^{{ item.key }}\s*'
+    line: "{{ item.key }} = {{ item.value }}"
+    state: present
+    create: yes
+    owner: root
+    mode: 0644
   with_dict:
     smtpd_milters: "{{ postfix_extra_smtpd_milters | join(' ') }}"
     non_smtpd_milters: "{{ postfix_extra_non_smtpd_milters | join(' ') }}"
-  when: not postfix_dkim_keys
+  when: not postfix_dkim_keys | length
   notify: restart postfix

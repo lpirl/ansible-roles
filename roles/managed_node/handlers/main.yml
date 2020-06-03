@@ -10,3 +10,7 @@
     subject: "{{ ansible_fqdn }} needs a reboot (Grub updated) EOM"
     body: " "
   notify: grub updated
+
+- name: reload systemd daemon
+  command: systemctl daemon-reload
+  when: ansible_service_mgr == "systemd"

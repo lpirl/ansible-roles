@@ -1,2 +1,6 @@
-- name: install lshw
-  apt: package=lshw
+- name: install packages for getting hardware information
+  package:
+    name:
+      - lshw
+      - usb.ids
+      - usbutils

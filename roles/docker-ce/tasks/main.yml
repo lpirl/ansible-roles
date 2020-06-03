@@ -1,0 +1,76 @@
+- name: install prerequisites
+  package:
+    name:
+      - ca-certificates
+      - apt-transport-https
+
+- name: add apt key
+  register: add_key_result
+  apt_key:
+    url: "https://download.docker.com/linux/{{
+        ansible_distribution | lower
+        }}/gpg"
+
+- name: add apt repository
+  register: add_repository_result
+  apt_repository:
+    repo: >
+      deb https://download.docker.com/linux/{{
+        ansible_distribution | lower
+      }} {{
+        ansible_distribution_release
+      }} stable
+    filename: docker.list
+
+- name: pin docker-ce packages to Docker origin
+  blockinfile:
+    dest: /etc/apt/preferences.d/pin-docker
+    create: yes
+    mode: "0640"
+    block: |
+      Explanation: prefer GitLab-provided packages
+      Package: containerd.io docker-ce docker-ce-*
+      Pin: origin docker.com
+      Pin-Priority: 1001
+
+- name: install Docker packages
+  register: install_docker_result
+  package:
+    name:
+      - docker-ce
+      - docker-ce-cli
+    update_cache: "{{
+      add_key_result.changed or add_repository_result.changed
+    }}"
+
+- name: if we are in LXC and run btrfs, check if mount option
+        user_subvol_rm_allowed is present
+  block:
+
+    - name: get mountpoint of /var/lib
+      register: var_lib_mount_point_result
+      command: df --output=target /var/lib
+      failed_when: false
+      changed_when: false
+
+    - name: check for mount option user_subvol_rm_allowed for btrfs file
+            system at /var/lib
+      assert:
+        quiet: true
+        that:
+          - "{{ item.fstype != 'btrfs' or
+                'user_subvol_rm_allowed' in item.options }}"
+      when: item.mount == var_lib_mount_point_result.stdout_lines.1
+      with_items: "{{ ansible_mounts }}"
+      loop_control:
+        label: "{{ item.mount }}"
+
+  when: ansible_virtualization_type == 'lxc'
+
+- name: enable and start service
+  service:
+    name: docker
+    enabled: yes
+    state: "{{
+      'restarted' if  install_docker_result.changed else 'started'
+    }}"
