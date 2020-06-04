@@ -1,3 +1,15 @@
+- name: load watchdog kernel module on boot
+  blockinfile:
+    path: /etc/modules
+    marker: '# {mark} ANSIBLE MANAGED BLOCK (watchdog)'
+    block: watchdog
+    state: "{{ 'pre' if use_watchdog else 'ab' }}sent"
+
+- name: load watchdog kernel module
+  modprobe:
+    name: watchdog
+  when: use_watchdog
+
 - name: install software watchdog
   package:
     name: watchdog
@@ -11,8 +23,9 @@
     state: present
   with_dict: "{{ watchdog_global_options |
                  combine(watchdog_extra_options | default({})) }}"
+  notify: restart watchdog
 
-- name: enable watchdog service
+- name: disable/enable watchdog service
   service:
     name: watchdog
     state: "{{ 'start' if use_watchdog else 'stopp' }}ed"

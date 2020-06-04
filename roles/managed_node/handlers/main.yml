@@ -14,3 +14,9 @@
 - name: reload systemd daemon
   command: systemctl daemon-reload
   when: ansible_service_mgr == "systemd"
+
+- name: restart watchdog
+  service:
+    name: watchdog
+    state: restarted
+  when: use_watchdog

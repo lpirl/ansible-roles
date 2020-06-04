@@ -24,19 +24,30 @@ needs_firewire_storage: no
 use_watchdog: yes
 watchdog_extra_options: {} # use this variable to override settings
 watchdog_global_options:
-  # how often watchdogs checks (seconds):
+
+  # the system should respond to non-realtime tasks as well
+  # (esp. because we have an very generous intervals and timeouts)
+  "realtime": "no"
+
+  # this enables support for keep alive
+  "watchdog-device": "/dev/watchdog"
+
+  # seconds to sleep between checks and writes to watchdog device:
   "interval": 57
-  # allow no writes to watchdog device before rebooting (seconds):
+
+  # reboot after not receiving a write to watchdog device (seconds):
   "watchdog-timeout": 120
 
-  # allow errors to persist before rebooting (seconds)
+  # seconds to allow errors from user space tests to persist before
+  # rebooting:
   "retry-timeout": 300
 
-  # yes, load can (legitimately) be *very* high
-  # under e.g., a lot of memory/swap pressure – use liberal defaults
-  "max-load-1": "{{ ansible_processor_vcpus * 32 }}"
-  "max-load-5": "{{ ansible_processor_vcpus * 16 }}"
-  "max-load-15": "{{ ansible_processor_vcpus * 8 }}"
+  # max-load-* deactivated intentionally: worst case values depend on
+  # workload. Thus, we solely rely on the check if this
+  # watchdog gets scheduled and can do its job regularly (see above).
+  "max-load-1": 0
+  "max-load-5": 0
+  "max-load-15": 0
 
 # Example to extend/override this list (put something like the following
 # in your variables):
