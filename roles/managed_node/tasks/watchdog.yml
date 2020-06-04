@@ -1,16 +1,4 @@
-- name: load watchdog kernel module on boot
-  blockinfile:
-    path: /etc/modules
-    marker: '# {mark} ANSIBLE MANAGED BLOCK (watchdog)'
-    block: watchdog
-    state: "{{ 'pre' if use_watchdog else 'ab' }}sent"
-
-- name: load watchdog kernel module
-  modprobe:
-    name: watchdog
-  when: use_watchdog
-
-- name: install software watchdog
+- name: install user space watchdog
   package:
     name: watchdog
     state: "{{ 'pre' if use_watchdog else 'ab' }}sent"
