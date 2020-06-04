@@ -21,20 +21,6 @@
     name: fwupd
     state: "{{ 'present' if use_fwupd else 'absent' }}"
 
-- name: disable firmware updater units (no unattended updates)
-  register: disable_fwupd_units_result
-  service:
-    name: "{{ item }}"
-    state: stopped
-    enabled: no
-  with_items:
-    - fwupd.service
-    - fwupd-refresh.timer
-    - fwupd-refresh.service
-  failed_when: disable_fwupd_units_result.state is not defined and
-               "Could not find" not in disable_fwupd_units_result.msg
-  when: use_fwupd
-
 - name: get firmware updates
   register: fwupd_refresh_result
   command: fwupdmgr refresh
@@ -48,6 +34,20 @@
   failed_when: fwupd_update_result.rc not in [0, 2]
   changed_when: "'Updating' in fwupd_update_result.stdout"
   when: use_fwupd and fwupd_refresh_result.changed
+
+- name: disable firmware updater units (no unattended updates)
+  register: disable_fwupd_units_result
+  service:
+    name: "{{ item }}"
+    state: stopped
+    enabled: no
+  with_items:
+    - fwupd.service
+    - fwupd-refresh.timer
+    - fwupd-refresh.service
+  failed_when: disable_fwupd_units_result.state is not defined and
+               "Could not find" not in disable_fwupd_units_result.msg
+  when: use_fwupd
 
 
 
