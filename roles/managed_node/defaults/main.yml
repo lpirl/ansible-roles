@@ -52,10 +52,10 @@ hardware_analysis_and_monitoring_packages:
 # use this variable to override defaults:
 sysctld_files_from_admintools_to_link_extra: {}
 sysctld_files_from_admintools_to_link:
+  95-panics-and-lockups.conf: link
   90-hardening.conf: link
   80-net-tuning.conf: link
   70-memory-management.conf: link
-  50-reboot-on-panic.conf: link
 
   # deprecated Feb 2019
   70-numa-tuning.conf: absent

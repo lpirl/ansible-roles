@@ -18,3 +18,9 @@
 # 20-03-26
 - name: remove firmware updater systemd units overrides
   command: find /etc/systemd -wholename '*fwupd*/ansible.conf' -delete
+
+# 20-06-04
+- name: remove renamed sysctl configuration (reboot on panic)
+  file:
+    dest: /etc/sysctl.d/50-reboot-on-panic.conf
+    state: absent
