@@ -15,8 +15,13 @@
   command: systemctl daemon-reload
   when: ansible_service_mgr == "systemd"
 
+# fails every 2nd time, probably Debain Bug #772826
 - name: restart watchdog
+  register: restart_watchdog_result
   service:
     name: watchdog
     state: restarted
   when: use_watchdog
+  until: restart_watchdog_result is not failed
+  retries: 3
+  delay: 1
