@@ -1,4 +1,4 @@
-- name: install software watchdog
+- name: install user space watchdog
   package:
     name: watchdog
     state: "{{ 'pre' if use_watchdog else 'ab' }}sent"
@@ -11,8 +11,9 @@
     state: present
   with_dict: "{{ watchdog_global_options |
                  combine(watchdog_extra_options | default({})) }}"
+  notify: restart watchdog
 
-- name: enable watchdog service
+- name: disable/enable watchdog service
   service:
     name: watchdog
     state: "{{ 'start' if use_watchdog else 'stopp' }}ed"
