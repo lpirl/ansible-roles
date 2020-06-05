@@ -1,4 +1,4 @@
-- name: make systemd timers behave more nicely
+- name: make systemd timers less accurate
   register: reduce_systemd_timer_accuracy
   blockinfile:
     dest: "/etc/systemd/system.conf.d/powersave.conf"
