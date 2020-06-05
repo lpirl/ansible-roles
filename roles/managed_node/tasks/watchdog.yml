@@ -1,7 +1,8 @@
 - name: install user space watchdog
   package:
     name: watchdog
-    state: "{{ 'pre' if use_watchdog else 'ab' }}sent"
+    state: "{{ 'present' if use_watchdog else 'absent' }}"
+  notify: start/restart/stop watchdog service
 
 - name: configure watchdog
   lineinfile:
@@ -11,10 +12,5 @@
     state: present
   with_dict: "{{ watchdog_global_options |
                  combine(watchdog_extra_options | default({})) }}"
-  notify: restart watchdog
-
-- name: disable/enable watchdog service
-  service:
-    name: watchdog
-    state: "{{ 'start' if use_watchdog else 'stopp' }}ed"
-    enabled: "{{ use_watchdog }}"
+  when: use_watchdog
+  notify: start/restart/stop watchdog service

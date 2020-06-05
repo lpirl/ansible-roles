@@ -16,12 +16,12 @@
   when: ansible_service_mgr == "systemd"
 
 # fails every 2nd time, probably Debain Bug #772826
-- name: restart watchdog
-  register: restart_watchdog_result
+- name: start/restart/stop watchdog service
+  register: watchdog_service_result
   service:
     name: watchdog
-    state: restarted
-  when: use_watchdog
-  until: restart_watchdog_result is not failed
+    state: "{{ 'restarted' if use_watchdog else 'stopped' }}"
+    enabled: "{{ use_watchdog }}"
+  until: watchdog_service_result is not failed
   retries: 3
   delay: 1
