@@ -20,7 +20,7 @@
       }} main
     filename: gitlab-runner.list
 
-- name: pin GitLab runner to be GitLab as origin
+- name: pin GitLab runner service to GitLab as origin
   blockinfile:
     dest: /etc/apt/preferences.d/pin-gitlab-runner
     create: yes
@@ -31,7 +31,7 @@
       Pin: origin packages.gitlab.com
       Pin-Priority: 1001
 
-- name: install GitLab runner
+- name: install GitLab runner service
   register: install_gitlab_runner
   apt:
     name: gitlab-runner
@@ -39,54 +39,18 @@
       add_key_result.changed or add_repository_result.changed
     }}"
 
-- name: start GitLab runner
-  service:
-    name: gitlab-runner
-    state: "{{
-      'restarted' if install_gitlab_runner.changed else 'started'
-    }}"
-    enabled: yes
-
-- name: check required variables for registering the runner
-  assert:
-    quiet: yes
-    that:
-      - "{{ item }} is defined"
-    fail_msg: "please set the ``{{ item }}`` variable to use this role"
-  with_items:
-    - gitlab_runner_api_url
-    - gitlab_runner_registration_token
-
-- name: check for runner name in configuration file
-  register: get_runners_result
-  shell: gitlab-runner list 2>&1 | tail -n +3 | cut -d" " -f1
-  changed_when: false
-
-- name: register the runner
-  command: >
-    gitlab-runner register
-    --non-interactive
-    --url "{{ gitlab_runner_api_url }}"
-    --registration-token "{{ gitlab_runner_registration_token }}"
-    --executor "docker"
-    --docker-image debian:stable-slim
-    --description "{{ gitlab_runner_description }}"
-    --tag-list "{{ gitlab_runner_tag_list | join (',') }}"
-    --run-untagged="{{ gitlab_runner_run_untagged }}"
-    --locked="{{ gitlab_runner_locked }}"
-    --access-level="{{ gitlab_runner_access_level }}"
-  when: gitlab_runner_description not in get_runners_result.stdout_lines
-
 - name: configure global runner options
+  register: configure_docker_global_options_result
   lineinfile:
     dest: /etc/gitlab-runner/config.toml
     regexp: '\s*{{ item.key | regex_escape }}\s*='
     line: '{{ item.key }} = {{ item.value }}'
     insertbefore: bof
   with_dict:
-    "concurrent": "{{ gitlab_runner_concurrent }}"
+    "concurrent": "{{ gitlab_runners_concurrent }}"
 
 - name: configure Docker executor options
+  register: configure_docker_executor_options_result
   lineinfile:
     path: /etc/gitlab-runner/config.toml
     insertafter: '^\s*\[runners.docker\]'
@@ -94,8 +58,8 @@
     line: "{{ item.key }} = {{ item.value }}"
   with_dict:
     'privileged': "false"
-    'memory': '"{{ gitlab_runner_docker_memory_limit }}"'
-    'cpus': '"{{ gitlab_runner_docker_cpus }}"'
+    'memory': '"{{ gitlab_runners_memory_limit }}"'
+    'cpus': '"{{ gitlab_runners_cpus }}"'
 
 # to clean up, but also to work around
 # https://gitlab.com/gitlab-org/gitlab-runner/issues/3802
@@ -107,3 +71,34 @@
     replace: '\1'
   delay: 0
   until: not remove_empty_sections_result.changed
+
+- name: start GitLab runner service
+  service:
+    name: gitlab-runner
+    state: "{{
+      'restarted' if
+        install_gitlab_runner.changed or
+        configure_docker_global_options_result.changed or
+        configure_docker_executor_options_result.changed or
+        remove_empty_sections_result.changed
+      else 'started'
+    }}"
+    enabled: yes
+
+
+- name: get list of existing runners
+  register: get_runners_result
+  shell: gitlab-runner list 2>&1 | tail -n +3 | cut -d" " -f1
+  changed_when: false
+
+- name: configure single runner instance
+  include_tasks: _configure-runner.yml
+  vars:
+    runner_description: "{{ runner_item.key }}"
+    runner_configuration: "{{
+      gitlab_runner_defaults | combine(runner_item.value)
+    }}"
+  when: runner_description not in get_runners_result.stdout_lines
+  with_dict: "{{ gitlab_runners }}"
+  loop_control:
+    loop_var: runner_item

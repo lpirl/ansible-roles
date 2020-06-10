@@ -1,0 +1,25 @@
+- name: check required variables for registering the runner
+  assert:
+    quiet: yes
+    that:
+      - item in runner_configuration
+    fail_msg: >
+      please set
+      ``gitlab_runners["{{ runner_description }}"]["{{ item }}"]``
+  with_items:
+    - api_url
+    - registration_token
+
+- name: register the runner
+  command: >
+    gitlab-runner register
+    --non-interactive
+    --url "{{ runner_configuration.api_url }}"
+    --registration-token "{{ runner_configuration.registration_token }}"
+    --executor "docker"
+    --docker-image debian:stable-slim
+    --description "{{ runner_description }}"
+    --tag-list "{{ runner_configuration.tag_list | join (',') }}"
+    --run-untagged="{{ runner_configuration.run_untagged }}"
+    --locked="{{ runner_configuration.locked }}"
+    --access-level="{{ runner_configuration.access_level }}"
