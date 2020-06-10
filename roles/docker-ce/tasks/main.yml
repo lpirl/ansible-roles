@@ -7,20 +7,17 @@
 - name: add apt key
   register: add_key_result
   apt_key:
-    url: "https://download.docker.com/linux/{{
-        ansible_distribution | lower
-        }}/gpg"
+    url: "{{ docker_apt_repository_url }}/gpg"
 
 - name: add apt repository
   register: add_repository_result
   apt_repository:
-    repo: >
-      deb https://download.docker.com/linux/{{
-        ansible_distribution | lower
-      }} {{
-        ansible_distribution_release
-      }} stable
-    filename: docker.list
+    repo: >-
+      deb
+      {{ docker_apt_repository_url }}
+      {{ docker_apt_repository_suite }}
+      {{ docker_apt_repository_components }}
+    filename: docker
 
 - name: pin docker-ce packages to Docker origin
   blockinfile:

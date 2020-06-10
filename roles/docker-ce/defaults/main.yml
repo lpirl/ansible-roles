@@ -1,0 +1,5 @@
+docker_apt_repository_url: >-
+  https://download.docker.com/linux/{{ ansible_distribution | lower }}
+
+docker_apt_repository_suite: "{{ ansible_distribution_release }}"
+docker_apt_repository_components: stable
