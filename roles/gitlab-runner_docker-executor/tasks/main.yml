@@ -18,7 +18,7 @@
       }}/ {{
         ansible_distribution_release
       }} main
-    filename: gitlab-runner.list
+    filename: gitlab-runner
 
 - name: pin GitLab runner service to GitLab as origin
   blockinfile:
