@@ -4,6 +4,12 @@
       - ca-certificates
       - apt-transport-https
 
+      # as of June 2020, gitlab-runner seems just recommends (not
+      # requires) this dependency,which leads to a warning during
+      # installation, which leads to a unusable runner which throws
+      # opaque errors ("pull access denied for gitlab-runner-helper")
+      - cdebootstrap
+
 - name: add apt key
   register: add_key_result
   apt_key:
