@@ -303,3 +303,10 @@ service_priorities:
   snap.lxd.daemon: 4
   atd: 6
   cron: 8
+
+system_information_packages:
+  usb.ids:    present
+  lshw:       present
+  usbutils:   present
+
+system_information_packages_extra: {}
