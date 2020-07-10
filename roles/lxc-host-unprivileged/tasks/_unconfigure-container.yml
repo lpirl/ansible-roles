@@ -14,6 +14,16 @@
     state: absent
     remove: yes
 
+- name: "{{ container_name }} : remove the user's crontab"
+  register: remove_crontab_result
+  command: crontab -ru "{{ container_user }}"
+  failed_when: >
+    remove_crontab_result.rc != 0
+    and (
+    "no crontab for {{ container_user }}" not in remove_crontab_result.stdout
+    or "user `{{ container_user }}' unknown" not in remove_crontab_result.stdout
+    )
+
 
 
 - name: "{{ container_name }} : remove network bridge configuration file"
