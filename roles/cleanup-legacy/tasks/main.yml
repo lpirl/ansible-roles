@@ -24,3 +24,7 @@
   file:
     dest: /etc/sysctl.d/50-reboot-on-panic.conf
     state: absent
+
+- name: remove /etc/apt/sources.d/*list.list files
+  file:
+    shell: rm /etc/apt/sources.d/*list.list
