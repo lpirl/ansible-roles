@@ -32,11 +32,14 @@ watchdog_global_options:
   # this enables support for keep alive
   "watchdog-device": "/dev/watchdog"
 
+  # in pages, page size typically 4 kB
+  "allocatable-memory": 1024
+
   # seconds to sleep between checks and writes to watchdog device:
   "interval": 57
 
   # reboot after not receiving a write to watchdog device (seconds):
-  "watchdog-timeout": 120
+  "watchdog-timeout": 300
 
   # seconds to allow errors from user space tests to persist before
   # rebooting:

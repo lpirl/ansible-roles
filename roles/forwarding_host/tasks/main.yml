@@ -16,7 +16,7 @@
 - name: enable netfilter/iptable rules on bridges (at boot)
   blockinfile:
     dest: /etc/modules-load.d/netfilter-bridges.conf
-    block: >
+    block: |
       # this module enables netfilter/iptable rules on bridges
       # (which makes them behave more consistently)
       br_netfilter
