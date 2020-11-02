@@ -12,3 +12,5 @@
   with_items:
     - apt-daily.timer
     - apt-daily-upgrade.timer
+  register: apt_timer_service_result
+  failed_when: "apt_timer_service_result is failed and 'Could not find the requested service' not in apt_timer_service_result.msg"
