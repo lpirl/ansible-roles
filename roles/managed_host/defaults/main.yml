@@ -305,7 +305,8 @@ service_priorities:
   cron: 8
 
 system_information_packages:
-  usb.ids:    present
+  usb.ids:    "{{ 'present' if ansible_distribution != 'Debain' or
+                  ansible_distribution_version is version(10, '>=')}}"
   lshw:       present
   usbutils:   present
 
