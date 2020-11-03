@@ -71,7 +71,7 @@
 
 - name: get SSH port
   register: get_ssh_port_results
-  shell: sshd -T -C user=root | grep -i '^port ' | cut -d" " -f2
+  shell: sshd -T -C user=root,host=localhost,addr=localhost | grep -i '^port ' | cut -d" " -f2
   changed_when: false
 
 - name: set SSH port for fail2ban
