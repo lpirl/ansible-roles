@@ -1,8 +1,12 @@
 - name: install zsh
-  package: name=zsh state=present
+  package:
+    name: zsh
+    state: present
 
-- stat: path=/etc/zsh/zshrc
+- name: stat system-wide zsh configuration
   register: conf_stat
+  stat:
+    path: /etc/zsh/zshrc
 
 - name: backup and remove zsh configuration
   command: "mv /etc/zsh/zshrc
@@ -10,27 +14,43 @@
   when: conf_stat.stat.islnk is defined and conf_stat.stat.islnk == False
 
 - name: provide system wide zsh configuration
-  file: src=/opt/admintools/etc/zsh/zshrc
-        dest=/etc/zsh/zshrc
-        state=link
+  file:
+    src: /opt/admintools/etc/zsh/zshrc
+    dest: /etc/zsh/zshrc
+    state: link
 
 - name: make zsh the default shell for new users (adduser)
-  lineinfile: dest=/etc/adduser.conf
-              regexp='^DSHELL='
-              line='DSHELL=/usr/bin/zsh'
-              state=present
+  lineinfile:
+    dest: /etc/adduser.conf
+    regexp: '^DSHELL='
+    line: 'DSHELL=/usr/bin/zsh'
+    state: present
 
 - name: make zsh the default shell for new users (useradd)
-  lineinfile: dest=/etc/default/useradd
-              regexp='^SHELL='
-              line='SHELL=/usr/bin/zsh'
-              state=present
+  lineinfile:
+    dest: /etc/default/useradd
+    regexp: '^SHELL='
+    line: 'SHELL=/usr/bin/zsh'
+    state: present
+
+- name: get user ID of user used to log in
+  set_fact:
+    login_user: >-
+      {{ ansible_env.SUDO_USER | default(ansible_user_id) }}
+
+- name: check if login user is a local user
+  register: login_user_local_check
+  command: "egrep '^{{ login_user }}' /etc/passwd"
+  changed_when: false
+  failed_when: login_user_local_check.rc not in [0, 1]
 
 - name: set zsh as shell for non-root user
   user:
-    name: '{{ ansible_env.SUDO_USER|default(ansible_user_id) }}'
+    name: '{{ login_user }}'
     shell: /usr/bin/zsh
-  when: ansible_env.SUDO_USER|default(ansible_user_id) != "root"
+  when: login_user_local_check.rc == 0
 
 - name: set zsh as shell for root
-  user: name=root shell=/usr/bin/zsh
+  user:
+    name: root
+    shell: /usr/bin/zsh
