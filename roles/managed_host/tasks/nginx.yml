@@ -27,7 +27,6 @@
           }}
         state: present
         block: "{{ lookup('file', item) }}"
-        force: yes
         create: yes
       with_fileglob:
         - nginx/conf.d/*.conf
