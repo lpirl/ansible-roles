@@ -62,6 +62,7 @@
     name: shim-signed
     state: "{{ 'present' if support_for_secure_boot
                          and stat_sys_firmware_efi_result.stat.exists
+                         and ansible_distribution_version is version(10, '>=')
                 else 'absent' }}"
 
 
