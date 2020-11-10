@@ -76,7 +76,7 @@
 
 - name: un/install btrfs file system utilities
   package:
-    name: "{{ 'btrfs-tools' if ansible_distribution == 'Debain' and
+    name: "{{ 'btrfs-tools' if ansible_distribution == 'Debian' and
                             ansible_distribution_version is version(8, '<=')
               else 'btrfs-progs' }}" 
     state: "{{ 'present' if get_btrfs_mount_points_results.stdout != ''
