@@ -2,3 +2,4 @@
   file: src=/opt/admintools/gitconfig
         dest=~/.gitconfig
         state=link
+  when: git_config

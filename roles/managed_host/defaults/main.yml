@@ -311,3 +311,5 @@ system_information_packages:
   usbutils:   present
 
 system_information_packages_extra: {}
+
+git_config: no
