@@ -16,6 +16,13 @@
 
 
 
+# somewhere pre-Buster, the dependency fwupd → dbus has been missing
+- name: install dbus for firmware updater
+  package:
+    name: dbus
+  # we don't uninstall dbus if not use_fwupd – too risky
+  when: use_fwupd
+
 - name: un/install firmware updater
   package:
     name: fwupd
