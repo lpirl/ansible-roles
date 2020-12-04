@@ -10,10 +10,10 @@ rsync_backup_wait_for_args_extra: ""
 arpwatch_enabled: yes
 use_process_accounting: yes
 
-# fwupd is broken in Stretch, unfortunately
+# fwupd is broken in Stretch and unavailable pre Stretch, unfortunately
 use_fwupd: "{{
   ansible_distribution != 'Debain'
-  or ansible_distribution_version is version(10, '>=')
+  or ansible_distribution_version | int is version(10, '>=')
 }}"
 
 support_for_secure_boot: yes
