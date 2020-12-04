@@ -108,3 +108,23 @@
   with_dict: "{{ gitlab_runners }}"
   loop_control:
     loop_var: runner_item
+
+
+- name: schedule cleanup of stale Docker resources
+  cron:
+    job: "{{ item.value }}"
+    name: >-
+      clean up stale Docker {{ item.key }} (left over by GitLab runner)
+    special_time: monthly
+  with_dict:
+
+    # Filter "until" not supported for volumes. That's why we clean up
+    # everything except volumes with the "until" filter and volumes
+    # separately.
+
+    containers: >-
+      docker system prune -f --filter "label!=keep" --filter "until=2400h"
+      --all > /dev/null
+    volumes: >-
+      docker volume prune -f --filter "label!=keep"
+      > /dev/null
