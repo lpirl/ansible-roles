@@ -19,10 +19,10 @@
   command: crontab -ru "{{ container_user }}"
   failed_when: >
     remove_crontab_result.rc != 0
-    and (
-    "no crontab for {{ container_user }}" not in remove_crontab_result.stdout
-    or "user `{{ container_user }}' unknown" not in remove_crontab_result.stdout
-    )
+    and
+    "no crontab for {{ container_user }}" not in remove_crontab_result.stderr
+    and
+    "user `{{ container_user }}' unknown" not in remove_crontab_result.stderr
 
 
 
