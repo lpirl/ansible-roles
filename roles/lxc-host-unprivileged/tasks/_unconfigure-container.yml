@@ -8,12 +8,6 @@
 
 
 
-- name: "{{ container_name }} : remove user (and it's home)"
-  user:
-    name: "{{ container_user }}"
-    state: absent
-    remove: yes
-
 - name: "{{ container_name }} : remove the user's crontab"
   register: remove_crontab_result
   command: crontab -ru "{{ container_user }}"
@@ -23,6 +17,12 @@
     "no crontab for {{ container_user }}" not in remove_crontab_result.stderr
     and
     "user `{{ container_user }}' unknown" not in remove_crontab_result.stderr
+
+- name: "{{ container_name }} : remove user (and it's home)"
+  user:
+    name: "{{ container_user }}"
+    state: absent
+    remove: yes
 
 
 
