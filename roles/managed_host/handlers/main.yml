@@ -35,3 +35,14 @@
 
 - name: update apt cache
   apt: update_cache=yes
+
+# Not using the "mail" module here, since setting apt releases happens
+# very early in the Playbook, earlier than installing and configuring
+# the server. This can lead to undeliverable email via localhost:25.
+# Using sendmail instead delivers to a local directory and the email
+# server will take care of (re)delivering once its configuration works.
+- name: notify root about empty /etc/apt/sources.list
+  shell: >
+    echo -n 'Contents:\n"""\n{{ cat_sources_list_result.stdout }}\n"""\n'
+    | mail -s "/etc/apt/sources.list apparently empty – consider
+    deleting this file" root

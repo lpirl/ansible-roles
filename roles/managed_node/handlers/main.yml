@@ -1,5 +1,5 @@
 - name: sysctl reload
-  command: sysctl -p
+  command: sysctl --system
 
 - name: update grub
   command: update-grub
@@ -14,3 +14,14 @@
 - name: reload systemd daemon
   command: systemctl daemon-reload
   when: ansible_service_mgr == "systemd"
+
+# fails every 2nd time, probably Debain Bug #772826
+- name: start/restart/stop watchdog service
+  register: watchdog_service_result
+  service:
+    name: watchdog
+    state: "{{ 'restarted' if use_watchdog else 'stopped' }}"
+    enabled: "{{ use_watchdog }}"
+  until: watchdog_service_result is not failed
+  retries: 3
+  delay: 1

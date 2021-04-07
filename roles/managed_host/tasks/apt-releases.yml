@@ -50,20 +50,8 @@
 - name: get contents of /etc/apt/sources.list
   register: cat_sources_list_result
   shell: cat /etc/apt/sources.list
-  changed_when: false
+  changed_when: not cat_sources_list_result.stdout
+                | regex_findall('^(?!\s*#).*$', multiline=True)
   failed_when: false
-  tags: [report]
-
-- name: notify root of empty /etc/apt/sources.list via email
-  mail:
-    subject: consider deleting apparently empty file
-             /etc/apt/sources.list
-    body: |
-      Contents:
-      """
-      {{ cat_sources_list_result.stdout }}
-      """
-      EOM
-  when: not cat_sources_list_result.stdout
-            | regex_findall('^(?!\s*#).*$', multiline=True)
+  notify: notify root about empty /etc/apt/sources.list
   tags: [report]

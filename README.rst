@@ -18,9 +18,9 @@ This repository contains Ansible roles.
 The roles cover most of my administrative tasks and configurations
 (which have to be fulfilled/applied more than once).
 
-The roles are developed mainly for Debian(-based) systems. So Ubuntu
-might also work or, at least, almost work. Other distributions probably
-won't work.
+The roles are developed mainly for Debian(-based) systems. The stable
+and oldstable releases should work. Ubuntu might also work or, at
+least, almost work. Other distributions probably won't work.
 
 The roles are intended to be somewhat reusable,
 but please do not apply them blindly.

@@ -2,6 +2,7 @@
   assert:
     that:
       - "container_name | default('') | string != ''"
+      - "container_conf is mapping"
       - "container_conf.subnet4 | string | regex_search('[./0-9]+')
          ==
          container_conf.subnet4 | string"
@@ -167,7 +168,7 @@
 
       lxc.uts.name = {{ container_name }}
       lxc.rootfs.path = btrfs:{{ container_user_home}}/{{ container_name }}/rootfs
-      lxc.net.0.name = lxc-{{ container_name }}
+      lxc.net.0.name = lxc-{{ container_name | truncate(11, True, '', 0) }}
       lxc.net.0.link = {{ container_bridge }}
       lxc.net.0.ipv4.address = {{ container_ip }}/{{ container_subnet_prefix }}
       lxc.net.0.ipv4.gateway = {{ container_gateway }}

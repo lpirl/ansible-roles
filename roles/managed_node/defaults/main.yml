@@ -10,10 +10,10 @@ rsync_backup_wait_for_args_extra: ""
 arpwatch_enabled: yes
 use_process_accounting: yes
 
-# fwupd is broken in Stretch, unfortunately
+# fwupd is broken in Stretch and unavailable pre Stretch, unfortunately
 use_fwupd: "{{
   ansible_distribution != 'Debain'
-  or ansible_distribution_version is version(10, '>=')
+  or ansible_distribution_version | int is version(10, '>=')
 }}"
 
 support_for_secure_boot: yes
@@ -24,19 +24,33 @@ needs_firewire_storage: no
 use_watchdog: yes
 watchdog_extra_options: {} # use this variable to override settings
 watchdog_global_options:
-  # how often watchdogs checks (seconds):
-  "interval": 57
-  # allow no writes to watchdog device before rebooting (seconds):
-  "watchdog-timeout": 120
 
-  # allow errors to persist before rebooting (seconds)
+  # the system should respond to non-realtime tasks as well
+  # (esp. because we have an very generous intervals and timeouts)
+  "realtime": "no"
+
+  # this enables support for keep alive
+  "watchdog-device": "/dev/watchdog"
+
+  # in pages, page size typically 4 kB
+  "allocatable-memory": 1024
+
+  # seconds to sleep between checks and writes to watchdog device:
+  "interval": 57
+
+  # reboot after not receiving a write to watchdog device (seconds):
+  "watchdog-timeout": 300
+
+  # seconds to allow errors from user space tests to persist before
+  # rebooting:
   "retry-timeout": 300
 
-  # yes, load can (legitimately) be *very* high
-  # under e.g., a lot of memory/swap pressure – use liberal defaults
-  "max-load-1": "{{ ansible_processor_vcpus * 32 }}"
-  "max-load-5": "{{ ansible_processor_vcpus * 16 }}"
-  "max-load-15": "{{ ansible_processor_vcpus * 8 }}"
+  # max-load-* deactivated intentionally: worst case values depend on
+  # workload. Thus, we solely rely on the check if this
+  # watchdog gets scheduled and can do its job regularly (see above).
+  "max-load-1": 0
+  "max-load-5": 0
+  "max-load-15": 0
 
 # Example to extend/override this list (put something like the following
 # in your variables):
@@ -52,10 +66,9 @@ hardware_analysis_and_monitoring_packages:
 # use this variable to override defaults:
 sysctld_files_from_admintools_to_link_extra: {}
 sysctld_files_from_admintools_to_link:
+  95-panics-and-lockups.conf: link
   90-hardening.conf: link
   80-net-tuning.conf: link
-  70-memory-management.conf: link
-  50-reboot-on-panic.conf: link
 
   # deprecated Feb 2019
   70-numa-tuning.conf: absent

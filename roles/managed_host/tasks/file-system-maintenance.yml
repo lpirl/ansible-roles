@@ -99,6 +99,10 @@
   command: find /home -xdev -maxdepth 2 -type d -name .cache
   changed_when: false
 
+  # network-mounted homes might fail but this task is not important
+  # enough to annoy users with failures – show failures but continue
+  ignore_errors: true
+
 - name: disable copy-on-write for well-known cache directories
   register: disable_cow_results
   file:

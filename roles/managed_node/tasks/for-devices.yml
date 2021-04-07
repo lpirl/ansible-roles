@@ -16,10 +16,36 @@
 
 
 
+# somewhere pre-Buster, the dependency fwupd → dbus has been missing
+- name: install dbus for firmware updater
+  package:
+    name: dbus
+  # we don't uninstall dbus if not use_fwupd – too risky
+  when: use_fwupd
+
 - name: un/install firmware updater
   package:
     name: fwupd
     state: "{{ 'present' if use_fwupd else 'absent' }}"
+
+- name: get firmware updates
+  register: fwupd_refresh_result
+  command: fwupdmgr refresh
+  failed_when: fwupd_refresh_result.rc not in [0, 2]
+  changed_when: fwupd_refresh_result.rc == 0
+  when: use_fwupd
+
+- name: apply firmware updates
+  register: fwupd_update_result
+  command: fwupdmgr update
+
+  # pre Buster, fwupdmgr didn't consistently gave rc 2 if nothing to do
+  failed_when: >-
+    fwupd_update_result.rc not in [0, 2]
+    and "Nothing to do" not in fwupd_update_result.stdout
+
+  changed_when: "'Updating' in fwupd_update_result.stdout"
+  when: use_fwupd and fwupd_refresh_result.changed
 
 - name: disable firmware updater units (no unattended updates)
   register: disable_fwupd_units_result
@@ -34,20 +60,6 @@
   failed_when: disable_fwupd_units_result.state is not defined and
                "Could not find" not in disable_fwupd_units_result.msg
   when: use_fwupd
-
-- name: get firmware updates
-  register: fwupd_refresh_result
-  command: fwupdmgr refresh
-  failed_when: fwupd_refresh_result.rc not in [0, 2]
-  changed_when: fwupd_refresh_result.rc == 0
-  when: use_fwupd
-
-- name: apply firmware updates
-  register: fwupd_update_result
-  command: fwupdmgr update
-  failed_when: fwupd_update_result.rc not in [0, 2]
-  changed_when: "'Updating' in fwupd_update_result.stdout"
-  when: use_fwupd and fwupd_refresh_result.changed
 
 
 

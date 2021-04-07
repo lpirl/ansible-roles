@@ -1,6 +1,7 @@
 - name: install packages for getting hardware information
+  register: install_hw_info_packages_result
   package:
-    name:
-      - lshw
-      - usb.ids
-      - usbutils
+    name: "{{ item.key }}"
+    state: "{{ item.value }}"
+  with_dict: "{{ system_information_packages
+                 | combine(system_information_packages_extra) }}"

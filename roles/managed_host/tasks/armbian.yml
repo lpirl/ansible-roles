@@ -1,12 +1,3 @@
-- name: "Armbian: force network interface to 100Mbps (1Gps appears to be
-        defective)"
-  lineinfile:
-    dest: /etc/rc.local
-    line: "ethtool -s {{ item }} autoneg off speed 100 duplex full"
-    insertbefore: exit 0
-  when: item is match("eth.+")
-  with_items: "{{ ansible_interfaces }}"
-
 - name: "Armbian: increase boot verbosity"
   lineinfile:
     dest: /boot/armbianEnv.txt

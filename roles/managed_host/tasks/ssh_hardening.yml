@@ -32,7 +32,7 @@
 - name: remove problematically formatted default SSH option
   lineinfile:
     dest: /etc/ssh/sshd_config
-    regexp: "^Subsystem\t"
+    regexp: "(?i)^Subsystem\t"
     state: absent
 
 
@@ -40,7 +40,7 @@
   lineinfile:
     dest: "/etc/ssh/sshd_config"
     line: "{{ item.key }} {{ item.value }}"
-    regexp: '^[#\s]*{{ item.key|regex_escape }}\s.*'
+    regexp: '(?i)^[#\s]*{{ item.key|regex_escape }}\s.*'
     insertbefore: '^Match\s.*'
   with_dict: "{{
     {} |
@@ -56,7 +56,7 @@
   lineinfile:
     dest: "/etc/ssh/ssh_config"
     line: "{{ item.key }} {{ item.value }}"
-    regexp: '^[#\s]*{{ item.key|regex_escape }}\s.*'
+    regexp: '(?i)^[#\s]*{{ item.key|regex_escape }}\s.*'
     insertbefore: '^Match\s.*'
   with_dict: "{{
     {} |
@@ -70,7 +70,7 @@
 - name: unset deprecated options
   lineinfile:
     dest: "/etc/ssh/{{ item[0] }}_config"
-    regexp: '[#\s]*{{ item[1]|regex_escape }}\s.*'
+    regexp: '(?i)^[#\s]*{{ item[1]|regex_escape }}\s.*'
     state: absent
   with_nested:
     - [ssh, sshd]
@@ -119,7 +119,7 @@
 - name: disable bad host key DSA
   lineinfile:
     state: absent
-    regexp: '^\s*HostKey\s.*_dsa_.*'
+    regexp: '(?i)^\s*HostKey\s.*_dsa_.*'
     dest: '/etc/ssh/sshd_config'
   notify: restart sshd
 
@@ -139,7 +139,7 @@
     - name: disable bad host key ECDSA
       lineinfile:
         dest: "/etc/ssh/sshd_config"
-        regexp: '^\s*HostKey\s.*_ecdsa_.*'
+        regexp: '(?i)^\s*HostKey\s.*_ecdsa_.*'
         state: absent
       notify: restart sshd
 

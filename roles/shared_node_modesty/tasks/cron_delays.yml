@@ -5,7 +5,7 @@
     content: |
       #!/bin/sh
       sleep $(
-        python -c 'import random as r; print(
+        {{ ansible_python.executable }} -c 'import random as r; print(
           r.randint({{ item.value.min }}, {{ item.value.max }})
         )'
       )m
