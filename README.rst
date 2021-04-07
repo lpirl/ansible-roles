@@ -1,3 +1,15 @@
+**Deprecation notice**: The roles in this repository have been
+migrated to the following repositories:
+
+* https://gitlab.com/lpirl/ansible-roles-generic
+* https://gitlab.com/lpirl/ansible-roles-specific
+* https://gitlab.com/lpirl/ansible-roles-personal
+
+in higher quality and higher consistency.
+
+For systems not yet configured by the roles from this repository,
+it is recommended to employ the rewritten roles.
+
 some Ansible roles
 ==================
 

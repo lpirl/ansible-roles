@@ -211,6 +211,11 @@ fail2ban_jails_config:
   DEFAULT:
     bantime: 1800
 
+    # increase bantime by 1, 2, 4, 8, …
+    bantime.increment: "true"
+    # consider the "history" of an IP over all jails for time increments
+    bantime.overalljails: "true"
+
     # window for ``maxretry``
     findtime: 1810
     # retries before banning a host:
